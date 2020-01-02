@@ -110,9 +110,6 @@ struct vehicle {
 	int frames{ 0 };
 	int colmeshes{ 0 };
 	int meshes{ 0 };
-	vehicle() = default;
-	vehicle(const vehicle&) = delete;
-	vehicle(vehicle&&) = default;
 };
 static_assert(std::is_move_constructible_v<vehicle>);
 struct players {
