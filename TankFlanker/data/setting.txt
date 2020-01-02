@@ -1,6 +1,7 @@
 usegrab=1
 ANTI=1
 YSync=1
+fps=60.f
 windowmode=1
 drawdist=400
 groundx=16

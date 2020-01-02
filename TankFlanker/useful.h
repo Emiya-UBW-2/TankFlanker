@@ -14,20 +14,14 @@
 #define y_r(p1)			( (int)(p1) *dispy/ 1080)
 //ƒ}ƒEƒX”»’è
 #define inm(x1,y1,x2,y2)	(mousex >= x1 && mousex <= x2 && mousey >= y1 && mousey <= y2)
-
-#define deg2rad(p1)	(DX_PI_F/180*(p1))
-#define differential(p1,p2,p3) p1+=((p2)-p1)*(p3)
+#define deg2rad(p1)		(DX_PI_F/180*(p1))
+#define differential(p1,p2,p3)	p1+=((p2)-p1)*(p3)
 #ifndef INCLUDED_useful_h_
 #define INCLUDED_useful_h_
 
-struct sorts {
-	int turn = 0;
-	float distance = 0.f;
-};
+typedef std::pair<int, float> pair;
 
-void quick_sort(sorts sort[], int left, int right);
-const char* getstr(const char* p1, int p2, const char* p3);
-const char* getstr_2(const char* p1, std::string p2, const char* p3);
 std::string getright(char* p1);
 
 #endif
+

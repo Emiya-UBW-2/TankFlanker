@@ -6,13 +6,14 @@ Myclass::Myclass() {
 	WIN32_FIND_DATA win32fdt;
 	HANDLE hFind;
 	char mstr[64];								/*tank*/
-	int mdata;								/*tank*/
+	int mdata;							/*tank*/
 
 	SetOutApplicationLogValidFlag(FALSE);					/*log*/
 	mdata = FileRead_open("data/setting.txt", FALSE);
 	FileRead_gets(mstr, 64, mdata); usegrab		= (bool)atof(getright(mstr).c_str());
 	FileRead_gets(mstr, 64, mdata); ANTI		= (unsigned char)atof(getright(mstr).c_str());
 	FileRead_gets(mstr, 64, mdata); YSync		= (bool)atof(getright(mstr).c_str());
+	FileRead_gets(mstr, 64, mdata); if (YSync) { f_rate = 60.f; } else { f_rate = (float)atof(getright(mstr).c_str()); }
 	FileRead_gets(mstr, 64, mdata); windowmode	= (bool)atof(getright(mstr).c_str());
 	FileRead_gets(mstr, 64, mdata); drawdist	= (float)atof(getright(mstr).c_str());
 	FileRead_gets(mstr, 64, mdata); gndx		= (int)atof(getright(mstr).c_str());
@@ -58,7 +59,8 @@ Myclass::Myclass() {
 	}//else{ return false; }
 	FindClose(hFind);
 	for (j = 0; j < vehc; ++j) {
-		mdata = FileRead_open(getstr_2("data/tanks/", vecs[j].name, "/data.txt"), FALSE);
+		tempname = "data/tanks/"+ vecs[j].name+ "/data.txt";
+		mdata = FileRead_open(tempname.c_str(), FALSE);
 		FileRead_gets(mstr, 64, mdata); vecs[j].countryc = (int)(atof(getright(mstr).c_str()));
 		for (i = 0; i < 4; ++i) {
 			FileRead_gets(mstr, 64, mdata); vecs[j].spdflont[3 - i] = (float)atof(getright(mstr).c_str()) / 3.6f;
@@ -74,8 +76,8 @@ Myclass::Myclass() {
 		for (i = 0; i < 4; ++i) {
 			FileRead_gets(mstr, 64, mdata); vecs[j].gun_lim_[i] = deg2rad((float)atof(getright(mstr).c_str()));
 		}
-		FileRead_gets(mstr, 64, mdata); vecs[j].gun_RD = deg2rad((float)atof(getright(mstr).c_str()));
-		FileRead_gets(mstr, 64, mdata); vecs[j].reloadtime[0] = (int)(atof(getright(mstr).c_str())*frate);
+		FileRead_gets(mstr, 64, mdata); vecs[j].gun_RD = deg2rad((float)atof(getright(mstr).c_str()))/f_rate;
+		FileRead_gets(mstr, 64, mdata); vecs[j].reloadtime[0] = (int)(atof(getright(mstr).c_str())*f_rate);
 		vecs[j].reloadtime[1] = 10;
 		FileRead_gets(mstr, 64, mdata); vecs[j].ammosize = (float)atof(getright(mstr).c_str()) / 1000.f;
 		for (i = 0; i < 3; ++i) {
@@ -87,19 +89,22 @@ Myclass::Myclass() {
 	}
 	SetUseASyncLoadFlag(TRUE);
 		for (j = 0; j < vehc; ++j) {
-			vecs[j].model = MV1LoadModel(getstr_2("data/tanks/", vecs[j].name, "/model.mv1"));
-			vecs[j].colmodel = MV1LoadModel(getstr_2("data/tanks/", vecs[j].name, "/col.mv1"));
-			vecs[j].inmodel = MV1LoadModel(getstr_2("data/tanks/", vecs[j].name, "/in/model.mv1"));
+			tempname = "data/tanks/" + vecs[j].name + "/model.mv1";
+			vecs[j].model = MV1LoadModel(tempname.c_str());
+			tempname = "data/tanks/" + vecs[j].name + "/col.mv1";
+			vecs[j].colmodel = MV1LoadModel(tempname.c_str());
+			tempname = "data/tanks/" + vecs[j].name + "/in/model.mv1";
+			vecs[j].inmodel = MV1LoadModel(tempname.c_str());
 		}
 		for (j = 0; j < 13; ++j) {
 			if (j < 1) { tempname = "data/audio/se/engine/shift.wav"; }
-			else if (j < 8) { tempname = getstr("data/audio/se/eject/", j - 1, ".wav"); }
-			else if (j < 13) { tempname = getstr("data/audio/se/load/", j - 8, ".wav"); }
-			tempname = tempname;
+			else if (j < 8) { tempname = "data/audio/se/eject/" + std::to_string(j - 1) + ".wav"; }
+			else if (j < 13) { tempname = "data/audio/se/load/" + std::to_string(j - 8) + ".wav"; }
 			se_[j] = LoadSoundMem(tempname.c_str());
 		}
 		for (j = 0; j < 4; ++j) {
-			ui_reload[j] = LoadGraph(getstr("data/ui/ammo_", j, ".bmp"));
+			tempname = "data/ui/ammo_" + std::to_string(j) + ".bmp";
+			ui_reload[j] = LoadGraph(tempname.c_str());
 		}		/*弾0,弾1,弾2,空弾*/
 	SetUseASyncLoadFlag(FALSE);
 	//return true;
@@ -123,13 +128,15 @@ bool Myclass::set_fonts(int arg_num, ...) {
 	return true;
 }
 bool Myclass::set_veh(void) {
+	std::string tempname;
 	int i, j, k;
 	LONGLONG waits;								/*時間取得*/
-	int font18 = CreateFontToHandle(NULL, x_r(18), y_r(18 / 3), DX_FONTTYPE_ANTIALIASING);
 	for (j = 0; j < vehc; ++j) {
 		vecs[j].meshes = MV1GetMeshNum(vecs[j].model);
-		vecs[j].colmeshes = MV1GetMeshNum(vecs[j].colmodel);
 		vecs[j].frames = MV1GetFrameNum(vecs[j].model);
+		vecs[j].colmeshes = MV1GetMeshNum(vecs[j].colmodel);
+	}
+	for (j = 0; j < vehc; ++j) {
 		vecs[j].loc = new VECTOR[vecs[j].frames]; if (vecs[j].loc == NULL) { return false; }
 		for (i = 0; i < vecs[j].frames; ++i) { vecs[j].loc[i] = MV1GetFramePosition(vecs[j].model, i); }
 		for (i = 0; i < 4; ++i) { vecs[j].coloc[i] = MV1GetFramePosition(vecs[j].colmodel, 5 + i); }
@@ -139,31 +146,31 @@ bool Myclass::set_veh(void) {
 	for (j = 0; j < effects; ++j) {
 		i = 0;
 		while (ProcessMessage() == 0) {
-			effHndle[j] = LoadEffekseerEffect(getstr("data/effect/", j, ".efk"));
+			tempname = "data/effect/" + std::to_string(j) + ".efk";
+			effHndle[j] = LoadEffekseerEffect(tempname.c_str());
 			i++;
 
 			waits = GetNowHiPerformanceCount();
 			SetDrawScreen(DX_SCREEN_BACK);
-			DrawFormatStringToHandle(0, y_r(18 * k), GetColor(0, 255, 0), font18, "エフェクト読み込み中…%d/%d", j, effects);//
+			DrawFormatString(0, (18 * k), GetColor(0, 255, 0), "エフェクト読み込み中…%d/%d", j, effects);//
 			if (effHndle[j] != -1) {
-				k++; DrawFormatStringToHandle(0, y_r(18 * k), GetColor(255, 255, 0), font18, "エフェクト読み込み成功…%d", j);
+				k++; DrawFormatString(0, (18 * k), GetColor(255, 255, 0), "エフェクト読み込み成功…%d", j);
 			}
-			if (i > frate) {
-				k++; DrawFormatStringToHandle(0, y_r(18 * k), GetColor(255, 0, 0), font18, "エフェクト読み込み失敗…%d", j);
+			if (i > f_rate) {
+				k++; DrawFormatString(0, (18 * k), GetColor(255, 0, 0), "エフェクト読み込み失敗…%d", j);
 			}
 			Screen_Flip(waits);
 			if (effHndle[j] != -1) { break; }
-			if (i > frate) { break; }
+			if (i > f_rate) { break; }
 		}
 		k++;
 	}
-	DeleteFontToHandle(font18);
 	i = 0;
 	while (ProcessMessage() == 0) {
 		waits = GetNowHiPerformanceCount();
 		Screen_Flip(waits);
 		i++;
-		if (i > frate) { break; }
+		if (i > f_rate) { break; }
 	}
 	return true;
 }
@@ -265,7 +272,7 @@ void Myclass::set_view_r(void) {
 }
 void Myclass::Screen_Flip(LONGLONG waits){
 	ScreenFlip();
-	if (!YSync) { do {} while (GetNowHiPerformanceCount() - waits < 1000000.0f / frate); }
+	if (!YSync) { do {} while (GetNowHiPerformanceCount() - waits < 1000000.0f / f_rate); }
 }
 Myclass::~Myclass() {
 	int j;
@@ -299,11 +306,12 @@ void Myclass::play_sound(int p1) {
 	PlaySoundMem(se_[p1], DX_PLAYTYPE_BACK, TRUE);
 }
 //
-HUMANS::HUMANS(bool useg){
+HUMANS::HUMANS(bool useg,float frates){
 	usegrab = useg;
+	f_rate = frates;
 }
 void HUMANS::set_humans(int inmod) {
-	std::string tempname = "結月ゆかり";
+	std::string tempname = "結月ゆかり",tempname2;
 	int i, j;
 	//load
 	SetUseASyncLoadFlag(FALSE);
@@ -316,7 +324,9 @@ void HUMANS::set_humans(int inmod) {
 	for (i = 0; i < human; ++i) {
 		if (usegrab) { MV1SetLoadModelUsePhysicsMode(DX_LOADMODEL_PHYSICS_REALTIME); }
 		else { MV1SetLoadModelUsePhysicsMode(DX_LOADMODEL_PHYSICS_LOADCALC); }
-		hum[i].obj = MV1LoadModel(getstr_2("data/chara/", tempname, "/model.mv1"));
+
+		tempname2 = "data/chara/" + tempname + "/model.mv1";
+		hum[i].obj = MV1LoadModel(tempname2.c_str());
 	}
 	//
 	for (i = 0; i < human; ++i) {
@@ -335,7 +345,8 @@ void HUMANS::set_humans(int inmod) {
 	for (i = 0; i < voice; ++i) {
 		hum[0].voices[i] = MV1AttachAnim(hum[0].obj, animes + i, -1, TRUE);
 		hum[0].voicealltime[i] = MV1GetAttachAnimTotalTime(hum[0].obj, hum[0].voices[i]);
-		hum[0].vsound[i] = LoadSoundMem(getstr(getstr_2("data/chara/", tempname, "/"), i, ".wav"));
+		tempname2 = "data/chara/" + tempname + "/" + std::to_string(i) + ".wav";
+		hum[0].vsound[i] = LoadSoundMem(tempname2.c_str());
 	}
 	//
 	MV1SetMatrix(inmodel_handle, MGetTranslate(VGet(0, 0, 0)));
@@ -357,21 +368,28 @@ void HUMANS::set_humanvc_vol(unsigned char size) {
 }
 void HUMANS::set_humanmove(players player, VECTOR rad, float fps) {
 	float tmpft, tmpfy;
-	int i, j, divi = 2;
-	MATRIX mtemp;
+	int i, j,inflm=inflames;
+	bool grab = usegrab;
 	if (!first) { MV1SetMatrix(inmodel_handle, player.ps_m); }
-	for (i = 0; i < inflames; ++i) {
+	for (i = 0; i < inflm; ++i) {
 		posold[i] = MV1GetFramePosition(inmodel_handle, i);
 	}
 	MV1SetMatrix(inmodel_handle, player.ps_m);
-	for (i = 0; i < inflames; ++i) {
-		mtemp = MGetTranslate(locin[i]);
-		if (i == bone_trt) { mtemp = player.ps_t; }
-		if (i == bone_gun1) { mtemp = MMult(MMult(MGetRotX(player.gunrad.y), MGetTranslate(VSub(locin[i], locin[bone_trt]))), player.ps_t); }
-		if (i == bone_gun2) { mtemp = MGetTranslate(VAdd(VSub(player.ptr->loc[i], player.ptr->loc[bone_gun1]), VGet(0, 0, player.fired))); }
-		if (i == bone_hatch || i == bone_in_turret || i == 9 || i == 10) { mtemp = MMult(MMult(MGetRotY(player.gunrad.x), MGetTranslate(VSub(locin[i], locin[bone_trt]))), player.ps_t); }
-		MV1SetFrameUserLocalMatrix(inmodel_handle, i, mtemp);
+	for (i = 0; i < inflm; ++i) {
+		if (i == bone_trt) {
+			MV1SetFrameUserLocalMatrix(inmodel_handle, i, player.ps_t);
+		}
+		else if (i == bone_gun1) {
+			MV1SetFrameUserLocalMatrix(inmodel_handle, i, MMult(MMult(MGetRotX(player.gunrad.y), MGetTranslate(VSub(locin[i], locin[bone_trt]))), player.ps_t));
+		}
+		else if (i == bone_gun2) {
+			MV1SetFrameUserLocalMatrix(inmodel_handle, i, MGetTranslate(VAdd(VSub(player.ptr->loc[i], player.ptr->loc[bone_gun1]), VGet(0, 0, player.fired))));
+		}
+		else if (i >= bone_hatch &&( i != 9 || i != 10 )) {
+			MV1SetFrameUserLocalMatrix(inmodel_handle, i, MMult(MMult(MGetRotY(player.gunrad.x), MGetTranslate(VSub(locin[i], locin[bone_trt]))), player.ps_t));
+		}
 	}
+
 	if (rad.z >= 0.1f) { in_f = false; }
 	if (rad.z == 0.1f && !in_f) {
 		for (j = 1; j < human; ++j) { MV1PhysicsResetState(hum[j].obj); }
@@ -380,11 +398,9 @@ void HUMANS::set_humanmove(players player, VECTOR rad, float fps) {
 	for (i = 0; i < human; ++i) {
 		if (i == 0) {
 			hum[i].per[0] = 0.f;
-			if (player.speed >= 30.f / 3.6f) { hum[i].per[1] += (1.0f - hum[i].per[1]) * 0.1f; }
-			else { hum[i].per[1] *= 0.9f; }			/*座る*/
+			if (player.speed >= 30.f / 3.6f) { hum[i].per[1] += (1.0f - hum[i].per[1]) * 0.1f; } else { hum[i].per[1] *= 0.9f; }			/*座る*/
 			hum[i].per[2] = 1.f;
-			if (hum[i].vflug == -1) { hum[i].per[3] *= 0.9f; }
-			else { hum[i].per[3] += (1.0f - hum[i].per[3]) * 0.1f; } hum[i].per[0] = 1.0f - hum[i].per[3];			/*無線*/
+			if (hum[i].vflug == -1) { hum[i].per[3] *= 0.9f; } else { hum[i].per[3] += (1.0f - hum[i].per[3]) * 0.1f; } hum[i].per[0] = 1.0f - hum[i].per[3];			/*無線*/
 		}
 		else {
 			hum[i].per[0] = 1.f;
@@ -410,7 +426,7 @@ void HUMANS::set_humanmove(players player, VECTOR rad, float fps) {
 				if (hum[i].vflug != -1) {
 					if (hum[i].voicetime < hum[i].voicealltime[hum[i].vflug]) {
 						if (hum[i].voicetime == 0.0f) { PlaySoundMem(hum[i].vsound[hum[i].vflug], DX_PLAYTYPE_BACK, TRUE); }
-						MV1SetAttachAnimTime(hum[i].obj, hum[i].voices[hum[i].vflug], hum[i].voicetime); hum[i].voicetime += 60.0f / frate / divi;//
+						MV1SetAttachAnimTime(hum[i].obj, hum[i].voices[hum[i].vflug], hum[i].voicetime); hum[i].voicetime += 60.0f / divi / f_rate;//
 					}
 					else {
 						hum[i].vflug = -1;
@@ -420,11 +436,11 @@ void HUMANS::set_humanmove(players player, VECTOR rad, float fps) {
 			}
 			for (j = 0; j < animes; ++j) {
 				MV1SetAttachAnimBlendRate(hum[i].obj, hum[i].amine[j], hum[i].per[j]);
-				MV1SetAttachAnimTime(hum[i].obj, hum[i].amine[j], hum[i].time[j]); hum[i].time[j] += 30.0f / frate / divi;//
+				MV1SetAttachAnimTime(hum[i].obj, hum[i].amine[j], hum[i].time[j]); hum[i].time[j] += 30.0f / divi / f_rate;//
 				if (j != 2) { if (hum[i].time[j] >= hum[i].alltime[j]) { hum[i].time[j] = 0.0f; } }
 			}
 			//
-			if (usegrab) { if (!first) { MV1PhysicsResetState(hum[i].obj); } else { MV1PhysicsCalculation(hum[i].obj, 1000.0f / frate / divi); } }
+			if (grab) { if (!first) { MV1PhysicsResetState(hum[i].obj); } else { MV1PhysicsCalculation(hum[i].obj, 1000.0f / divi / f_rate); } }
 			//
 			if (i == 0) { if (!in_f) { break; } }
 		}
@@ -465,10 +481,9 @@ MAPS::MAPS(int map_size, float draw_dist){
 	drawdist = draw_dist;
 	//shadow----------------------------------------------------------------//
 	shadow_near = MakeShadowMap(8192, 8192);				/*近影*/
+	SetShadowMapAdjustDepth(shadow_near, 0.0005f);
 	shadow_seminear = MakeShadowMap(8192, 8192);				/*近影*/
-	shadow_far = MakeShadowMap(4096, 4096);					/*マップ用*/
-
-	//SetShadowMapAdjustDepth(shadow_far, 0.01f);
+	shadow_far = MakeShadowMap(8192, 8192);					/*マップ用*/
 	//map-------------------------------------------------------------------//
 	SetUseASyncLoadFlag(TRUE);
 	sky_sun = LoadGraph("data/sun.png");					/*太陽*/
@@ -484,19 +499,19 @@ MAPS::~MAPS(){
 	DeleteGraph(texn);
 }
 void MAPS::set_map_readyb(int set){
-	std::string tempname;
+	std::string tempname,tempname2;
 	lightvec = VGet(0.5f, -0.5f, 0.5f);
 	SetUseASyncLoadFlag(TRUE);
 		if (set == 0) { tempname = "map"; }
-		tree.mnear = MV1LoadModel(getstr_2("data/", tempname, "/tree/model.mv1"));		/*近木*/
-		tree.mfar = MV1LoadModel(getstr_2("data/", tempname, "/tree/model2.mv1"));		/*遠木*/
-		texl = LoadGraph(getstr_2("data/", tempname, "/SandDesert_04_00344_FWD.png"));		/*nor*/
-		texm = LoadGraph(getstr_2("data/", tempname, "/SandDesert_04_00344_NM.png"));		/*nor*/
-		m_model = MV1LoadModel(getstr_2("data/", tempname, "/map.mv1"));			/*map*/
-		sky_model = MV1LoadModel(getstr_2("data/", tempname, "/sky/model_sky.mv1"));		/*sky*/
-		graph = LoadGraph(getstr_2("data/", tempname, "/grass/grass.png"));			/*grass*/
-		grass = MV1LoadModel(getstr_2("data/", tempname, "/grass/grass.mqo"));			/*grass*/
-		GgHandle = LoadGraph(getstr_2("data/", tempname, "/grass/gg.png"));			/*地面草*/
+		tempname2 = "data/" + tempname + "/tree/model.mv1";		tree.mnear = MV1LoadModel(tempname2.c_str());			/*近木*/
+		tempname2 = "data/" + tempname + "/tree/model2.mv1";		tree.mfar = MV1LoadModel(tempname2.c_str());			/*遠木*/
+		tempname2 = "data/" + tempname + "/SandDesert_04_00344_FWD.png";texl = LoadGraph(tempname2.c_str());				/*nor*/
+		tempname2 = "data/" + tempname + "/SandDesert_04_00344_NM.png";	texm = LoadGraph(tempname2.c_str());				/*nor*/
+		tempname2 = "data/" + tempname + "/map.mv1";			m_model = MV1LoadModel(tempname2.c_str());			/*map*/
+		tempname2 = "data/" + tempname + "/sky/model_sky.mv1";		sky_model = MV1LoadModel(tempname2.c_str());			/*sky*/
+		tempname2 = "data/" + tempname + "/grass/grass.png";		graph = LoadGraph(tempname2.c_str());				/*grass*/
+		tempname2 = "data/" + tempname + "/grass/grass.mqo";		grass = MV1LoadModel(tempname2.c_str());			/*grass*/
+		tempname2 = "data/" + tempname + "/grass/gg.png";		GgHandle = LoadGraph(tempname2.c_str());			/*地面草*/
 	SetUseASyncLoadFlag(FALSE);
 	return;
 }
@@ -507,7 +522,8 @@ bool MAPS::set_map_ready() {
 	int i, j;
 	tree.nears = new int[treec]; if (tree.nears == NULL) { return false; }
 	tree.fars = new int[treec]; if (tree.fars == NULL) { return false; }
-	tree.t_sort = new sorts[treec]; if (tree.t_sort == NULL) { return false; }
+	tree.treesort.resize(treec);		//	tree.t_sort = new sorts[treec]; if (tree.t_sort == NULL) { return false; }
+
 	tree.pos = new VECTOR[treec]; if (tree.pos == NULL) { return false; }
 	tree.rad = new VECTOR[treec]; if (tree.rad == NULL) { return false; }
 	tree.hit = new bool[treec]; if (tree.hit == NULL) { return false; }
@@ -683,37 +699,41 @@ void MAPS::set_hitplayer(VECTOR pos) {
 	}
 }
 void MAPS::draw_trees() {
+	int k;
 	float per;
 	VECTOR vect;
 	looktree = 0;
+
 	for (int j = 0; j < treec; ++j) {
-		tree.t_sort[j].turn = j;
 		if (CheckCameraViewClip_Box(VAdd(tree.pos[j], VGet(-10, 0, -10)), VAdd(tree.pos[j], VGet(10, 10, 10)))) {
-			tree.t_sort[j].distance = 1000.0f;
+			tree.treesort[j] = pair(j, (float)map_x);
 		}
 		else {
-			tree.t_sort[j].distance = VSize(VSub(tree.pos[j], camera));
+			tree.treesort[j] = pair(j, VSize(VSub(tree.pos[j], camera)));
 			++looktree;
 		}
 	}
-	quick_sort(tree.t_sort, 0, treec - 1);
-	for (int j = looktree - 1; j >= 0; j--) {
-		if (tree.t_sort[j].distance < drawdist + 200) {
-			if (tree.t_sort[j].distance < 20) { per = -0.5f + tree.t_sort[j].distance / 20.0f; }
+	std::sort(tree.treesort.begin(), tree.treesort.end(), [](const pair& x, const pair& y) {return x.second > y.second; });
+
+	for (auto& tt : tree.treesort) {
+		if (tt.second == (float)map_x) { continue; }
+		k = tt.first;
+		if (tt.second < drawdist + 200) {
+			if (tt.second < 20) { per = -0.5f + tt.second / 20.0f; }
 			else { per = 1.0f; }
-			if (tree.t_sort[j].distance > drawdist) { per = 1.0f - (tree.t_sort[j].distance - drawdist) / 200.0f; }
+			if (tt.second > drawdist) { per = 1.0f - (tt.second - drawdist) / 200.0f; }
 			if (per > 0) {
-				MV1DrawModel(tree.nears[tree.t_sort[j].turn]);
+				MV1DrawModel(tree.nears[k]);
 			}
 		}
-		if (tree.t_sort[j].distance > drawdist) {
-			if (tree.t_sort[j].distance < drawdist + 200) { per = (tree.t_sort[j].distance - drawdist) / 200.0f; }
+		if (tt.second > drawdist) {
+			if (tt.second < drawdist + 200) { per = (tt.second - drawdist) / 200.0f; }
 			else { per = 1.0f; }
 			if (per > 0) {
-				MV1SetOpacityRate(tree.fars[tree.t_sort[j].turn], per);
-				vect = VSub(tree.pos[tree.t_sort[j].turn], camera);
-				MV1SetRotationXYZ(tree.fars[tree.t_sort[j].turn], VGet(0.0f, atan2(vect.x, vect.z), 0.0f));
-				MV1DrawModel(tree.fars[tree.t_sort[j].turn]);
+				MV1SetOpacityRate(tree.fars[k], per);
+				vect = VSub(tree.pos[k], camera);
+				MV1SetRotationXYZ(tree.fars[k], VGet(0.0f, atan2(vect.x, vect.z), 0.0f));
+				MV1DrawModel(tree.fars[k]);
 			}
 		}
 	}
@@ -732,7 +752,7 @@ void MAPS::delete_map(void) {
 	}
 	if (tree.nears != NULL) { delete[] tree.nears; tree.nears = NULL; }
 	if (tree.fars != NULL) { delete[] tree.fars; tree.fars = NULL; }
-	if (tree.t_sort != NULL) { delete[] tree.t_sort; tree.t_sort = NULL; }
+	tree.treesort.clear();
 	if (tree.pos != NULL) { delete[] tree.pos; tree.pos = NULL; }
 	if (tree.rad != NULL) { delete[] tree.rad; tree.rad = NULL; }
 	if (tree.hit != NULL) { delete[] tree.hit; tree.hit = NULL; }
@@ -746,26 +766,70 @@ void MAPS::delete_map(void) {
 //
 UIS::UIS() {
 	int j, i;
-	std::string tempname;
-
+	std::string tempname, tempname2;
+	WIN32_FIND_DATA win32fdt;
+	HANDLE hFind;
+	
 	countries = 1;
 
 	UI_main = new country[countries]; if (UI_main == NULL) { return; }
 	SetUseASyncLoadFlag(TRUE);
-	for (j = 0; j < 4; ++j) { ui_reload[j] = LoadGraph(getstr("data/ui/ammo_", j, ".bmp")); }		/*弾0,弾1,弾2,空弾*/
+	for (j = 0; j < 4; ++j) {
+		tempname = "data/ui/ammo_" + std::to_string(j)+".bmp";
+		ui_reload[j] = LoadGraph(tempname.c_str());
+	}		/*弾0,弾1,弾2,空弾*/
+
+	hFind = FindFirstFile("data/ui/body/*.png", &win32fdt);
+	if (hFind != INVALID_HANDLE_VALUE) {
+		ui_bmax = 0;
+		ui_tmax = 0;
+		do {
+			if (win32fdt.cFileName[0] == 'B') { ++ui_bmax; }
+			if (win32fdt.cFileName[0] == 'T') { ++ui_tmax; }
+		} while (FindNextFile(hFind, &win32fdt));
+	}//else{ return false; }
+	FindClose(hFind);
+	ui_body = new int[ui_bmax]; if (ui_body == NULL) { return; }
+	ui_turret = new int[ui_tmax]; if (ui_turret == NULL) { return; }
+	hFind = FindFirstFile("data/ui/body/*.png", &win32fdt);
+	if (hFind != INVALID_HANDLE_VALUE) {
+		i = 0;
+		j = 0;
+		do {
+			if (win32fdt.cFileName[0] == 'B') {
+				tempname = "data/ui/body/";
+				tempname += win32fdt.cFileName;
+				ui_body[i] = LoadGraph(tempname.c_str()); i++;
+			}
+			if (win32fdt.cFileName[0] == 'T') {
+				tempname = "data/ui/body/";
+				tempname += win32fdt.cFileName;
+				ui_turret[j] = LoadGraph(tempname.c_str()); j++;
+			}
+		} while (FindNextFile(hFind, &win32fdt));
+	}//else{ return false; }
+	FindClose(hFind);
+
+
+
 	for (j = 0; j < countries; ++j) {
 		tempname = "German";
 		for (i = 0; i < 9; ++i) {
-			UI_main[j].ui_sight[i] = LoadGraph(getstr(getstr_2("data/ui/", tempname, "/"), i, ".png"));
+			tempname2 = "data/ui/body/";
+			tempname2 += win32fdt.cFileName;
+			tempname2 += "/" + std::to_string(j) + ".png";
+			UI_main[j].ui_sight[i] = LoadGraph(tempname2.c_str());
 		}
 	}
 	SetUseASyncLoadFlag(FALSE);
 
 }
 void UIS::draw_load(void){
+	int i;
+	float pers;
+	int font18 = CreateFontToHandle(NULL, x_r(18), y_r(18 / 3), DX_FONTTYPE_ANTIALIASING);
 	SetUseASyncLoadFlag(TRUE);
 	int pad = LoadGraph("data/key.png");
-	int font18 = CreateFontToHandle(NULL, x_r(18), y_r(18 / 3), DX_FONTTYPE_ANTIALIASING);
 	SetUseASyncLoadFlag(FALSE);
 	int pp = GetASyncLoadNum();
 	LONGLONG waits;
@@ -773,30 +837,36 @@ void UIS::draw_load(void){
 		waits = GetNowHiPerformanceCount();
 		SetDrawScreen(DX_SCREEN_BACK);
 		ClearDrawScreen();
-		DrawFormatStringToHandle(0, 0, GetColor(0, 255, 0), font18, "LOADING : %06.2f%%", (float)((pp - GetASyncLoadNum()) * 100 / pp));
+		//
+		pers = (float)(pp - GetASyncLoadNum()) / pp;
+		DrawBox(x_r(0), y_r(1080-6), x_r(1920.f*pers), y_r(1080-3), GetColor(0, 255, 0), TRUE);
+		DrawFormatStringToHandle(x_r(0), y_r(1080-24), GetColor(0, 255, 0), font18, "LOADING : %06.2f%%", pers * 100.f);
+		//
 		DrawExtendGraph(x_r(552), y_r(401), x_r(1367), y_r(679), pad, TRUE);
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + 18 * 0), GetColor(255, 0, 0), font18, "%s : 前進", "W");
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + 18 * 1), GetColor(255, 0, 0), font18, "%s : 後退", "S");
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + 18 * 2), GetColor(255, 0, 0), font18, "%s : 左転", "A");
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + 18 * 3), GetColor(255, 0, 0), font18, "%s : 右転", "D");
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + 18 * 4), GetColor(255, 0, 0), font18, "%s : シフトアップ", "R");
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + 18 * 5), GetColor(255, 0, 0), font18, "%s : シフトダウン", "F");
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + 18 * 6), GetColor(255, 100, 0), font18, "%s : 砲昇", "↑");
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + 18 * 7), GetColor(255, 100, 0), font18, "%s : 砲降", "↓");
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + 18 * 8), GetColor(255, 100, 0), font18, "%s : 砲左", "←");
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + 18 * 9), GetColor(255, 100, 0), font18, "%s : 砲右", "→");
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + 18 * 10), GetColor(255, 100, 0), font18, "%s : 照準", "左shift");
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + 18 * 11), GetColor(255, 100, 0), font18, "%s : レティクル上昇", "Z");
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + 18 * 12), GetColor(255, 100, 0), font18, "%s : レティクル下降", "X");
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + 18 * 13), GetColor(255, 100, 0), font18, "%s : ズームアウト", "C");
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + 18 * 14), GetColor(255, 100, 0), font18, "%s : ズームイン", "V");
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + 18 * 15), GetColor(0, 200, 0), font18, "%s : 再装填", "Q");
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + 18 * 16), GetColor(0, 200, 0), font18, "%s : 射撃", "space");
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + 18 * 17), GetColor(50, 100, 255), font18, "%s : 指揮", "右shift");
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + 18 * 18), GetColor(50, 100, 255), font18, "%s : 見回し/指揮", "マウス");
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + 18 * 20), GetColor(50, 100, 255), font18, "%s : 終了", "ESC");
+		i = 0;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255,   0,   0), font18, "%s : 前進", "W"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255,   0,   0), font18, "%s : 後退", "S"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255,   0,   0), font18, "%s : 左転", "A"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255,   0,   0), font18, "%s : 右転", "D"); i += 18;
+		//DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255,   0,   0), font18, "%s : シフトアップ", "R"); i += 18;
+		//DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255,   0,   0), font18, "%s : シフトダウン", "F"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255, 100,   0), font18, "%s : 砲昇", "↑"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255, 100,   0), font18, "%s : 砲降", "↓"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255, 100,   0), font18, "%s : 砲左", "←"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255, 100,   0), font18, "%s : 砲右", "→"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255, 100,   0), font18, "%s : 精密砲操作", "左CTRL"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255, 100,   0), font18, "%s : 照準", "左shift"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255, 100,   0), font18, "%s : レティクル上昇", "Z"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255, 100,   0), font18, "%s : レティクル下降", "X"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255, 100,   0), font18, "%s : ズームアウト", "C"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255, 100,   0), font18, "%s : ズームイン", "V"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(  0, 200,   0), font18, "%s : 再装填", "Q"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(  0, 200,   0), font18, "%s : 射撃", "space"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor( 50, 100, 255), font18, "%s : 指揮", "右shift"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor( 50, 100, 255), font18, "%s : 見回し/指揮", "マウス"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor( 50, 100, 255), font18, "%s : 終了", "ESC"); i += 18;
 		ScreenFlip();
-		while (GetNowHiPerformanceCount() - waits < 1000000.0f / frate) {}
+		while (GetNowHiPerformanceCount() - waits < 1000000.0f / 60.f) {}
 	}
 	DeleteGraph(pad);
 	DeleteFontToHandle(font18);
@@ -819,7 +889,9 @@ void UIS::draw_sight(float posx, float posy, float ratio, float dist, int font) 
 	DrawFormatStringToHandle(x_r(1056), y_r(594), GetColor(255, 255, 255), font, "[%03d]", (int)dist);
 	DrawFormatStringToHandle(x_r(1056), y_r(648), GetColor(255, 255, 255), font, "[x%02.1f]", ratio);
 }
-void UIS::draw_ui(int selfammo) {
+void UIS::draw_ui(int selfammo, float y_v) {
+	int j;
+	float pers;
 	/*跳弾*/
 	if (recs >= 0.01f) {
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(recs * 128.0f));
@@ -841,11 +913,37 @@ void UIS::draw_ui(int selfammo) {
 	DrawRotaGraph(dispx - 192 * 4 / 6, 192, 1.0, 0.0, ui_reload[(pplayer->ammotype + 2) % 3], TRUE);
 	/*速度計*/
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-	DrawExtendGraph(0, y_r(888), x_r(192), y_r(1080), UI_main[pplayer->ptr->countryc].ui_sight[3], TRUE);
-	DrawRotaGraph(x_r(96), y_r(984), y_r(192) / 152, deg2rad(120.0f * pplayer->speed / pplayer->ptr->spdflont[3] - 60.f), UI_main[pplayer->ptr->countryc].ui_sight[4], TRUE);
+	DrawExtendGraph(x_r(0), y_r(888), x_r(192), y_r(1080), UI_main[pplayer->ptr->countryc].ui_sight[3], TRUE);
+	DrawRotaGraph(x_r(96), y_r(984), x_r(192) / 152, deg2rad(120.0f * pplayer->speed / pplayer->ptr->spdflont[3] - 60.f), UI_main[pplayer->ptr->countryc].ui_sight[4], TRUE);
 	DrawRectGraph(x_r(192), y_r(892), 0, (int)(54.0f * (4.0f - gearf)), 40, 54, UI_main[pplayer->ptr->countryc].ui_sight[5], TRUE);
-	DrawExtendGraph(x_r(192), y_r(888), y_r(232), y_r(950), UI_main[pplayer->ptr->countryc].ui_sight[6], TRUE);
+	DrawExtendGraph(x_r(192), y_r(888), x_r(232), y_r(950), UI_main[pplayer->ptr->countryc].ui_sight[6], TRUE);
 	differential(gearf, (float)pplayer->gear, 0.1f);
+
+	for (int i = 0; i < ui_bmax; ++i) {
+		if (i >= 1 && i <= 2) {
+			pers = 1.f - (float)pplayer->Hpoint[5 + i - 1] / 100.f;
+			if (pers >= 0.8f) { j = SetDrawBright(50, 50, 255); }
+			else { j = SetDrawBright((int)(255.f * sin(pers*DX_PI_F / 2)), (int)(255.f * cos(pers*DX_PI_F / 2)), 0); }
+		}
+		else {
+			SetDrawBright(255, 255, 255);
+		}
+		DrawRotaGraph(x_r(292 + 100), y_r(1080 - 100), x_r(200) / 200, y_v + pplayer->yrad, ui_body[i], TRUE);
+	}
+
+	for (int i = 0; i < ui_tmax; ++i) {
+		if (i == 0) {
+			pers = 1.f - (float)pplayer->Hpoint[4 + i] / 100.f;
+			if (pers >= 0.8f) { j = SetDrawBright(50, 50, 255); }
+			else { j = SetDrawBright((int)(255.f * sin(pers*DX_PI_F / 2)), (int)(255.f * cos(pers*DX_PI_F / 2)), 0); }
+		}
+		else {
+			SetDrawBright(255, 255, 255);
+		}
+
+		DrawRotaGraph(x_r(292 + 100), y_r(1080 - 100), x_r(200) / 200, y_v + pplayer->yrad + pplayer->gunrad.x, ui_turret[i], TRUE);
+	}
+	//DrawFormatString(x_r(1056), y_r(594), GetColor(255, 255, 255), "[%03d][%03d]", ui_bmax,ui_tmax);
 }
 
 void UIS::put_way(void){
@@ -872,16 +970,16 @@ void UIS::debug(float fps, float time) {
 
 	for (j = 0; j < 60 - 1; ++j) {
 		for (i = 0; i < 6; ++i) {
-			DrawLine(100 + j * 5, (int)(200.f - deb[j][i + 1] * 10.f), 100 + (j + 1) * 5, (int)(200.f - deb[j + 1][i + 1] * 10.f), GetColor(50, 50, 128+127*i/6));
+			DrawLine(100 + j * 5, 100 + (int)(200.f - deb[j][i + 1] * 10.f), 100 + (j + 1) * 5, 100 + (int)(200.f - deb[j + 1][i + 1] * 10.f), GetColor(50, 50, 128+127*i/6));
 		}
-		DrawLine(100 + j * 5, (int)(200.f - deb[j][0] * 10.f), 100 + (j + 1) * 5, (int)(200.f - deb[j + 1][0] * 10.f), GetColor(255, 255, 0));
+		DrawLine(100 + j * 5, 100 + (int)(200.f - deb[j][0] * 10.f), 100 + (j + 1) * 5, 100 + (int)(200.f - deb[j + 1][0] * 10.f), GetColor(255, 255, 0));
 	}
-	DrawLine(100, 67, 100 + 60 * 5, 67, GetColor(0, 255, 0));
-	DrawBox(100, 0, 100 + 60 * 5, 200, GetColor(255, 0, 0), FALSE);
-	DrawFormatString(100, 0, GetColor(255, 255, 255), "%05.2ffps (%.2fms)", fps, time);
-	DrawFormatString(100, 18, GetColor(255, 255, 255), "%d(%.2fms)", 0, waydeb[0]);
+	DrawLine(100, 100 + 200-166, 100 + 60 * 5, 100 + 200 - 166, GetColor(0, 255, 0));
+	DrawBox(100, 100 + 0, 100 + 60 * 5, 100 + 200, GetColor(255, 0, 0), FALSE);
+	DrawFormatString(100, 100 + 0, GetColor(255, 255, 255), "%05.2ffps (%.2fms)", fps, time);
+	DrawFormatString(100, 100 + 18, GetColor(255, 255, 255), "%d(%.2fms)", 0, waydeb[0]);
 	for (j = 1; j < 6; ++j) {
-		DrawFormatString(100, 18 + j * 18, GetColor(255, 255, 255), "%d(%.2fms)", j, waydeb[j] - waydeb[j - 1]);
+		DrawFormatString(100, 100 + 18 + j * 18, GetColor(255, 255, 255), "%d(%.2fms)", j, waydeb[j] - waydeb[j - 1]);
 	}
 }
 
@@ -895,6 +993,8 @@ UIS::~UIS() {
 		}
 	}
 	if (UI_main != NULL) { delete[] UI_main; UI_main = NULL; }
+	if (ui_body != NULL) { delete[] ui_body; ui_body = NULL; }
+	if (ui_turret != NULL) { delete[] ui_turret; ui_turret = NULL; }
 }
 //
 void setcv(float neard, float fard, VECTOR cam, VECTOR view, VECTOR up, float fov) {
@@ -957,46 +1057,35 @@ bool get_reco(players* play, players* tgt, int i, int gun_s) {
 	if (gun_s == 0) {
 		//空間装甲、モジュール
 		for (colmesh = 0; colmesh < tgt->ptr->colmeshes; ++colmesh) {
-			tgt->hitsort[colmesh].turn = colmesh;
 			HitPoly = MV1CollCheck_Line(tgt->colobj, -1, play->ammo[i].repos, play->ammo[i].pos, colmesh);
 			if (HitPoly.HitFlag) {
-				tgt->hitsort[colmesh].distance = VSize(VSub(HitPoly.HitPosition, play->ammo[i].repos));
+				tgt->hitssort[colmesh] = pair(colmesh, VSize(VSub(HitPoly.HitPosition, play->ammo[i].repos)));
 				f++;
 			}
 			else {
-				tgt->hitsort[colmesh].distance = 9999.f;
-
+				tgt->hitssort[colmesh] = pair(colmesh, 9999.f);
 			}
 		}
 		if (f == 0) { return false; }
-		quick_sort(tgt->hitsort, 0, tgt->ptr->colmeshes - 1);
-
-		for (colmesh = 0; colmesh < tgt->ptr->colmeshes; ++colmesh) {
-			k = tgt->hitsort[colmesh].turn;
-			if (tgt->Hpoint[k] > 0) {
-				//空間装甲
-				if (k >= 7 && k < tgt->ptr->colmeshes) {
-					HitPoly = MV1CollCheck_Line(tgt->colobj, -1, play->ammo[i].repos, play->ammo[i].pos, k);
-					if (HitPoly.HitFlag) {
-						tgt->Hpoint[k] -= 1; if (tgt->Hpoint[k] <= 0) { tgt->Hpoint[k] = 0; } play->ammo[i].pene /= 2.0f; play->ammo[i].speed /= 2.f;
-					}
-				}
-				//モジュール
-				if (k >= 0 && k < 3) {
-					HitPoly = MV1CollCheck_Line(tgt->colobj, -1, play->ammo[i].repos, play->ammo[i].pos, k);
-					if (HitPoly.HitFlag) {
-						set_effect(&(play->effcs[ef_reco]), HitPoly.HitPosition, HitPoly.Normal);
-						//if (k == 0) {}/*砲*/
-						if (k == 1) { tgt->Hpoint[k] -= 50; if (tgt->Hpoint[k] <= 0) { tgt->Hpoint[k] = 0; } play->ammo[i].pene /= 2.0f; play->ammo[i].speed /= 2.f; }/*左履帯*/
-						if (k == 2) { tgt->Hpoint[k] -= 50; if (tgt->Hpoint[k] <= 0) { tgt->Hpoint[k] = 0; } play->ammo[i].pene /= 2.0f; play->ammo[i].speed /= 2.f; }/*右履帯*/
+		std::sort(tgt->hitssort.begin(), tgt->hitssort.end(), [](const pair& x, const pair& y) {return x.second < y.second; });
+		for (auto& tt : tgt->hitssort) {
+			k = tt.first;
+			if (k >= 4) {
+				if (tgt->Hpoint[k] > 0) {
+					//空間装甲 //モジュール
+					if (k != 4) {
+						HitPoly = MV1CollCheck_Line(tgt->colobj, -1, play->ammo[i].repos, play->ammo[i].pos, k);
+						if (HitPoly.HitFlag) {
+							set_effect(&(play->effcs[ef_reco]), HitPoly.HitPosition, HitPoly.Normal);
+							tgt->Hpoint[k] -= 50; if (tgt->Hpoint[k] <= 0) { tgt->Hpoint[k] = 0; } play->ammo[i].pene /= 2.0f; play->ammo[i].speed /= 2.f;
+						}
 					}
 				}
 			}
-			//
-			if (k >= 3 && k < 7) {
+			else {
 				hitnear = k; break;
 			}
-			if (tgt->hitsort[colmesh].distance == 9999.f) { break; }
+			if (tt.second == 9999.f) { break; }
 		}
 		if (hitnear != -1) {
 			HitPoly = MV1CollCheck_Line(tgt->colobj, -1, play->ammo[i].repos, play->ammo[i].pos, hitnear);
@@ -1004,15 +1093,15 @@ bool get_reco(players* play, players* tgt, int i, int gun_s) {
 			MV1SetFrameUserLocalMatrix(tgt->colobj, 9 + 1 + 3 * tgt->hitbuf, MMult(MGetTranslate(VAdd(HitPoly.Normal, HitPoly.HitPosition)), MInverse(tgt->ps_m)));
 			MV1SetFrameUserLocalMatrix(tgt->colobj, 9 + 2 + 3 * tgt->hitbuf, MMult(MGetTranslate(VAdd(VCross(HitPoly.Normal, play->ammo[i].vec), HitPoly.HitPosition)), MInverse(tgt->ps_m)));
 			set_effect(&(play->effcs[ef_reco]), HitPoly.HitPosition, HitPoly.Normal);
-			if (play->ammo[i].pene > tgt->ptr->armer[hitnear - 3] * (1.0f / abs(VDot(VNorm(play->ammo[i].vec), HitPoly.Normal)))) {
-				if (tgt->Hpoint[3] != 0) {
+			if (play->ammo[i].pene > tgt->ptr->armer[hitnear] * (1.0f / abs(VDot(VNorm(play->ammo[i].vec), HitPoly.Normal)))) {
+				if (tgt->Hpoint[0] != 0) {
 					PlaySoundMem(tgt->se[29 + GetRand(1)], DX_PLAYTYPE_BACK, TRUE);
 					set_effect(&(play->effcs[ef_bomb]), MV1GetFramePosition(tgt->obj, bone_engine), VGet(0, 0, 0));
 					set_effect(&(play->effcs[ef_smoke1]), MV1GetFramePosition(tgt->obj, bone_engine), VGet(0, 0, 0));
 					if (play->hitadd == false) { play->hitadd = true; }
 				}
 				play->ammo[i].flug = 0;
-				tgt->Hpoint[3] = 0;
+				tgt->Hpoint[0] = 0;
 				tgt->usepic[tgt->hitbuf] = 0;
 			}
 			else {
@@ -1036,6 +1125,7 @@ bool get_reco(players* play, players* tgt, int i, int gun_s) {
 	else {
 		tmpf[0] = play->ammo[i].speed;
 		for (colmesh = 0; colmesh < tgt->ptr->colmeshes; ++colmesh) {
+			if (colmesh >= 5) { if (tgt->Hpoint[colmesh] == 0) { continue; } }
 			HitPoly = MV1CollCheck_Line(tgt->colobj, -1, play->ammo[i].repos, play->ammo[i].pos, colmesh);
 			if (HitPoly.HitFlag) { tmpf[1] = VSize(VSub(HitPoly.HitPosition, play->ammo[i].repos)); if (tmpf[1] <= tmpf[0]) { tmpf[0] = tmpf[1]; hitnear = colmesh; } }
 		}
@@ -1055,19 +1145,19 @@ void set_gunrad(players *play, float rat_r){
 		if ((play->move & (KEY_TURNLFT << i)) != 0) {
 			switch (i) {
 			case 0:
-				play->gunrad.x -= play->ptr->gun_RD / rat_r / frate;//
+				play->gunrad.x -= play->ptr->gun_RD / rat_r;//
 				if (!play->ptr->gun_lim_LR) { if (play->gunrad.x >= play->ptr->gun_lim_[0]) { play->gunrad.x = play->ptr->gun_lim_[0]; } }
 				break;
 			case 1:
-				play->gunrad.x += play->ptr->gun_RD / rat_r / frate;//
+				play->gunrad.x += play->ptr->gun_RD / rat_r;//
 				if (!play->ptr->gun_lim_LR) { if (play->gunrad.x <= play->ptr->gun_lim_[1]) { play->gunrad.x = play->ptr->gun_lim_[1]; } }
 				break;
 			case 2:
-				play->gunrad.y += (play->ptr->gun_RD / 2.f) / rat_r / frate;//
+				play->gunrad.y += (play->ptr->gun_RD / 2.f) / rat_r;//
 				if (play->gunrad.y >= play->ptr->gun_lim_[2]) { play->gunrad.y = play->ptr->gun_lim_[2]; }
 				break;
 			case 3:
-				play->gunrad.y -= (play->ptr->gun_RD / 2.f) / rat_r / frate;//
+				play->gunrad.y -= (play->ptr->gun_RD / 2.f) / rat_r;//
 				if (play->gunrad.y <= play->ptr->gun_lim_[3]) { play->gunrad.y = play->ptr->gun_lim_[3]; }
 				break;
 			}

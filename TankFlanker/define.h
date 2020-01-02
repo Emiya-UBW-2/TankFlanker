@@ -1,18 +1,18 @@
 #pragma once
-#define dispx		(GetSystemMetrics(SM_CXSCREEN)/1)
-#define dispy		(GetSystemMetrics(SM_CYSCREEN)/1)
-#define M_GR		-9.8f
-#define waypc		4
-#define ammoc		64
-#define animes		4
-#define voice		1
-#define map_x		1000
-#define map_y		1000
-#define TEAM		1
-#define ENEMY		2
-#define EXTEND		4
-#define gunc		2
-#define frate		60.0f
+#define dispx		(GetSystemMetrics(SM_CXSCREEN)/1)			/*描画X*/
+#define dispy		(GetSystemMetrics(SM_CYSCREEN)/1)			/*描画Y*/
+#define M_GR		-9.8f							/*重力加速度*/
+#define waypc		4							/*移動確保数*/
+#define ammoc		16							/*砲弾確保数*/
+#define animes		4							/*人アニメーション*/
+#define voice		1							/*ボイス*/
+#define map_x		1000							/*マップサイズX*/
+#define map_y		1000							/*マップサイズY*/
+#define TEAM		1							/*味方ID*/
+#define ENEMY		2							/*敵ID*/
+#define EXTEND		4							/*ブルーム用*/
+#define gunc		2							/*銃、砲の数*/
+#define divi		2							/*人の物理処理*/
 
 #ifndef INCLUDED_define_h_
 #define INCLUDED_define_h_
@@ -25,6 +25,10 @@
 #include "Box2D/Box2D.h"
 #include "useful.h"
 #include <thread>
+
+#include<algorithm>
+#include <vector>
+#include <cstring>
 /*構造体*/
 enum cpu {
 	CPU_NOMAL = 0,
@@ -146,15 +150,15 @@ struct players {
 	/**/
 	ammos* ammo{ NULL };						/*ammo*/
 	float* Spring{ NULL };						/*サス*/
-	char* Hpoint{ NULL };						/*HP*/
-	sorts* hitsort{ NULL };
+	short* Hpoint{ NULL };						/*HP*/
+
+	std::vector<pair> hitssort;	//sorts* hitsort{ NULL };
 	/**/
 	int gear{ 0 };							/*変速*/
 	unsigned int gearu{ 0 };					/*キー*/
 	unsigned int geard{ 0 };					/*キー*/
 	VECTOR inertia{ VGet(0, 0, 0) };				/*慣性*/
-	float wheelspeed{ 0.f };					/*履帯の前進*/
-	float wheelrad[2]{ 0.f };					/*履帯の旋回*/
+	float wheelrad[3]{ 0.f };					/*履帯の旋回*/
 	VECTOR gunrad{ 0.f };						/*砲角度*/
 	float fired{ 0.f };						/*駐退*/
 	/*弾関連*/
@@ -178,12 +182,14 @@ struct switches {
 	bool flug{ false };
 	int cnt{ 0 };
 };
+/*CLASS*/
 class Myclass {
 private:
 	/*setting*/
 	bool usegrab{ false };							/*人の物理演算のオフ、オン、一人だけオン*/
 	unsigned char ANTI{ 1 };						/*アンチエイリアス倍率*/
 	bool YSync{ true };							/*垂直同期*/
+	float f_rate{ 60.f };							/*fps*/
 	bool windowmode{ false };						/*ウィンドウor全画面*/
 	float drawdist{ 100.0f };						/*木の描画距離*/
 	int gndx = 8;
@@ -200,6 +206,7 @@ public:
 	bool get_usegrab(void) { return usegrab; }
 	int get_gndx(void) { return gndx; }
 	float get_drawdist(void) { return drawdist; }
+	float get_f_rate(void) { return f_rate; }
 	void write_option(void);						//未実装
 	bool set_fonts(int arg_num, ...);					//(必要なフォント数,サイズ1,サイズ2, ...)
 	bool set_veh(void);
@@ -234,7 +241,10 @@ private:
 		int vsound[voice]{ 0 };
 	}*hum{ NULL };
 	int human{ 0 };								/*乗員人数*/
+
 	bool usegrab{ false };							/*人の物理演算のオフ、オン、一人だけオン*/
+	float f_rate{ 60.f };							/*fps*/
+
 	int inmodel_handle{ 0 };						//中モデル
 	bool in_f{ false };							//中描画スイッチ
 	int inflames;								//inmodelのフレーム数
@@ -242,7 +252,7 @@ private:
 	VECTOR* posold{ NULL };							/*inmodelの前回のフレーム*/
 	bool first;								//初回フラグ
 public:
-	HUMANS(bool useg);
+	HUMANS(bool useg, float frates);
 	void set_humans(int inmod);
 	void set_humanvc_vol(unsigned char size);
 	void set_humanmove(players player, VECTOR rad, float fps);
@@ -268,7 +278,7 @@ private:
 		int mfar = 0;							/**/
 		int* nears = 0;							/**/
 		int* fars = 0;							/**/
-		sorts* t_sort;
+		std::vector<pair> treesort;	//sorts* t_sort;
 		VECTOR* pos = 0;						/**/
 		VECTOR* rad = 0;
 		bool* hit = 0;
@@ -320,6 +330,10 @@ class UIS {
 private:
 	/**/
 	int ui_reload[4] = { 0 };						/*弾UI*/
+	int *ui_body{ NULL };						/*弾UI*/
+	int *ui_turret{ NULL };						/*弾UI*/
+	int ui_bmax = 0;
+	int ui_tmax = 0;
 	struct country { int ui_sight[9] = { 0 }; } *UI_main{ NULL };		/*国別UI*/
 	int countries = 1;							/*国数*/
 	float gearf = 0.f;							/*変速*/
@@ -336,14 +350,14 @@ public:
 	void set_state(players* play);							/*使用するポインタの指定*/
 	void set_reco(void);								/*反射スイッチ*/
 	void draw_sight(float posx, float posy, float ratio, float dist, int font);	/*照準UI*/
-	void draw_ui(int selfammo);							/*メインUI*/
+	void draw_ui(int selfammo,float y_v);							/*メインUI*/
 
 	void put_way(void);
 	void end_way(void);
 	void debug(float fps, float time);
 	~UIS();
 };
-
+/**/
 void setcv(float neard, float fard, VECTOR cam, VECTOR view, VECTOR up, float fov);//カメラ情報指定
 void getdist(VECTOR *startpos, VECTOR vector, float *dist, float speed, float fps);//startposに測距情報を出力
 //effect
