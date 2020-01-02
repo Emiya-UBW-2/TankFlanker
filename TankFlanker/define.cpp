@@ -1,7 +1,12 @@
 ﻿#include "define.h"
+#include <string_view>
+int MV1LoadModel(const std::basic_string<TCHAR>& FileName)
+{
+	return DxLib::MV1LoadModelWithStrLen(FileName.c_str(), FileName.length());
+}
 //
 Myclass::Myclass() {
-	std::string tempname;
+	using namespace std::literals;
 	int i, j;
 	WIN32_FIND_DATA win32fdt;
 	HANDLE hFind;
@@ -59,8 +64,7 @@ Myclass::Myclass() {
 	}//else{ return false; }
 	FindClose(hFind);
 	for (j = 0; j < vehc; ++j) {
-		tempname = "data/tanks/"+ vecs[j].name+ "/data.txt";
-		mdata = FileRead_open(tempname.c_str(), FALSE);
+		mdata = FileRead_open(("data/tanks/" + vecs[j].name + "/data.txt").c_str(), FALSE);
 		FileRead_gets(mstr, 64, mdata); vecs[j].countryc = (int)(atof(getright(mstr).c_str()));
 		for (i = 0; i < 4; ++i) {
 			FileRead_gets(mstr, 64, mdata); vecs[j].spdflont[3 - i] = (float)atof(getright(mstr).c_str()) / 3.6f;
@@ -89,22 +93,18 @@ Myclass::Myclass() {
 	}
 	SetUseASyncLoadFlag(TRUE);
 		for (j = 0; j < vehc; ++j) {
-			tempname = "data/tanks/" + vecs[j].name + "/model.mv1";
-			vecs[j].model = MV1LoadModel(tempname.c_str());
-			tempname = "data/tanks/" + vecs[j].name + "/col.mv1";
-			vecs[j].colmodel = MV1LoadModel(tempname.c_str());
-			tempname = "data/tanks/" + vecs[j].name + "/in/model.mv1";
-			vecs[j].inmodel = MV1LoadModel(tempname.c_str());
+			vecs[j].model = MV1LoadModel("data/tanks/" + vecs[j].name + "/model.mv1");
+			vecs[j].colmodel = MV1LoadModel("data/tanks/" + vecs[j].name + "/col.mv1");
+			vecs[j].inmodel = MV1LoadModel("data/tanks/" + vecs[j].name + "/in/model.mv1");
 		}
 		for (j = 0; j < 13; ++j) {
-			if (j < 1) { tempname = "data/audio/se/engine/shift.wav"; }
-			else if (j < 8) { tempname = "data/audio/se/eject/" + std::to_string(j - 1) + ".wav"; }
-			else if (j < 13) { tempname = "data/audio/se/load/" + std::to_string(j - 8) + ".wav"; }
-			se_[j] = LoadSoundMem(tempname.c_str());
+			const auto filename = (j < 1) ? "data/audio/se/engine/shift.wav"s
+				: (j < 8) ? "data/audio/se/eject/" + std::to_string(j - 1) + ".wav"
+				: "data/audio/se/load/" + std::to_string(j - 8) + ".wav";
+			se_[j] = LoadSoundMem(filename.c_str());
 		}
 		for (j = 0; j < 4; ++j) {
-			tempname = "data/ui/ammo_" + std::to_string(j) + ".bmp";
-			ui_reload[j] = LoadGraph(tempname.c_str());
+			ui_reload[j] = LoadGraph(("data/ui/ammo_" + std::to_string(j) + ".bmp").c_str());
 		}		/*弾0,弾1,弾2,空弾*/
 	SetUseASyncLoadFlag(FALSE);
 	//return true;
@@ -128,7 +128,6 @@ bool Myclass::set_fonts(int arg_num, ...) {
 	return true;
 }
 bool Myclass::set_veh(void) {
-	std::string tempname;
 	int i, j, k;
 	LONGLONG waits;								/*時間取得*/
 	for (j = 0; j < vehc; ++j) {
@@ -146,8 +145,7 @@ bool Myclass::set_veh(void) {
 	for (j = 0; j < effects; ++j) {
 		i = 0;
 		while (ProcessMessage() == 0) {
-			tempname = "data/effect/" + std::to_string(j) + ".efk";
-			effHndle[j] = LoadEffekseerEffect(tempname.c_str());
+			effHndle[j] = LoadEffekseerEffect(("data/effect/" + std::to_string(j) + ".efk").c_str());
 			i++;
 
 			waits = GetNowHiPerformanceCount();
@@ -311,7 +309,7 @@ HUMANS::HUMANS(bool useg,float frates){
 	f_rate = frates;
 }
 void HUMANS::set_humans(int inmod) {
-	std::string tempname = "結月ゆかり",tempname2;
+	using namespace std::literals;
 	int i, j;
 	//load
 	SetUseASyncLoadFlag(FALSE);
@@ -324,9 +322,7 @@ void HUMANS::set_humans(int inmod) {
 	for (i = 0; i < human; ++i) {
 		if (usegrab) { MV1SetLoadModelUsePhysicsMode(DX_LOADMODEL_PHYSICS_REALTIME); }
 		else { MV1SetLoadModelUsePhysicsMode(DX_LOADMODEL_PHYSICS_LOADCALC); }
-
-		tempname2 = "data/chara/" + tempname + "/model.mv1";
-		hum[i].obj = MV1LoadModel(tempname2.c_str());
+		hum[i].obj = MV1LoadModel("data/chara/結月ゆかり/model.mv1");
 	}
 	//
 	for (i = 0; i < human; ++i) {
@@ -345,8 +341,7 @@ void HUMANS::set_humans(int inmod) {
 	for (i = 0; i < voice; ++i) {
 		hum[0].voices[i] = MV1AttachAnim(hum[0].obj, animes + i, -1, TRUE);
 		hum[0].voicealltime[i] = MV1GetAttachAnimTotalTime(hum[0].obj, hum[0].voices[i]);
-		tempname2 = "data/chara/" + tempname + "/" + std::to_string(i) + ".wav";
-		hum[0].vsound[i] = LoadSoundMem(tempname2.c_str());
+		hum[0].vsound[i] = LoadSoundMem(("data/chara/結月ゆかり/" + std::to_string(i) + ".wav").c_str());
 	}
 	//
 	MV1SetMatrix(inmodel_handle, MGetTranslate(VGet(0, 0, 0)));
@@ -355,7 +350,7 @@ void HUMANS::set_humans(int inmod) {
 		MV1ResetFrameUserLocalMatrix(inmodel_handle, i);
 	}
 	hum[0].neck = 0;
-	do { tempname = MV1GetFrameName(hum[0].obj, hum[0].neck++); } while (tempname != "首");
+	for(const TCHAR* re; "首"sv != (re =  MV1GetFrameName(hum[0].obj, hum[0].neck++)); ) {}
 	if (hum[0].neck == 0) { hum[0].neck = 121; }//暫定処置
 	MV1SetMatrix(hum[0].obj, MGetTranslate(VGet(0, 0, 0)));
 	hum[0].nvec = VSub(MV1GetFramePosition(hum[0].obj, hum[0].neck), MV1GetFramePosition(hum[0].obj, hum[0].neck - 1));
@@ -503,15 +498,15 @@ void MAPS::set_map_readyb(int set){
 	lightvec = VGet(0.5f, -0.5f, 0.5f);
 	SetUseASyncLoadFlag(TRUE);
 		if (set == 0) { tempname = "map"; }
-		tempname2 = "data/" + tempname + "/tree/model.mv1";		tree.mnear = MV1LoadModel(tempname2.c_str());			/*近木*/
-		tempname2 = "data/" + tempname + "/tree/model2.mv1";		tree.mfar = MV1LoadModel(tempname2.c_str());			/*遠木*/
-		tempname2 = "data/" + tempname + "/SandDesert_04_00344_FWD.png";texl = LoadGraph(tempname2.c_str());				/*nor*/
-		tempname2 = "data/" + tempname + "/SandDesert_04_00344_NM.png";	texm = LoadGraph(tempname2.c_str());				/*nor*/
-		tempname2 = "data/" + tempname + "/map.mv1";			m_model = MV1LoadModel(tempname2.c_str());			/*map*/
-		tempname2 = "data/" + tempname + "/sky/model_sky.mv1";		sky_model = MV1LoadModel(tempname2.c_str());			/*sky*/
-		tempname2 = "data/" + tempname + "/grass/grass.png";		graph = LoadGraph(tempname2.c_str());				/*grass*/
-		tempname2 = "data/" + tempname + "/grass/grass.mqo";		grass = MV1LoadModel(tempname2.c_str());			/*grass*/
-		tempname2 = "data/" + tempname + "/grass/gg.png";		GgHandle = LoadGraph(tempname2.c_str());			/*地面草*/
+		tree.mnear = MV1LoadModel((set) ? "data/tree/model.mv1" : "data/map/tree/model.mv1");			/*近木*/
+		tree.mfar = MV1LoadModel((set) ? "data/tree/model2.mv1" : "data/map/tree/model2.mv1");			/*遠木*/
+		texl = LoadGraph((set) ? "data/SandDesert_04_00344_FWD.png" : "data/map/SandDesert_04_00344_FWD.png");				/*nor*/
+		texm = LoadGraph((set) ? "data/SandDesert_04_00344_NM.png" : "data/map/SandDesert_04_00344_NM.png");				/*nor*/
+		m_model = MV1LoadModel((set) ? "data/map.mv1" : "data/map/map.mv1");			/*map*/
+		sky_model = MV1LoadModel((set) ? "data/sky/model_sky.mv1" : "data/map/sky/model_sky.mv1");			/*sky*/
+		graph = LoadGraph((set) ? "data/grass/grass.png" : "data/map/grass/grass.png");				/*grass*/
+		grass = MV1LoadModel((set) ? "data/grass/grass.mqo" : "data/map/grass/grass.mqo");			/*grass*/
+		GgHandle = LoadGraph((set) ? "data/grass/gg.png" : "data/map/grass/gg.png");			/*地面草*/
 	SetUseASyncLoadFlag(FALSE);
 	return;
 }
