@@ -69,7 +69,7 @@ Myclass::Myclass() {
 			FileRead_gets(mstr, 64, mdata); g = deg2rad(std::stof(getright(mstr)));
 		}
 		FileRead_gets(mstr, 64, mdata); v.gun_RD = deg2rad(std::stof(getright(mstr)))/f_rate;
-		FileRead_gets(mstr, 64, mdata); v.reloadtime[0] = std::stoi(getright(mstr))*f_rate;
+		FileRead_gets(mstr, 64, mdata); v.reloadtime[0] = int(std::stoi(getright(mstr))*f_rate);
 		v.reloadtime[1] = 10;
 		FileRead_gets(mstr, 64, mdata); v.ammosize = std::stof(getright(mstr)) / 1000.f;
 		for (size_t i = 0; i < std::size(v.ammotype); ++i) {
@@ -240,7 +240,6 @@ void Myclass::Screen_Flip(LONGLONG waits){
 	if (!YSync) { do {} while (GetNowHiPerformanceCount() - waits < 1000000.0f / f_rate); }
 }
 Myclass::~Myclass() {
-	int j;
 	for (auto&& s : se_) {
 		DeleteSoundMem(s);
 	}
