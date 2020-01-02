@@ -1,0 +1,1036 @@
+#include "define.h"
+
+bool keyget[109]{ false };
+/*main*/
+int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd) {
+	//temp------------------------------------------------------------------//
+	int i, j, k, p_cnt, tgt_p, guns;
+	int mousex, mousey;							/*mouse*/
+	float tmpf, tempfx, tempfy,turn_bias;
+	VECTOR tempvec[2];
+	MATRIX mtemp;
+	bool btmp;
+	int lookplayerc;							/*視認しているplayer人数*/
+	//変数------------------------------------------------------------------//
+	bool out{ false };							/*終了フラグ*/
+	int playerc, teamc, enemyc, mapc;					/*player人数*/
+	sorts* p_sort(NULL);							/*playerソート*/
+	players* player(NULL);							/*player*/
+	VECTOR aims;								/*照準器座標*/
+	float aimm;								/*照準距離*/
+	float fps;								/*fps*/
+	int selfammo;								/*UI用*/
+	switches stop;								/*時間停止*/
+	switches aim, map;							/*視点変更*/
+	float ratio, rat_r, aim_r;						/*照準視点　倍率、実倍率、距離*/
+	int waysel, way, choose;						/*指揮視点　指揮車両、マウストリガー、マウス選択*/
+	LONGLONG old_time, waits;						/*時間取得*/
+	VECTOR campos, viewpos, uppos;						/*カメラ*/
+	MV1_COLL_RESULT_POLY HitPoly;						/*あたり判定*/
+	float cpu_move;
+	WIN32_FIND_DATA win32fdt;
+	HANDLE hFind;
+	char mstr[64];								/*tank*/
+	int mdata;								/*tank*/
+	//init------------------------------------------------------------------//
+	Myclass	parts;
+	HUMANS	humanparts(parts.get_usegrab());				/*車内関係*/
+	MAPS	mapparts(parts.get_gndx(), parts.get_drawdist());		/*地形、ステージ関係*/
+	UIS	uiparts;
+	//load------------------------------------------------------------------//
+	parts.set_fonts(1, 18);
+	SetUseASyncLoadFlag(TRUE);
+		//hit-------------------------------------------------------------------//
+		int hit_mod = MV1LoadModel("data/hit/hit.mv1");
+		//screen----------------------------------------------------------------//
+		int minimap = MakeScreen(dispx, dispy, FALSE);				/*ミニマップ*/
+		int skyscreen = MakeScreen(dispx, dispy, FALSE);			/*空*/
+		int mainscreen = MakeScreen(dispx, dispy, FALSE);			/*遠景*/
+		int HighBrightScreen = MakeScreen(dispx, dispy, FALSE);			/*エフェクト*/
+		int GaussScreen = MakeScreen(dispx / EXTEND, dispy / EXTEND, FALSE);	/*エフェクト*/
+	SetUseASyncLoadFlag(FALSE);
+	uiparts.draw_load();//
+	if (parts.set_veh() != true) { return -1; }
+	/*物理開始*/
+	b2World world(b2Vec2(0.0f, 0.0f));					// 剛体を保持およびシミュレートするワールドオブジェクトを構築
+	//これ以降繰り返しロード------------------------------------------------//
+	do {
+		k = parts.window_choosev();if (k == -1) { return 0; }		/*player指定*/
+
+		mdata = FileRead_open("stage/data_0/main.txt", FALSE);
+			FileRead_gets(mstr, 64, mdata); mapc = (int)atof(getright(mstr).c_str());
+		FileRead_close(mdata);
+
+		teamc = 0;
+		hFind = FindFirstFile("stage/data_0/team/*.txt", &win32fdt);
+		if (hFind != INVALID_HANDLE_VALUE) {
+			do { if (win32fdt.cFileName[0] != '.') { ++teamc; } } while (FindNextFile(hFind, &win32fdt));
+		}
+		FindClose(hFind);
+		enemyc = 0;
+		hFind = FindFirstFile("stage/data_0/enemy/*.txt", &win32fdt);
+		if (hFind != INVALID_HANDLE_VALUE) {
+			do { if(win32fdt.cFileName[0] != '.') { ++enemyc; } } while (FindNextFile(hFind, &win32fdt));
+		}
+		FindClose(hFind);
+
+		playerc = teamc + enemyc;
+		player = new players[playerc]; if (player == NULL) { break; }
+		p_sort = new sorts[playerc]; if (p_sort == NULL) { break; }
+
+		//設定
+		for (p_cnt = 0; p_cnt < teamc; ++p_cnt) {
+			mdata = FileRead_open(getstr("stage/data_0/team/",p_cnt,".txt"), FALSE);
+			//FileRead_gets(mstr, 64, mdata); mapc = (int)atof(getright(mstr).c_str());
+			FileRead_close(mdata);
+
+			if (p_cnt == 0) { player[p_cnt].use = k; }
+			else { player[p_cnt].use = 2; }//p_cnt % parts.get_vehc(); }
+			player[p_cnt].pos = VGet(20.0f * p_cnt, 0.0f, -400.0f);
+			player[p_cnt].type = TEAM;
+			player[p_cnt].yrad = DX_PI_F * player[p_cnt].type;
+			for (j = 0; j < waypc; ++j) {
+				player[p_cnt].waypos[j] = player[p_cnt].pos;
+				player[p_cnt].wayspd[j] = 2;
+			}
+		}
+
+		for (p_cnt = teamc; p_cnt < playerc; ++p_cnt) {
+			mdata = FileRead_open(getstr("stage/data_0/enemy/", p_cnt, ".txt"), FALSE);
+			//FileRead_gets(mstr, 64, mdata); mapc = (int)atof(getright(mstr).c_str());
+			FileRead_close(mdata);
+
+			player[p_cnt].use = 1;// p_cnt % parts.get_vehc();
+			player[p_cnt].pos = VGet(20.0f * (p_cnt - teamc), 0.0f, 400.0f);
+			player[p_cnt].type = ENEMY;
+			player[p_cnt].yrad = DX_PI_F * player[p_cnt].type;
+			for (j = 0; j < waypc; ++j) {
+				player[p_cnt].waypos[j] = player[p_cnt].pos;
+				player[p_cnt].wayspd[j] = 2;
+			}
+		}
+		/*vehsから引き継ぎ*/
+		for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+			player[p_cnt].ptr = parts.get_vehicle(player[p_cnt].use);
+		}
+		/*UI*/
+		uiparts.set_state(&player[0]);
+		/*load*/
+		SetUseASyncLoadFlag(TRUE);
+			/*players*/
+			for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+				player[p_cnt].obj = MV1DuplicateModel(player[p_cnt].ptr->model);
+				player[p_cnt].colobj = MV1DuplicateModel(player[p_cnt].ptr->colmodel);
+				for (i = 0; i < 3; i++) { player[p_cnt].hitpic[i] = MV1DuplicateModel(hit_mod); }
+			}
+			/*sound*/
+			SetCreate3DSoundFlag(TRUE);
+			for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+				player[p_cnt].se[0] = LoadSoundMem("data/audio/se/engine/0.wav");
+				player[p_cnt].se[1] = LoadSoundMem("data/audio/se/fire/gun.wav");
+				for (i =  2; i < 10; ++i) { player[p_cnt].se[i] = LoadSoundMem(getstr("data/audio/se/fire/", i-2, ".wav")); }
+				for (i = 10; i < 27; ++i) { player[p_cnt].se[i] = LoadSoundMem(getstr("data/audio/se/ricochet/", i-10, ".wav")); }
+				for (i = 27; i < 29; ++i) { player[p_cnt].se[i] = LoadSoundMem(getstr("data/audio/se/engine/o", i-27, ".wav")); }
+				for (i = 29; i < 31; ++i) { player[p_cnt].se[i] = LoadSoundMem(getstr("data/audio/se/battle/hit_enemy/", i-29, ".wav")); }
+			}
+			SetCreate3DSoundFlag(FALSE);
+		SetUseASyncLoadFlag(FALSE);
+		mapparts.set_map_readyb(mapc);
+		uiparts.draw_load();//
+		/*human*/
+		humanparts.set_humans(player[0].ptr->inmodel);
+		/*map*/
+		if (mapparts.set_map_ready() != true) { break; }
+		//players
+		for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+			//色調
+			for (i = 0; i < MV1GetMaterialNum(player[p_cnt].obj); ++i) {
+				MV1SetMaterialSpcColor(player[p_cnt].obj, i, GetColorF(0.85f, 0.82f, 0.78f, 0.5f));
+				MV1SetMaterialSpcPower(player[p_cnt].obj, i, 5.0f);
+			}
+			MV1SetMaterialDrawAlphaTestAll(player[p_cnt].obj, TRUE, DX_CMP_GREATER, 128);
+			//リセット
+			player[p_cnt].hitbuf = 0;
+			player[p_cnt].gear = 0;
+			//cpu
+			player[p_cnt].atkf = -1;
+			player[p_cnt].aim = 0;
+			//hit
+			for (i = 0; i < player[p_cnt].ptr->colmeshes; ++i) { MV1SetupCollInfo(player[p_cnt].colobj, -1, 5, 5, 5, i); }
+			player[p_cnt].hitsort = new sorts[player[p_cnt].ptr->colmeshes]; if (player[p_cnt].hitsort == NULL) { break; }
+			for (i = 0; i < player[p_cnt].ptr->colmeshes; ++i) {
+				player[p_cnt].hitsort[i].turn = i;
+			}
+			//ammo
+			player[p_cnt].ammo = new ammos[ammoc * gunc]; if (player[p_cnt].ammo == NULL) { break; }
+			for (i = 0; i < ammoc * gunc; ++i) {
+				if (player[p_cnt].type == TEAM) { player[p_cnt].ammo[i].color = GetColor(255, 255, 150); }
+				else { player[p_cnt].ammo[i].color = GetColor(255, 200, 150); }
+			}
+			//HP
+			player[p_cnt].Hpoint = new char[player[p_cnt].ptr->colmeshes]; if (player[p_cnt].Hpoint == NULL) { break; }
+			player[p_cnt].Hpoint[0] = 100;								//主砲
+			player[p_cnt].Hpoint[1] = 100;								//trackL
+			player[p_cnt].Hpoint[2] = 100;								//trackR
+			player[p_cnt].Hpoint[3] = 1;								//life
+			/*3456は装甲部分なので詰め込む*/
+			for (i = 7; i < player[p_cnt].ptr->colmeshes; ++i) { player[p_cnt].Hpoint[i] = 1; }	//spaceARMER
+			//wheel
+			player[p_cnt].Spring = new float[player[p_cnt].ptr->frames]; if (player[p_cnt].Spring == NULL) { break; }
+			for (i = bone_wheel; i < player[p_cnt].ptr->frames; ++i) { player[p_cnt].Spring[i] = 0.f; }
+			MV1SetMatrix(player[p_cnt].colobj, MGetTranslate(VGet(0, 0, 0)));
+			//装てん
+			player[p_cnt].loadcnt[0] = 1;
+			//ypos反映
+			HitPoly = MV1CollCheck_Line(mapparts.get_map_handle(), 0, VAdd(player[p_cnt].pos, VGet(0.0f, (float)map_x, 0.0f)), VAdd(player[p_cnt].pos, VGet(0.0f, -(float)map_x, 0.0f)));
+			if (HitPoly.HitFlag) { player[p_cnt].pos.y = HitPoly.HitPosition.y; }
+			for (j = 0; j < waypc; ++j) {
+				HitPoly = MV1CollCheck_Line(mapparts.get_map_handle(), 0, VAdd(player[p_cnt].waypos[j], VGet(0.0f, (float)map_x, 0.0f)), VAdd(player[p_cnt].waypos[j], VGet(0.0f, -(float)map_x, 0.0f)));
+				if (HitPoly.HitFlag) { player[p_cnt].waypos[j].y = HitPoly.HitPosition.y; }
+			}
+			//
+		}
+		//物理set
+		for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+			player[p_cnt].dynamicBox.SetAsBox(
+				(player[p_cnt].ptr->coloc[0].x - player[p_cnt].ptr->coloc[2].x) / 2,
+				(player[p_cnt].ptr->coloc[0].z - player[p_cnt].ptr->coloc[2].z) / 2,
+				b2Vec2(
+					(player[p_cnt].ptr->coloc[2].x + player[p_cnt].ptr->coloc[0].x) / 2,
+					(player[p_cnt].ptr->coloc[2].z + player[p_cnt].ptr->coloc[0].z) / 2
+				),
+				0.f
+			);
+			player[p_cnt].fixtureDef.shape = &(player[p_cnt].dynamicBox);
+			player[p_cnt].fixtureDef.density = 1.0f;								// ボックス密度をゼロ以外に設定すると、動的になります。
+			player[p_cnt].fixtureDef.friction = 0.3f;								// デフォルトの摩擦をオーバーライドします。
+			player[p_cnt].bodyDef.type = b2_dynamicBody;
+			player[p_cnt].bodyDef.position.Set(player[p_cnt].pos.x, player[p_cnt].pos.z);
+			player[p_cnt].bodyDef.angle = -player[p_cnt].yrad;
+			player[p_cnt].body = world.CreateBody(&(player[p_cnt].bodyDef));
+			player[p_cnt].playerfix = player[p_cnt].body->CreateFixture(&(player[p_cnt].fixtureDef));		// シェイプをボディに追加します。
+		}
+		/*音量調整*/
+		humanparts.set_humanvc_vol(255);
+		parts.set_se_vol(128);
+		for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+			for (i =  1; i < 27; ++i) { ChangeVolumeSoundMem(128, player[p_cnt].se[i]); }
+			for (i = 29; i < 31; ++i) { ChangeVolumeSoundMem(128, player[p_cnt].se[i]); }
+		}
+		/*メインループ*/
+		stop.flug = false;
+		aim.flug = false;
+		map.flug = false;
+		selfammo = 0;
+		ratio = 1.0f;			/*照準視点　倍率*/
+		rat_r = ratio;			/*照準視点　実倍率*/
+		aim_r = 100.0f;			/*照準視点　距離*/
+		waysel = 1;			/*指揮視点　指揮車両*/
+//		std::thread ;
+		parts.set_viewrad(VGet(0.f, player[0].yrad, 1.f));
+		SetCursorPos(x_r(960), y_r(540));
+		old_time = GetNowHiPerformanceCount() + (LONGLONG)(1000000.0f / frate);
+		for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+			player[p_cnt].effcs[ef_smoke2].efhandle = PlayEffekseer3DEffect(parts.get_effHandle(ef_smoke2));
+			player[p_cnt].effcs[ef_smoke3].efhandle = PlayEffekseer3DEffect(parts.get_effHandle(ef_smoke2));
+			PlaySoundMem(player[p_cnt].se[0], DX_PLAYTYPE_LOOP, TRUE); 
+			PlaySoundMem(player[p_cnt].se[27], DX_PLAYTYPE_LOOP, TRUE);
+			PlaySoundMem(player[p_cnt].se[28], DX_PLAYTYPE_LOOP, TRUE);
+			Set3DRadiusSoundMem(200.0f, player[p_cnt].se[0]);
+			Set3DRadiusSoundMem(200.0f, player[p_cnt].se[1]);
+			for (i = 2; i < 10; ++i) { Set3DRadiusSoundMem(300.0f, player[p_cnt].se[i]); }
+			for (i = 10; i < 27; ++i) { Set3DRadiusSoundMem(100.0f, player[p_cnt].se[i]); }
+			for (i = 27; i < 29; ++i) { Set3DRadiusSoundMem(200.0f, player[p_cnt].se[i]); }
+			for (i = 29; i < 31; ++i) { Set3DRadiusSoundMem(300.0f, player[p_cnt].se[i]); }
+		}
+		while (ProcessMessage() == 0) {
+			/*fps*/
+			waits = GetNowHiPerformanceCount();
+			fps = 1000000.0f / (float)(waits - old_time);
+			old_time = GetNowHiPerformanceCount();
+			uiparts.put_way();//debug
+			if (GetActiveFlag() == TRUE) {
+				SetMouseDispFlag(FALSE);
+				keyget[0] = CheckHitKey(KEY_INPUT_O) != 0;
+				keyget[1] = CheckHitKey(KEY_INPUT_ESCAPE) != 0;
+				keyget[2] = CheckHitKey(KEY_INPUT_P) != 0;
+				keyget[3] = CheckHitKey(KEY_INPUT_RSHIFT) != 0;		if (player[0].Hpoint[3] == 0) { keyget[3] = false; }
+				keyget[4] = (GetMouseInput() & MOUSE_INPUT_LEFT) != 0;
+				keyget[5] = CheckHitKey(KEY_INPUT_LSHIFT) != 0;		if (player[0].Hpoint[3] == 0) { keyget[5] = false; }
+				keyget[6] = CheckHitKey(KEY_INPUT_V) != 0;
+				keyget[7] = CheckHitKey(KEY_INPUT_C) != 0;
+				keyget[8] = CheckHitKey(KEY_INPUT_X) != 0;
+				keyget[9] = CheckHitKey(KEY_INPUT_Z) != 0;
+				keyget[10] = CheckHitKey(KEY_INPUT_Q) != 0;		if (player[0].Hpoint[3] == 0) { keyget[10] = false; }
+				keyget[11] = CheckHitKey(KEY_INPUT_LCONTROL) != 0;
+				keyget[12] = CheckHitKey(KEY_INPUT_W) != 0;
+				keyget[13] = CheckHitKey(KEY_INPUT_S) != 0;
+				keyget[14] = CheckHitKey(KEY_INPUT_A) != 0;
+				keyget[15] = CheckHitKey(KEY_INPUT_D) != 0;
+				keyget[16] = CheckHitKey(KEY_INPUT_LEFT) != 0;
+				keyget[17] = CheckHitKey(KEY_INPUT_RIGHT) != 0;
+				keyget[18] = CheckHitKey(KEY_INPUT_UP) != 0;
+				keyget[19] = CheckHitKey(KEY_INPUT_DOWN) != 0;
+				keyget[20] = CheckHitKey(KEY_INPUT_SPACE) != 0;
+				keyget[21] = CheckHitKey(KEY_INPUT_B) != 0;
+
+
+				if (keyget[0]) { ++stop.cnt; if (stop.cnt == 1) { stop.flug ^= 1; } } else { stop.cnt = 0; }							/*時間停止*/
+				//++stop.cnt; if (stop.cnt%5==0) { stop.flug = false; }else{ stop.flug = true; }								/*低速化*/
+				if (keyget[1]) { out = true; break; }														/*終了*/
+				if (keyget[2]) { break; }															/*リスタート*/
+				if (keyget[3]) { ++map.cnt; if (map.cnt == 1) { map.flug ^= 1; SetCursorPos(x_r(960), y_r(540)); } } else { map.cnt = 0; }			/*指揮*/
+				if (keyget[5]) { ++aim.cnt; if (aim.cnt == 1) { aim.flug ^= 1; if (aim.flug) { ratio = 3.0f; } map.flug = false; } } else { aim.cnt = 0; }	/*照準*/
+				if (player[0].Hpoint[3] == 0) { aim.flug = false; map.flug = false; }
+				if (keyget[10]) { ++selfammo; if (selfammo == 1) { ++player[0].ammotype; player[0].ammotype %= 3; player[0].loadcnt[0] = 1; } }
+				else { if (player[0].loadcnt[0] == 0) { selfammo = 0; } }											/*弾種変更*/
+				if (map.flug) {
+					GetMousePoint(&mousex, &mousey); SetMouseDispFlag(TRUE);
+					i = 24; choose = -1;
+					for (p_cnt = 1; p_cnt < playerc; ++p_cnt) {
+						if (player[p_cnt].type == TEAM) {
+							if (player[p_cnt].Hpoint[3] > 0) { if (inm(x_r(132), y_r(162 + i), x_r(324), y_r(180 + i))) { choose = p_cnt; if (keyget[4]) { waysel = p_cnt; } } }
+							i += 24;
+						}
+					}
+					if (player[waysel].Hpoint[3] > 0) {
+						if (player[waysel].wayselect <= waypc - 1) {
+							if (inm(x_r(420), y_r(0), x_r(1500), y_r(1080))) {
+								if (keyget[4]) {
+									++way;
+									if (way == 1) {
+										if (player[waysel].wayselect == 0) { player[waysel].waynow = 0; }
+										player[waysel].waypos[player[waysel].wayselect] = VGet(_2x(mousex), 0, _2y(mousey));
+										for (j = player[waysel].wayselect; j < waypc; ++j) { player[waysel].waypos[j] = player[waysel].waypos[player[waysel].wayselect]; }
+										++player[waysel].wayselect;
+									}
+								}
+								else { way = 0; }
+							}
+						}
+					}
+				}/*視界見回し*/
+				else {
+					if (aim.flug) {
+						SetMousePoint(x_r(960), y_r(540)); GetMouseWheelRotVol();
+						if (keyget[6]) { ratio += 2.0f / fps; if (ratio >= 10.0f) { ratio = 10.0f; } }
+						if (keyget[7]) { ratio -= 2.0f / fps; if (ratio <= 2.0f) { ratio = 2.0f; } }
+						if (keyget[8]) { aim_r += 10.0f; }
+						if (keyget[9]) { aim_r -= 10.0f; }
+					}
+					else { parts.set_view_r(); ratio = 1.0f; }
+				}
+
+				if (!stop.flug) {
+					//倍率、測距
+					differential(rat_r, ratio, 0.1f);
+				}
+			}
+			else {
+				SetMouseDispFlag(TRUE);
+			}
+			if (!stop.flug) {
+				/*操作、座標系*/
+				uiparts.end_way();//debug0//0
+				for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+					if (!map.flug) { player[p_cnt].wayselect = 0; }
+					if (player[p_cnt].Hpoint[3] > 0) {
+						player[p_cnt].move = 0;
+						if (p_cnt == 0) {
+							/*操作*/
+							player[p_cnt].move += KEY_GOFLONT * keyget[12];
+							player[p_cnt].move += KEY_GOBACK_ * keyget[13];
+							player[p_cnt].move += KEY_GOLEFT_ * keyget[14];
+							player[p_cnt].move += KEY_GORIGHT * keyget[15];
+							player[p_cnt].move += KEY_TURNLFT * keyget[16];
+							player[p_cnt].move += KEY_TURNRIT * keyget[17];
+							player[p_cnt].move += KEY_TURNUP_ * keyget[18];
+							player[p_cnt].move += KEY_TURNDWN * keyget[19];
+							player[p_cnt].move += KEY_SHOTCAN * keyget[20];
+							player[p_cnt].move += KEY_SHOTGAN * keyget[21];
+							/*変速*/
+							if (set_shift(&player[p_cnt])) { parts.play_sound(0); }
+						}
+						else {
+							//*CPU操作
+							//*移動
+							if (VSize(VSub(player[p_cnt].pos, player[p_cnt].waypos[player[p_cnt].waynow])) >= 10.0) {
+								player[p_cnt].move |= KEY_GOFLONT;
+								tempvec[0] = VNorm(VSub(player[p_cnt].waypos[player[p_cnt].waynow], player[p_cnt].pos));
+								cpu_move = -cos(player[p_cnt].yrad) * tempvec[0].x + sin(player[p_cnt].yrad) * tempvec[0].z;
+								if (cpu_move < 0) { player[p_cnt].move |= KEY_GOLEFT_; }
+								if (cpu_move > 0) { player[p_cnt].move |= KEY_GORIGHT; }
+							}
+							else { ++player[p_cnt].waynow; if (player[p_cnt].waynow >= waypc - 1) { player[p_cnt].waynow = waypc - 1; } }
+							/*
+							for (i = player[p_cnt].waynow; i < waypc; i++) {
+								if (VSize(VSub(player[p_cnt].pos, player[p_cnt].waypos[i])) < VSize(VSub(player[p_cnt].pos, player[p_cnt].waypos[player[p_cnt].waynow]))) {
+									player[p_cnt].waynow = i;
+									break;
+								}
+							}
+							*/
+							//*戦闘
+							if (player[p_cnt].atkf == -1) {
+								for (tgt_p = 0; tgt_p < playerc; ++tgt_p) {
+									if (player[p_cnt].type != player[tgt_p].type && VSize(VSub(player[tgt_p].pos, player[p_cnt].pos)) <= 500.0f && player[tgt_p].Hpoint[3] > 0) {
+										player[p_cnt].atkf = tgt_p; break;
+									}
+								}
+								player[p_cnt].gear = player[p_cnt].wayspd[player[p_cnt].waynow];											//*変速
+							}
+							else {
+								player[p_cnt].gear = 1;																	//*変速
+								tempvec[1] = MV1GetFramePosition(player[p_cnt].obj, bone_gun1);												//*元のベクトル
+								tempvec[0] = VNorm(VSub(MV1GetFramePosition(player[player[p_cnt].atkf].obj, bone_gun1), tempvec[1]));							//*向くベクトル
+								tmpf = VSize(VSub(MV1GetFramePosition(player[player[p_cnt].atkf].obj, bone_gun1), tempvec[1]));
+								getdist(&tempvec[1], VNorm(VSub(MV1GetFramePosition(player[p_cnt].obj, bone_gun2), tempvec[1])), &tmpf, player[p_cnt].ptr->gun_speed[player[p_cnt].ammotype], frate);
+
+								tempvec[1] = VNorm(VSub(tempvec[1], MV1GetFramePosition(player[p_cnt].obj, bone_gun1)));
+								cpu_move = tempvec[1].y * sqrtf(powf(tempvec[0].x, 2) + powf(tempvec[0].z, 2)) - sqrtf(powf(tempvec[1].x, 2) + powf(tempvec[1].z, 2)) * tempvec[0].y;	//*砲
+								if (cpu_move <= 0) { player[p_cnt].move |= KEY_TURNUP_; }
+								if (cpu_move > 0) { player[p_cnt].move |= KEY_TURNDWN; }
+								cpu_move = tempvec[1].z * tempvec[0].x - tempvec[1].x * tempvec[0].z;											//*車体
+								if (cpu_move < 0) { player[p_cnt].move |= KEY_TURNLFT; }
+								if (cpu_move > 0) { player[p_cnt].move |= KEY_TURNRIT; }
+								if (cpu_move < 0) { player[p_cnt].move |= KEY_GOLEFT_; }
+								if (cpu_move > 0) { player[p_cnt].move |= KEY_GORIGHT; }
+								if (VSize(VCross(tempvec[1], tempvec[0])) < sin(deg2rad(1))) {
+
+									HitPoly = MV1CollCheck_Line(mapparts.get_map_handle(), 0, MV1GetFramePosition(player[p_cnt].obj, bone_gun1), MV1GetFramePosition(player[player[p_cnt].atkf].obj, bone_gun1));
+									if (HitPoly.HitFlag == 0) {
+										if (player[p_cnt].loadcnt[0] == 0) {
+											if ((player[p_cnt].move & KEY_GOFLONT) != 0) { player[p_cnt].move -= KEY_GOFLONT; }
+											player[p_cnt].gear = 0;															//*変速
+											if (player[p_cnt].speed < 5.f / 3.6f / frate) {
+												player[p_cnt].move |= KEY_SHOTCAN;
+												player[p_cnt].aim++;
+											}
+										}
+										if (GetRand(100) <= 2) { player[p_cnt].move |= KEY_SHOTGAN; }
+									}
+								}
+
+								if (player[player[p_cnt].atkf].Hpoint[3] == 0) { player[p_cnt].atkf = -1; }
+								if (player[p_cnt].aim > 5) {
+									player[p_cnt].aim = 0;
+									for (tgt_p = 0; tgt_p < playerc; ++tgt_p) {
+										if (player[p_cnt].type != player[tgt_p].type && VSize(VSub(player[tgt_p].pos, player[p_cnt].pos)) <= 200.0f && player[tgt_p].Hpoint[3] > 0) {
+											if (tgt_p != player[p_cnt].atkf) { player[p_cnt].atkf = tgt_p; break; }
+										}
+									}
+								}
+							}
+							//ぶつかり防止
+							for (tgt_p = 0; tgt_p < playerc; ++tgt_p) {
+								if (VSize(VSub(player[tgt_p].pos, player[p_cnt].pos)) <= 10.0 && p_cnt != tgt_p && player[tgt_p].Hpoint[3] > 0) {
+									tempvec[0] = VNorm(VSub(player[tgt_p].pos, player[p_cnt].pos));
+									cpu_move = -cos(player[p_cnt].yrad) * tempvec[0].x + sin(player[p_cnt].yrad) * tempvec[0].z;
+									if (cpu_move > 0) { player[p_cnt].move |= KEY_GOLEFT_; if ((player[p_cnt].move & KEY_GORIGHT) != 0) { player[p_cnt].move -= KEY_GORIGHT; } }
+									if (cpu_move < 0) { player[p_cnt].move |= KEY_GORIGHT; if ((player[p_cnt].move & KEY_GOLEFT_) != 0) { player[p_cnt].move -= KEY_GOLEFT_; } }
+								}
+								if (player[p_cnt].state == CPU_NOMAL) {
+									if (VSize(VSub(player[tgt_p].pos, player[p_cnt].pos)) <= 250.0 &&  p_cnt != tgt_p && player[p_cnt].type != player[tgt_p].type &&  player[p_cnt].waynow != waypc - 1) {
+										//if (player[p_cnt].waynow != 0) {
+										///	player[p_cnt].waynow = waypc - 1;
+										///	for (j = 0; j < waypc; ++j) {
+										///		player[p_cnt].waypos[j] = player[p_cnt].pos;
+										///	}
+										///	player[waysel].wayselect = 0;
+										//}
+										//else {
+										//	if (VSize(VSub(player[p_cnt].waypos[player[p_cnt].waynow], player[tgt_p].pos)) > 225.f) {
+										//		player[p_cnt].waynow = waypc - 1;
+										//		player[p_cnt].waypos[player[p_cnt].waynow] = player[p_cnt].pos;
+										//		player[waysel].wayselect = 0;
+										//	}
+										//}
+									}
+								}
+							}
+							//*CPU操作exit
+						}
+					}
+					else { player[p_cnt].move = KEY_TURNUP_; }
+				}
+				//0.2ms~5ms
+				uiparts.end_way();//debug1//0
+				/*共通動作*/
+				for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+					if (p_cnt == 0) {
+						tmpf = 1.f;
+						if (keyget[11]) { tmpf = 3.f; }//左CTRLを押すと精密エイム
+						set_gunrad(&player[0], rat_r*tmpf);
+					}
+					else {
+						set_gunrad(&player[p_cnt], 1.f);
+					}
+					player[p_cnt].bodyDef.awake = true;
+					player[p_cnt].yrad = player[p_cnt].body->GetAngle();
+					//
+					if ((player[p_cnt].move & KEY_GOFLONT) != 0) {
+						if (player[p_cnt].Hpoint[1] == 0 || player[p_cnt].Hpoint[2] == 0) { player[p_cnt].move -= KEY_GOFLONT; }
+						else {
+							if (player[p_cnt].gear > 0) {
+								if (player[p_cnt].flont >= player[p_cnt].ptr->spdflont[player[p_cnt].gear - 1]) { player[p_cnt].flont -= player[p_cnt].ptr->spdflont[player[p_cnt].gear - 1] / (5.0f * fps); }
+								else { player[p_cnt].flont += player[p_cnt].ptr->spdflont[player[p_cnt].gear - 1] / (10.0f * fps); }
+							}
+						}
+					}
+					if ((player[p_cnt].move & KEY_GOBACK_) != 0) {
+						if (player[p_cnt].Hpoint[1] == 0 || player[p_cnt].Hpoint[2] == 0) { player[p_cnt].move -= KEY_GOBACK_; }
+						else {
+							if (player[p_cnt].gear < 0) {
+								if (player[p_cnt].back <= player[p_cnt].ptr->spdback[-player[p_cnt].gear - 1]) { player[p_cnt].back -= player[p_cnt].ptr->spdback[-player[p_cnt].gear - 1] / (2.0f * fps); }
+								else { player[p_cnt].back += player[p_cnt].ptr->spdback[-player[p_cnt].gear - 1] / (5.0f * fps); }
+							}
+						}
+					}
+					if (player[p_cnt].Hpoint[1] > 0 || player[p_cnt].Hpoint[2] > 0) {
+						turn_bias = 1.0f;
+						if (player[p_cnt].Hpoint[1] > 0 && player[p_cnt].Hpoint[2] > 0) {
+							if ((player[p_cnt].move & KEY_GOFLONT) != 0 && player[p_cnt].gear > 0) {
+								turn_bias = player[p_cnt].flont / (player[p_cnt].ptr->spdflont[player[p_cnt].gear - 1]);
+							}
+							if ((player[p_cnt].move & KEY_GOBACK_) != 0 && player[p_cnt].gear < 0) {
+								turn_bias = player[p_cnt].back / (player[p_cnt].ptr->spdback[-player[p_cnt].gear - 1]);
+							}
+							turn_bias = abs(turn_bias);
+						}
+						turn_bias *= ((player[p_cnt].Hpoint[1] > 0) + (player[p_cnt].Hpoint[2] > 0)) / 2.0f;
+					}
+					if ((player[p_cnt].move & KEY_GOLEFT_) != 0) {
+						if (player[p_cnt].Hpoint[1] == 0 && player[p_cnt].Hpoint[2] == 0) {
+							player[p_cnt].move -= KEY_GOLEFT_;
+						}
+						else {
+							differential(player[p_cnt].yadd, player[p_cnt].ptr->vehicle_RD * turn_bias, 0.1f);
+						}
+					}
+					if ((player[p_cnt].move & KEY_GORIGHT) != 0) {
+						if (player[p_cnt].Hpoint[1] == 0 && player[p_cnt].Hpoint[2] == 0) {
+							player[p_cnt].move -= KEY_GORIGHT;
+						}
+						else {
+							differential(player[p_cnt].yadd, -player[p_cnt].ptr->vehicle_RD * turn_bias, 0.1f);
+						}
+					}
+
+					if (player[p_cnt].gear != 0) { player[p_cnt].speed = player[p_cnt].flont + player[p_cnt].back; }
+
+
+					differential(player[p_cnt].inertia.x, (player[p_cnt].speed - player[p_cnt].speedrec), 0.02f); player[p_cnt].speedrec = player[p_cnt].speed;
+					differential(player[p_cnt].inertia.z, -(player[p_cnt].znor - player[p_cnt].znorrec) / 2.0f, 0.1f); player[p_cnt].znorrec = player[p_cnt].znor;
+
+					//vec
+					player[p_cnt].vec.x = player[p_cnt].speed * sin(player[p_cnt].yrad);
+					player[p_cnt].vec.z = -player[p_cnt].speed * cos(player[p_cnt].yrad);
+					if (player[p_cnt].Hpoint[1] == 0) {
+						player[p_cnt].vec.x = player[p_cnt].ptr->loc[bone_wheel].x * sin(player[p_cnt].yadd) * sin(player[p_cnt].yrad);
+						player[p_cnt].vec.z = -player[p_cnt].ptr->loc[bone_wheel].x * sin(player[p_cnt].yadd) * cos(player[p_cnt].yrad);
+					}
+					if (player[p_cnt].Hpoint[2] == 0) {
+						player[p_cnt].vec.x = -player[p_cnt].ptr->loc[bone_wheel].x * sin(player[p_cnt].yadd) * sin(player[p_cnt].yrad);
+						player[p_cnt].vec.z = player[p_cnt].ptr->loc[bone_wheel].x * sin(player[p_cnt].yadd) * cos(player[p_cnt].yrad);
+					}
+					//
+					player[p_cnt].wheelspeed += player[p_cnt].speed / frate;//
+					player[p_cnt].wheelrad[0] = -player[p_cnt].wheelspeed * 2 + player[p_cnt].yrad * 5;
+					player[p_cnt].wheelrad[1] = -player[p_cnt].wheelspeed * 2 - player[p_cnt].yrad * 5;
+					//
+					player[p_cnt].body->SetLinearVelocity(b2Vec2(player[p_cnt].vec.x, player[p_cnt].vec.z));
+					player[p_cnt].body->SetAngularVelocity(player[p_cnt].yadd);
+				}//0.1ms
+				//0.0ms
+				/*物理演算*/
+				world.Step(1.0f / frate, 1, 1);						// シミュレーションの単一ステップを実行するように世界に指示します。 一般に、タイムステップと反復を固定しておくのが最善です。
+				for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+					player[p_cnt].pos.x = player[p_cnt].body->GetPosition().x;
+					player[p_cnt].pos.z = player[p_cnt].body->GetPosition().y;
+					player[p_cnt].yrad = -player[p_cnt].body->GetAngle();
+				}//0ms
+				//0.0ms
+				/*砲撃その他*/
+				for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+					//地形判定
+					HitPoly = MV1CollCheck_Line(mapparts.get_map_handle(), 0, VAdd(player[p_cnt].pos, VGet(0.0f, 2.0f, 0.0f)), VAdd(player[p_cnt].pos, VGet(0.0f, -0.05f, 0.0f)));//0.3ms
+					if (HitPoly.HitFlag) {
+						player[p_cnt].pos.y = HitPoly.HitPosition.y;
+						player[p_cnt].yace = 0.0f;
+						set_normal(&(player[p_cnt].xnor), &(player[p_cnt].znor), mapparts.get_map_handle(), player[p_cnt].pos);//0.6ms
+						player[p_cnt].nor = VTransform(VGet(0,1.f,0), MMult(MGetRotX(player[p_cnt].xnor), MGetRotZ(player[p_cnt].znor)));
+						//player[p_cnt].nor = VAdd(player[p_cnt].nor, VScale(VSub(HitPoly.Normal, player[p_cnt].nor), 0.1f));
+						/*speed*/
+						if ((player[p_cnt].move & KEY_GOLEFT_) == 0 && (player[p_cnt].move & KEY_GORIGHT) == 0) { player[p_cnt].yadd *= 0.9f; }
+						if (player[p_cnt].gear > 0 || (player[p_cnt].move & KEY_GOBACK_) == 0) { player[p_cnt].back *= 0.95f; }
+						if (player[p_cnt].gear == 0) { player[p_cnt].speed *= 0.95f; }
+						if (player[p_cnt].gear < 0 || (player[p_cnt].move & KEY_GOFLONT) == 0) { player[p_cnt].flont *= 0.95f; }
+						/*track*/
+						mapparts.draw_map_track(player[p_cnt].Spring, player[p_cnt].obj, player[p_cnt].ptr->frames, player[p_cnt].yrad);//0.1ms
+					}
+					else {
+						player[p_cnt].pos.y += player[p_cnt].yace; player[p_cnt].yace += M_GR / 2.0f / fps / fps;
+					}
+					//地形判定全体=3.8ms
+					//サウンド
+					if (abs(player[p_cnt].speed) >= player[p_cnt].ptr->spdflont[0]) { ChangeVolumeSoundMem(64, player[p_cnt].se[0]); } else { ChangeVolumeSoundMem(0, player[p_cnt].se[0]); }//0.1ms
+					for (i = 27; i < 29; ++i) { ChangeVolumeSoundMem((int)(32.f + 32.f*abs(player[p_cnt].speed / player[p_cnt].ptr->spdflont[3])), player[p_cnt].se[i]); }//0.1ms
+					for (i = 0; i < 31; ++i) { if (CheckSoundMem(player[p_cnt].se[i]) == 1) { Set3DPositionSoundMem(player[p_cnt].pos, player[p_cnt].se[i]); } }//1.5ms
+					//サウンド全体=1.7ms
+					//tree判定
+					mapparts.set_hitplayer(player[p_cnt].pos);
+					//0.1ms
+					/*車体行列*/
+					player[p_cnt].ps_m = MMult(MMult(MMult(MMult(MGetRotAxis(VGet(cos(player[p_cnt].gunrad.x), 0, -sin(player[p_cnt].gunrad.x)), sin(deg2rad(player[p_cnt].firerad)) * deg2rad(5)), MGetRotAxis(VGet(cos(player[p_cnt].recorad), 0, -sin(player[p_cnt].recorad)), sin(deg2rad(player[p_cnt].recoall)) * deg2rad(5))), MGetRotX(atan(player[p_cnt].inertia.x))), MMult(MGetRotY(player[p_cnt].yrad), MGetRotVec2(VGet(0, 1.f, 0), player[p_cnt].nor))), MGetTranslate(player[p_cnt].pos));//MMult(MGetRotX(player[p_cnt].xnor), MGetRotZ(player[p_cnt].znor))
+					/*砲塔行列*/
+					player[p_cnt].ps_t = MMult(MGetRotY(player[p_cnt].gunrad.x), MGetTranslate(player[p_cnt].ptr->loc[bone_trt]));
+					//all
+					MV1SetMatrix(player[p_cnt].colobj, player[p_cnt].ps_m);
+					MV1SetMatrix(player[p_cnt].obj, player[p_cnt].ps_m);
+					//common
+					for (i = bone_trt; i < player[p_cnt].ptr->frames; ++i) {
+						if (i == bone_trt) {
+							MV1SetFrameUserLocalMatrix(player[p_cnt].obj, i, player[p_cnt].ps_t);
+							MV1SetFrameUserLocalMatrix(player[p_cnt].colobj, i, player[p_cnt].ps_t);
+						}
+						else if (i == bone_gun1) {
+							mtemp = MMult(MMult(MGetRotX(player[p_cnt].gunrad.y), MGetTranslate(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[bone_trt]))), player[p_cnt].ps_t);
+							MV1SetFrameUserLocalMatrix(player[p_cnt].obj, i, mtemp);
+							MV1SetFrameUserLocalMatrix(player[p_cnt].colobj, i, mtemp);
+						}
+						else if (i == bone_gun2) {
+							mtemp = MGetTranslate(VAdd(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[bone_gun1]), VGet(0, 0, player[p_cnt].fired)));
+							MV1SetFrameUserLocalMatrix(player[p_cnt].obj, i, mtemp);
+							MV1SetFrameUserLocalMatrix(player[p_cnt].colobj, i, mtemp);
+						}
+						else if (i == bone_gun) {
+							MV1SetFrameUserLocalMatrix(player[p_cnt].obj, i, MMult(MMult(MGetRotX(player[p_cnt].gunrad.y), MGetTranslate(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[bone_trt]))), player[p_cnt].ps_t));
+						}
+						else if (i == bone_gun_) {
+							MV1SetFrameUserLocalMatrix(player[p_cnt].obj, i, MGetTranslate(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[bone_gun])));
+						}
+						else if (i >= bone_wheel && i < player[p_cnt].ptr->frames - 4) {
+							if ((i - bone_wheel) % 2 == 1) {
+								MV1SetFrameUserLocalMatrix(player[p_cnt].obj, i, MMult(MGetRotX(player[p_cnt].wheelrad[signbit(player[p_cnt].ptr->loc[i].x)]), MGetTranslate(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[i - 1]))));
+							}
+							else {
+								MV1ResetFrameUserLocalMatrix(player[p_cnt].obj, i);
+								tempvec[1] = VAdd(MV1GetFramePosition(player[p_cnt].obj, i), VScale(player[p_cnt].nor, 1.0f));
+								tempvec[0] = VAdd(MV1GetFramePosition(player[p_cnt].obj, i), VScale(player[p_cnt].nor, -0.2f));
+								HitPoly = MV1CollCheck_Line(mapparts.get_map_handle(), 0, tempvec[1], tempvec[0]);
+								if (HitPoly.HitFlag) {
+									tmpf = 1.0f - VSize(VSub(HitPoly.HitPosition, tempvec[1]));
+									player[p_cnt].Spring[i] += 1.0f / fps; if (player[p_cnt].Spring[i] >= tmpf) { player[p_cnt].Spring[i] = tmpf; }
+								}
+								else {
+									if (player[p_cnt].Spring[i] > -0.2f) { player[p_cnt].Spring[i] += -0.2f / fps; }
+								}
+								MV1SetFrameUserLocalMatrix(player[p_cnt].obj, i, MGetTranslate(VAdd(player[p_cnt].ptr->loc[i], VScale(player[p_cnt].nor, player[p_cnt].Spring[i]))));
+								//2ms
+							}
+						}
+						else if (i >= player[p_cnt].ptr->frames - 4) {
+							MV1SetFrameUserLocalMatrix(player[p_cnt].obj, i, MMult(MGetRotX(player[p_cnt].wheelrad[signbit(player[p_cnt].ptr->loc[i].x)]), MGetTranslate(player[p_cnt].ptr->loc[i])));
+						}
+					}
+					/*collition*/
+					for (i = 0; i < player[p_cnt].ptr->colmeshes; ++i) { MV1RefreshCollInfo(player[p_cnt].colobj, -1, i); }
+					/**/
+					if (player[p_cnt].fired >= 0.01f) { player[p_cnt].fired *= 0.95f; }
+					if (player[p_cnt].loadcnt[0] > 0) {
+						if (player[p_cnt].firerad < 180) { if (player[p_cnt].firerad <= 90) { player[p_cnt].firerad += 900 / (int)fps; } else { player[p_cnt].firerad += 180 / (int)fps; } } else { player[p_cnt].firerad = 180; }
+					}
+					for (guns = 0; guns < gunc; ++guns) {
+						k = guns * ammoc;
+						if (player[p_cnt].loadcnt[guns] == 0) {
+							if ((player[p_cnt].move & (KEY_SHOTCAN << guns)) != 0) {
+								j = player[p_cnt].useammo[guns] + k;
+								player[p_cnt].ammo[j].flug = 1;
+								player[p_cnt].ammo[j].speed = player[p_cnt].ptr->gun_speed[player[p_cnt].ammotype] / fps;
+								player[p_cnt].ammo[j].pene = player[p_cnt].ptr->pene[player[p_cnt].ammotype];
+								if (guns == 0) { player[p_cnt].ammo[j].pos = MV1GetFramePosition(player[p_cnt].obj, bone_gun1); }
+								else { player[p_cnt].ammo[j].pos = MV1GetFramePosition(player[p_cnt].obj, bone_gun); }
+								tempvec[0] = VSub(MV1GetFramePosition(player[p_cnt].obj, bone_gun2), MV1GetFramePosition(player[p_cnt].obj, bone_gun1));
+								player[p_cnt].ammo[j].rad.y = atan2(tempvec[0].x, (tempvec[0].z));
+								player[p_cnt].ammo[j].rad.x = atan2(-tempvec[0].y, sqrt(pow(tempvec[0].x, 2) + pow(tempvec[0].z, 2)));
+								tempfx = deg2rad((float)(-1000 + GetRand(2000)) / 10000.f);
+								tempfy = deg2rad((float)(-1000 + GetRand(2000)) / 10000.f);
+								player[p_cnt].ammo[j].vec = VGet(cos(-player[p_cnt].ammo[j].rad.x + tempfx) * sin(player[p_cnt].ammo[j].rad.y + tempfy), sin(-player[p_cnt].ammo[j].rad.x + tempfx), cos(-player[p_cnt].ammo[j].rad.x + tempfx) * cos(player[p_cnt].ammo[j].rad.y + tempfy));
+								player[p_cnt].ammo[j].repos = player[p_cnt].ammo[j].pos;
+								player[p_cnt].ammo[j].cnt = 0;
+								//					       
+								++player[p_cnt].useammo[guns]; player[p_cnt].useammo[guns] &= ammoc-1;
+								++player[p_cnt].loadcnt[guns];
+								if (guns == 0) {
+									set_effect(&(player[p_cnt].effcs[ef_fire]), MV1GetFramePosition(player[p_cnt].obj, bone_gun2), VSub(MV1GetFramePosition(player[p_cnt].obj, bone_gun2), MV1GetFramePosition(player[p_cnt].obj, bone_gun1)));
+									player[p_cnt].fired = 0.5f;
+									player[p_cnt].firerad = 0;
+									if (p_cnt == 0) { humanparts.start_humananime(2); parts.play_sound(1 + GetRand(6)); }
+									PlaySoundMem(player[p_cnt].se[2 + GetRand(7)], DX_PLAYTYPE_BACK, TRUE);
+								}
+								else {
+									set_effect(&(player[p_cnt].effcs[ef_gun]), MV1GetFramePosition(player[p_cnt].obj, bone_gun_), VGet(0, 0, 0));
+									PlaySoundMem(player[p_cnt].se[1], DX_PLAYTYPE_BACK, TRUE);
+								}
+							}
+						}
+						else {
+							++player[p_cnt].loadcnt[guns];
+							if (player[p_cnt].loadcnt[guns] >= player[p_cnt].ptr->reloadtime[guns]) { player[p_cnt].loadcnt[guns] = 0; if (p_cnt == 0 && guns == 0) { parts.play_sound(8 + GetRand(4)); } }//装てん完了
+						}
+						for (i = k; i < ammoc + k; ++i) {
+							if (player[p_cnt].ammo[i].flug != 0) {
+								player[p_cnt].ammo[i].repos = player[p_cnt].ammo[i].pos;
+								player[p_cnt].ammo[i].pos = VAdd(player[p_cnt].ammo[i].pos, VScale(player[p_cnt].ammo[i].vec, player[p_cnt].ammo[i].speed));
+								HitPoly = MV1CollCheck_Line(mapparts.get_map_handle(), 0, player[p_cnt].ammo[i].repos, player[p_cnt].ammo[i].pos);
+								if (HitPoly.HitFlag) { player[p_cnt].ammo[i].pos = HitPoly.HitPosition; }
+								for (tgt_p = 0; tgt_p < playerc; ++tgt_p) {
+									if (p_cnt == tgt_p) { continue; }
+									btmp=get_reco(&(player[p_cnt]), &(player[tgt_p]), i, guns);
+									if (btmp) { break; }
+								}
+								if (!btmp) {
+									if (HitPoly.HitFlag) {
+										set_effect(&(player[p_cnt].effcs[ef_gndhit + guns * (ef_gndhit2 - ef_gndhit)]), HitPoly.HitPosition, HitPoly.Normal);
+										player[p_cnt].ammo[i].vec = VAdd(player[p_cnt].ammo[i].vec, VScale(HitPoly.Normal, VDot(player[p_cnt].ammo[i].vec, HitPoly.Normal) * -2.0f));
+										player[p_cnt].ammo[i].pos = VAdd(HitPoly.HitPosition, VScale(player[p_cnt].ammo[i].vec, 0.01f));
+										//player[p_cnt].ammo[i].pene /= 2.0f;
+										player[p_cnt].ammo[i].speed /= 2.f;
+									}
+								}
+
+								tempvec[0] = VSub(player[p_cnt].ammo[i].pos, player[p_cnt].ammo[i].repos);
+								player[p_cnt].ammo[i].rad.y = atan2(tempvec[0].x, tempvec[0].z);
+								player[p_cnt].ammo[i].rad.x = atan2(-tempvec[0].y, sqrt(pow(tempvec[0].x, 2) + pow(tempvec[0].z, 2)));
+								player[p_cnt].ammo[i].vec.y += M_GR / 2.0f / fps / fps;
+								player[p_cnt].ammo[i].pene -= 1.0f / fps;
+								player[p_cnt].ammo[i].speed -= 5.f / fps;
+								player[p_cnt].ammo[i].cnt ++;
+								if (player[p_cnt].ammo[i].cnt>(fps*3.f) || player[p_cnt].ammo[i].speed<=0.f) { player[p_cnt].ammo[i].flug = 0; }//3秒で消える
+							}
+						}
+					}
+					if (player[p_cnt].recoadd) {
+						if (player[p_cnt].recoall < 180) {
+							if (p_cnt == 0 && player[p_cnt].recoall == 0) { uiparts.set_reco(); }
+							if (player[p_cnt].recoall <= 90) { player[p_cnt].recoall += 900 / (int)fps; } else { player[p_cnt].recoall += 180 / (int)fps; }
+						}
+						else { player[p_cnt].recoall = 0; player[p_cnt].recoadd = false; }
+					}
+					if (player[p_cnt].hitadd) {
+						if(p_cnt==0){ humanparts.start_humanvoice(0); }
+						player[p_cnt].hitadd = false;
+					}
+				}
+				//5.3ms
+				/*轍更新*/
+				mapparts.set_map_track();
+				//0ms
+				uiparts.end_way();//debug2//0
+				/*human*/
+				humanparts.set_humanmove(player[0], parts.get_view_r(), fps);
+				//(usegrab=TRUE)0.9~1.0ms(FALSE)0.1ms
+				uiparts.end_way();//debug3//0
+				uiparts.end_way();//debug4//0
+				/*effect*/
+				for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+					for (i = 0; i < efs_user; ++i) {
+						if (i != ef_smoke2 && i != ef_smoke3) { set_pos_effect(&player[p_cnt].effcs[i], parts.get_effHandle(i)); }
+					}
+						tempvec[0] = MV1GetFramePosition(player[p_cnt].obj, bone_smoke1);
+						SetPosPlayingEffekseer3DEffect(player[p_cnt].effcs[ef_smoke2].efhandle, tempvec[0].x, tempvec[0].y, tempvec[0].z);
+						//SetTargetLocation(player[p_cnt].effcs[ef_smoke2].efhandle, tempvec[0].x, tempvec[0].y, tempvec[0].z);
+						tempvec[0] = MV1GetFramePosition(player[p_cnt].obj, bone_smoke2);
+						SetPosPlayingEffekseer3DEffect(player[p_cnt].effcs[ef_smoke3].efhandle, tempvec[0].x, tempvec[0].y, tempvec[0].z);
+						//SetTargetLocation(player[p_cnt].effcs[ef_smoke3].efhandle, tempvec[0].x, tempvec[0].y, tempvec[0].z);
+				}
+				UpdateEffekseer3D();
+				//0.6ms
+			}
+			//uiparts.end_way();//debug5//0
+			/*視点*/
+			if (aim.flug) {
+				campos = MV1GetFramePosition(player[0].obj, bone_gun1);
+				viewpos = MV1GetFramePosition(player[0].obj, bone_gun2);
+				uppos = player[0].nor;
+			}
+			else {
+				if (parts.get_view_r().z != 0.1f) {
+					campos = VAdd(player[0].pos, VAdd(parts.get_view_pos(), VGet(0, 2, 0)));
+					viewpos = VAdd(player[0].pos, VGet(0, 4, 0));
+					HitPoly = MV1CollCheck_Line(mapparts.get_map_handle(), 0, campos, viewpos); if (HitPoly.HitFlag) { campos = HitPoly.HitPosition; }
+					campos = VAdd(campos, VGet(0, 2, 0));
+					uppos = VGet(0, 1, 0);
+				}
+				else {
+					campos = humanparts.get_campos();
+					viewpos = humanparts.get_neckpos();
+					uppos = player[0].nor;
+				}
+			}
+			mapparts.set_camerapos(campos, viewpos, uppos,rat_r);
+			/*shadow*/
+			mapparts.set_map_shadow_near(parts.get_view_r().z);
+			/*draw*/
+			/*map*/
+			if (map.flug) {
+				SetDrawScreen(minimap);
+				ClearDrawScreen();
+				DrawExtendGraph(x_r(420), y_r(0), x_r(1500), y_r(1080), mapparts.get_minmap(), FALSE);
+				for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+					if (player[p_cnt].type == TEAM) {
+						i = GetColor(0, 255, 0);
+						if (player[p_cnt].Hpoint[3] == 0) { i = GetColor(0, 128, 0); }
+					}
+					else {
+						i = GetColor(255, 0, 0);
+						if (player[p_cnt].Hpoint[3] == 0) { i = GetColor(128, 0, 0); }
+					}
+					DrawCircle(x_(player[p_cnt].pos.x), y_(player[p_cnt].pos.z), 5, i, 1);
+				}
+				for (p_cnt = 1; p_cnt < playerc; ++p_cnt) {
+					if (player[p_cnt].type == TEAM) {
+						DrawLine(x_(player[p_cnt].pos.x), y_(player[p_cnt].pos.z), x_(player[p_cnt].waypos[player[p_cnt].waynow].x), y_(player[p_cnt].waypos[player[p_cnt].waynow].z), GetColor(255, 0, 0), 3);
+						for (j = player[p_cnt].waynow; j < waypc - 1; ++j) {
+							DrawLine(x_(player[p_cnt].waypos[j].x), y_(player[p_cnt].waypos[j].z), x_(player[p_cnt].waypos[j + 1].x), y_(player[p_cnt].waypos[j + 1].z), GetColor(255, 64 * j, 0), 3);
+						}
+					}
+				}
+				i = 0;
+				j = 0;
+				for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+					if (player[p_cnt].type == TEAM) {
+						//ステータス
+						if (p_cnt == waysel) {
+							k = GetColor(255, 255, 0); 
+							if (player[p_cnt].Hpoint[3] == 0) { k = GetColor(200, 200, 0); }
+						}
+						else if (p_cnt == choose) { k = GetColor(192, 255, 0); }
+						else {
+							k = GetColor(0, 255, 0);
+							if (player[p_cnt].Hpoint[3] == 0) { k = GetColor(128, 128, 128); }
+						}
+						DrawBox(x_r(132), y_r(162 + i), x_r(324), y_r(180 + i), k, TRUE);
+						DrawFormatStringToHandle(x_r(132), y_r(162 + i), GetColor(255, 255, 255), parts.get_font(0), " %s", player[p_cnt].ptr->name.c_str());
+						//進軍
+						for (k = 0; k < player[p_cnt].wayselect; k++) {
+							DrawBox(x_r(348 + k * 12), y_r(162 + i), x_r(356 + k * 12), y_r(180 + i), GetColor(50, 50, 255), TRUE);
+						}
+						i += 24;
+					}
+					else {
+						k = GetColor(255, 0, 0);
+						if (player[p_cnt].Hpoint[3] == 0) { k = GetColor(128, 128, 128); }
+						DrawBox(x_r(1500), y_r(162 + j), x_r(1692), y_r(180 + j), k, TRUE);
+						DrawFormatStringToHandle(x_r(1500), y_r(162 + j), GetColor(255, 255, 255), parts.get_font(0), " %s", player[p_cnt].ptr->name.c_str());
+						j += 24;
+					}
+				}
+			}
+			//0.1ms
+			/*main*/
+			else {
+				/*sky*/
+				if (parts.get_view_r().z != 0.1f || aim.flug) {
+					SetDrawScreen(skyscreen);
+					mapparts.draw_map_sky();
+				}
+				/*near*/
+				SetDrawScreen(mainscreen);
+				ClearDrawScreen();
+				if (aim.flug) { setcv(0.06f + rat_r / 2, 2000.0f, campos, viewpos, uppos, 45.0f / rat_r); }
+				else { setcv(0.16f + parts.get_view_r().z, 2000.0f, campos, viewpos, uppos, 45.0f / rat_r); }
+				//----------------------------------------------------------
+				if (aim.flug) {
+					tempvec[0] = MV1GetFramePosition(player[0].obj, bone_gun1);
+					tmpf = player[0].ptr->gun_speed[player[0].ammotype];
+					getdist(&tempvec[0], VNorm(VSub(MV1GetFramePosition(player[0].obj, bone_gun2), MV1GetFramePosition(player[0].obj, bone_gun1))), &aim_r, tmpf, frate);
+					aims = ConvWorldPosToScreenPos(tempvec[0]);
+					aimm = aim_r / 1000.0f * tmpf;
+				}
+				//pos
+				for (p_cnt = 1; p_cnt < playerc; ++p_cnt) { player[p_cnt].iconpos = ConvWorldPosToScreenPos(VAdd(player[p_cnt].pos, VGet(0, VSize(VSub(player[p_cnt].pos, player[0].pos)) / 40 + 6, 0))); }
+
+				lookplayerc = 0;
+				for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+					p_sort[p_cnt].turn = p_cnt;
+					if (CheckCameraViewClip_Box(VAdd(player[p_cnt].pos, VGet(-5, 0, -5)), VAdd(player[p_cnt].pos, VGet(5, 3, 5))) == TRUE) { p_sort[p_cnt].distance = (float)map_x; }
+					else { p_sort[p_cnt].distance = VSize(VSub(player[p_cnt].pos, campos)); lookplayerc++; }
+				}
+				quick_sort(p_sort, 0, playerc - 1);
+
+				//effect
+				Effekseer_Sync3DSetting();
+				//---------------------------------------------------------------
+				if (parts.get_view_r().z != 0.1f || aim.flug) {
+					DrawGraph(0, 0, skyscreen, FALSE);//sky
+					//main
+					ShadowMap_DrawSetup(mapparts.get_map_shadow_seminear());
+						for (p_cnt = lookplayerc - 1; p_cnt >= 0; --p_cnt) {
+							if (p_sort[p_cnt].distance < (15.0f * parts.get_view_r().z + 20.0f)) { break; }
+							k = p_sort[p_cnt].turn;
+							MV1DrawMesh(player[k].obj, 0);
+							for (i = 3; i < player[k].ptr->meshes; ++i) {
+								if (player[k].Hpoint[i + 4] > 0) { MV1DrawMesh(player[k].obj, i); }
+							}
+							for (i = 1; i < 3; ++i) {
+								if (player[k].Hpoint[i] > 0) { MV1DrawMesh(player[k].obj, i); }
+							}
+						}
+					ShadowMap_DrawEnd();
+					ShadowMap_DrawSetup(mapparts.get_map_shadow_near());
+						humanparts.draw_human(0);
+						for (p_cnt = 0; p_cnt < lookplayerc; ++p_cnt) {
+							if (p_sort[p_cnt].distance > (15.0f * parts.get_view_r().z + 20.0f)) { break; }
+							k = p_sort[p_cnt].turn;
+							MV1DrawMesh(player[k].obj, 0);
+							for (i = 3; i < player[k].ptr->meshes; ++i) {
+								if (player[k].Hpoint[i + 4] > 0) { MV1DrawMesh(player[k].obj, i); }
+							}
+							for (i = 1; i < 3; ++i) {
+								if (player[k].Hpoint[i] > 0) { MV1DrawMesh(player[k].obj, i); }
+							}
+						}
+					ShadowMap_DrawEnd();
+
+					SetUseShadowMap(0, mapparts.get_map_shadow_near());
+					SetUseShadowMap(1, mapparts.get_map_shadow_far());
+					SetUseShadowMap(2, mapparts.get_map_shadow_seminear());
+						mapparts.draw_map_model();
+						humanparts.draw_human(0);
+						for (p_cnt = lookplayerc - 1; p_cnt >= 0; --p_cnt) {
+							k = p_sort[p_cnt].turn;
+							if (k != 0 || (k == 0 && !aim.flug)) {
+								MV1ResetFrameTextureAddressTransform(player[k].obj, 0);
+								MV1DrawMesh(player[k].obj, 0);
+								for (i = 3; i < player[k].ptr->meshes; ++i) {
+									if (player[k].Hpoint[i + 4] > 0) { MV1DrawMesh(player[k].obj, i); }
+								}
+								for (i = 1; i < 3; ++i) {
+									MV1SetFrameTextureAddressTransform(player[k].obj, 0, 0.0, player[k].wheelrad[i - 1], 1.0, 1.0, 0.5, 0.5, 0.0);
+									if (player[k].Hpoint[i] > 0) { MV1DrawMesh(player[k].obj, i); }
+								}
+								for (i = 0; i < 3; ++i) {
+									MV1SetRotationZYAxis(player[k].hitpic[i], VSub(MV1GetFramePosition(player[k].colobj, 11 + 3 * i), MV1GetFramePosition(player[k].colobj, 9 + 3 * i)), VSub(MV1GetFramePosition(player[k].colobj, 10 + 3 * i), MV1GetFramePosition(player[k].colobj, 9 + 3 * i)), 0.f);
+									MV1SetPosition(player[k].hitpic[i], VAdd(MV1GetFramePosition(player[k].colobj, 9 + 3 * i), VScale(VSub(MV1GetFramePosition(player[k].colobj, 10 + 3 * i), MV1GetFramePosition(player[k].colobj, 9 + 3 * i)), 0.005f)));
+									MV1DrawFrame(player[k].hitpic[i],player[k].usepic[i]);
+								}
+							}
+						}
+						//grass
+						if (!aim.flug) { mapparts.draw_grass(); }
+						//effect
+						DrawEffekseer3D();
+						//ammo
+						SetUseLighting(FALSE);
+						SetFogEnable(FALSE);
+						for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+							for (i = 0; i < ammoc; ++i) {
+								if (player[p_cnt].ammo[i].flug != 0) {
+									tmpf = 4.f*player[p_cnt].ammo[i].speed / (player[p_cnt].ptr->gun_speed[player[p_cnt].ammotype] / fps);
+									if (tmpf >= 1.f) { tmpf = 1.f; }
+									SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(255.f*tmpf));
+
+									DrawCapsule3D(player[p_cnt].ammo[i].pos, player[p_cnt].ammo[i].repos, player[p_cnt].ptr->ammosize*(VSize(VSub(player[p_cnt].ammo[i].pos, campos)) / 65.f), 8, player[p_cnt].ammo[i].color, GetColor(255, 255, 255), TRUE);
+								}
+							}
+							for (i = ammoc; i < ammoc * gunc; ++i) {
+								if (player[p_cnt].ammo[i].flug != 0) {
+									tmpf = 4.f*player[p_cnt].ammo[i].speed / (player[p_cnt].ptr->gun_speed[player[p_cnt].ammotype] / fps);
+									if (tmpf >= 1.f) { tmpf = 1.f; }
+									SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(255.f*tmpf));
+									DrawCapsule3D(player[p_cnt].ammo[i].pos, player[p_cnt].ammo[i].repos, 0.0075f*(VSize(VSub(player[p_cnt].ammo[i].pos, campos)) / 30.f), 8, player[p_cnt].ammo[i].color, GetColor(255, 255, 255), TRUE);
+								}
+							}
+						}
+						SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+						SetFogEnable(TRUE);
+						SetUseLighting(TRUE);
+
+						//tree
+						mapparts.draw_trees();
+						DrawEffekseer3D();
+
+					SetUseShadowMap(0, -1);
+					SetUseShadowMap(1, -1);
+					SetUseShadowMap(2, -1);
+					//カッコ内2~4ms
+				}
+				else {
+					humanparts.draw_humanall();
+				}
+				//1.2ms
+			}
+			//2ms
+			SetDrawScreen(DX_SCREEN_BACK);
+			ClearDrawScreen();
+			if (map.flug) {
+				/*指揮*/
+				DrawGraph(0, 0, minimap, FALSE);
+			}
+			else {
+				/*通常*/
+				DrawGraph(0, 0, mainscreen, FALSE);
+
+				GraphFilterBlt(mainscreen, HighBrightScreen, DX_GRAPH_FILTER_BRIGHT_CLIP, DX_CMP_LESS, 210, TRUE, GetColor(0, 0, 0), 255);
+				GraphFilterBlt(HighBrightScreen, GaussScreen, DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
+				GraphFilter(GaussScreen, DX_GRAPH_FILTER_GAUSS, 16, 1000);
+				SetDrawMode(DX_DRAWMODE_BILINEAR);
+				SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
+				DrawExtendGraph(0, 0, dispx, dispy, GaussScreen, FALSE);
+				DrawExtendGraph(0, 0, dispx, dispy, GaussScreen, FALSE);
+				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+
+				/*UI*/
+				if (aim.flug) { uiparts.draw_sight(aims.x, aims.y, rat_r, aimm, parts.get_font(0)); }/*照準器*/
+				else {
+					for (p_cnt = lookplayerc - 1; p_cnt >= 0; --p_cnt) {
+						k = p_sort[p_cnt].turn;
+						if (player[k].Hpoint[3] != 0) {
+							if (player[k].iconpos.z > 0.0f && player[k].iconpos.z < 1.0f) {
+								if (player[k].type == TEAM) { j = GetColor(0, 128 * p_cnt / playerc + 127, 0); } else { j = GetColor(128 * p_cnt / playerc + 127, 0, 0); }
+								DrawFormatStringToHandle((int)player[k].iconpos.x, (int)player[k].iconpos.y, j, parts.get_font(0), "[%d]\n%dm", k, (int)VSize(VSub(player[k].pos, player[0].pos)));
+							}
+						}
+					}
+				}/*アイコン*/
+				uiparts.draw_ui(selfammo);/*main*/
+			}
+			/*debug*/
+
+			for (i = 0; i < efs_user; ++i) {
+				DrawFormatStringToHandle(x_r(0), y_r(18*i), GetColor(255, 255, 255), parts.get_font(0), "(%d)", IsEffekseer3DEffectPlaying(player[0].effcs[i].efhandle) );
+			}
+
+			//DrawFormatStringToHandle(x_r(0), y_r(540), GetColor(255, 255, 255), parts.get_font(0), "%d", std::thread::hardware_concurrency());
+
+			//DrawFormatStringToHandle(x_r(18), y_r(1062), GetColor(255, 255, 255), parts.get_font(0), "start-stop(%.2fms)", (float)stop_w / 1000.f);
+			uiparts.debug(fps, (float)(GetNowHiPerformanceCount() - waits) / 1000.0f);
+
+			parts.Screen_Flip(waits);
+		}
+		//delete
+		mapparts.delete_map();
+		humanparts.delete_human();
+		if (p_sort != NULL) { delete[] p_sort; p_sort = NULL; }
+		if (player != NULL) {
+			for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+				for (i = 0; i < efs_user; i++) { StopEffekseer3DEffect(player[p_cnt].effcs[i].efhandle); }
+				delete player[p_cnt].playerfix->GetUserData();
+				player[p_cnt].playerfix->SetUserData(NULL);
+				player[p_cnt].body->DestroyFixture(player[p_cnt].playerfix);
+				MV1DeleteModel(player[p_cnt].obj);
+				MV1DeleteModel(player[p_cnt].colobj);
+				for (i = 0; i < 50; ++i) { DeleteSoundMem(player[p_cnt].se[i]); }
+				for (i = 0; i < 3; i++) { MV1DeleteModel(player[p_cnt].hitpic[i]); }
+				if (player[p_cnt].hitsort != NULL) { delete[] player[p_cnt].hitsort; player[p_cnt].hitsort = NULL; }
+				if (player[p_cnt].ammo != NULL) { delete[] player[p_cnt].ammo; player[p_cnt].ammo = NULL; }
+				if (player[p_cnt].Spring != NULL) { delete[] player[p_cnt].Spring; player[p_cnt].Spring = NULL; }
+				if (player[p_cnt].Hpoint != NULL) { delete[] player[p_cnt].Hpoint; player[p_cnt].Hpoint = NULL; }
+			}
+			delete[] player; player = NULL;
+		}
+	} while (!out);
+	/*終了*/
+	return 0;
+}

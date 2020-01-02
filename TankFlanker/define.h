@@ -1,0 +1,358 @@
+#pragma once
+#define dispx		(GetSystemMetrics(SM_CXSCREEN)/1)
+#define dispy		(GetSystemMetrics(SM_CYSCREEN)/1)
+#define M_GR		-9.8f
+#define waypc		4
+#define ammoc		64
+#define animes		4
+#define voice		1
+#define map_x		1000
+#define map_y		1000
+#define TEAM		1
+#define ENEMY		2
+#define EXTEND		4
+#define gunc		2
+#define frate		60.0f
+
+#ifndef INCLUDED_define_h_
+#define INCLUDED_define_h_
+#include "DxLib.h"
+#include "EffekseerForDXLib.h"
+#include <windows.h>
+#include <sstream>
+#include <cmath>
+#include <cstdlib>
+#include "Box2D/Box2D.h"
+#include "useful.h"
+#include <thread>
+/*構造体*/
+enum cpu {
+	CPU_NOMAL = 0,
+	CPU_CHARGE = 1
+};
+enum Key {
+	KEY_GOFLONT = 0x001,
+	KEY_GOBACK_ = 0x002,
+	KEY_GOLEFT_ = 0x004,
+	KEY_GORIGHT = 0x008,
+	KEY_TURNLFT = 0x010,
+	KEY_TURNRIT = 0x020,
+	KEY_TURNUP_ = 0x040,
+	KEY_TURNDWN = 0x080,
+	KEY_SHOTCAN = 0x100,
+	KEY_SHOTGAN = 0x200
+};
+enum Bone{
+	bone_trt	= 2,
+	bone_gun1	= 3,
+	bone_gun2	= 4,
+	bone_hatch	= 5,
+	bone_smoke1	= 6,
+	bone_smoke2	= 7,
+	bone_engine	= 8,
+	bone_gun	= 9,
+	bone_gun_	= 10,
+	bone_wheel	= 11,
+	bone_in_turret	= 6
+};
+enum Effect {
+	ef_fire		= 0,
+	ef_reco		= 1,
+	ef_bomb		= 2,
+	ef_smoke1	= 3,
+	ef_smoke2	= 4,
+	ef_gndhit	= 5,
+	ef_gun		= 6,
+	ef_gndhit2	= 7,
+	ef_reco2	= 8,
+	effects		= 9,//読み込む
+	ef_smoke3	= 9,//読み込まない
+	efs_user	= 10
+};
+struct ammos {
+	int flug = 0;
+	int cnt = 0;
+	int color = 0;
+	float speed = 0.f, pene = 0.f;
+	VECTOR pos{ VGet(0, 0, 0) }, repos{ VGet(0, 0, 0) }, vec{ VGet(0, 0, 0) }, rad{ VGet(0, 0, 0) };
+};
+struct EffectS {
+	int efhandle{ -1 };						/**/
+	bool efflug{ 0 };						/**/
+	VECTOR effpos = { VGet(0, 0, 0) };				/**/
+	VECTOR effnor = { VGet(0, 0, 0) };				/**/
+};
+struct vehicle {
+	std::string name;						/*名前*/
+	int countryc;							/*国*/
+	int model = 0;							/*モデル*/
+	int colmodel = 0;						/*コリジョン*/
+	int inmodel = 0;						/*内装*/
+	float spdflont[4] = { 0.0f };					/*前進*/
+	float spdback[4] = { 0.0f };					/*後退*/
+	float vehicle_RD = 0.0f;					/*旋回速度*/
+	float armer[4] = { 0 };						/*装甲*/
+	bool gun_lim_LR = 0;						/*砲塔限定旋回の有無*/
+	float gun_lim_[4] = { 0.f };					/*砲塔旋回制限*/
+	float gun_RD = 0.0f;						/*砲塔旋回速度*/
+	int reloadtime[gunc]{ 0 };					/*リロードタイム*/
+	float ammosize = 0.0f;						/*砲口径*/
+	float gun_speed[3] = { 0.0f };					/*弾速*/
+	float pene[3] = { 0.0f };					/*貫通*/
+	int ammotype[3] = { 0 };					/*弾種*/
+	VECTOR* loc{ NULL };						/*フレームの元座標*/
+	VECTOR coloc[4] = { VGet(0,0,0) };				/*box2D用フレーム*/
+	int frames{ 0 };
+	int colmeshes{ 0 };
+	int meshes{ 0 };
+};
+struct players {
+	/*情報*/
+	int use{ 0 };							/*使用車両*/
+	vehicle* ptr;							/*vehicle*/
+	int obj{ 0 };							/*モデル*/
+	int colobj{ 0 };						/*コリジョン*/
+	int hitpic[3];							/*弾痕モデル*/
+	char type{ 0 };							/*敵味方識別*/
+	int se[50]{ 0 };						/*SE*/
+	/**/
+	int move{ 0 };							/*キー操作*/
+
+	VECTOR pos{ VGet(0, 0, 0) };					/*座標*/
+	MATRIX ps_m;							/*車体行列*/
+	MATRIX ps_t;							/*砲塔行列*/
+
+	MATRIX* ps_o;
+
+	float yace{ 0.f };						/*加速度*/
+	float speed{ 0.f }, speedrec{ 0.f }, flont{ 0.f }, back{ 0.f };	/*速度関連*/
+	VECTOR vec{ VGet(0, 0, 0) };					/*移動ベクトル*/
+
+	float xnor{ 0.f }, znor{ 0.f }, znorrec{ 0.f };			/*法線角度*/
+	VECTOR nor{ VGet(0, 0, 0) };					/*法線*/
+
+	float yrad{ 0.f };						/*角度*/
+	float yadd{ 0.f };						/*角速度*/
+	int recoall{ 0 };						/*弾き角度*/
+	int firerad{ 0 };						/*反動角度*/
+	float recorad{ 0.f };						/*弾き反動*/
+	/*cpu関連*/
+	int atkf{ -1 };							/*cpuのヘイト*/
+	int aim{ 0 };							/*ヘイトの変更カウント*/
+	int wayselect{ 0 }, waynow{ 0 };				/**/
+	VECTOR waypos[waypc]{ VGet(0, 0, 0) };				/*ウェイポイント*/
+	int wayspd[waypc]{ 0 };						/*速度指定*/
+	int state{ 0 };							/*ステータス*/
+	/**/
+	ammos* ammo{ NULL };						/*ammo*/
+	float* Spring{ NULL };						/*サス*/
+	char* Hpoint{ NULL };						/*HP*/
+	sorts* hitsort{ NULL };
+	/**/
+	int gear{ 0 };							/*変速*/
+	unsigned int gearu{ 0 };					/*キー*/
+	unsigned int geard{ 0 };					/*キー*/
+	VECTOR inertia{ VGet(0, 0, 0) };				/*慣性*/
+	float wheelspeed{ 0.f };					/*履帯の前進*/
+	float wheelrad[2]{ 0.f };					/*履帯の旋回*/
+	VECTOR gunrad{ 0.f };						/*砲角度*/
+	float fired{ 0.f };						/*駐退*/
+	/*弾関連*/
+	int ammotype{ 0 };						/*弾種*/
+	int loadcnt[gunc]{ 0 };						/*装てんカウンター*/
+	int useammo[gunc]{ 0 };						/*使用弾*/
+	bool recoadd{ false };						/*弾きフラグ*/
+	bool hitadd{ false };						/*命中フラグ*/
+	VECTOR iconpos{ VGet(0, 0, 0) };				/*UI用*/
+	EffectS effcs[efs_user];					/*effect*/
+	int usepic[3];							/*使用フレーム*/
+	int hitbuf;							/*使用弾痕*/
+	/*box2d*/
+	b2Body* body;							/**/
+	b2FixtureDef fixtureDef;					/*動的ボディフィクスチャを定義します。*/
+	b2PolygonShape dynamicBox;					/*ダイナミックボディに別のボックスシェイプを定義します。*/
+	b2Fixture *playerfix;						/**/
+	b2BodyDef bodyDef;						/*ダイナミックボディを定義します。その位置を設定し、ボディファクトリを呼び出します。*/
+};
+struct switches {
+	bool flug{ false };
+	int cnt{ 0 };
+};
+class Myclass {
+private:
+	/*setting*/
+	bool usegrab{ false };							/*人の物理演算のオフ、オン、一人だけオン*/
+	unsigned char ANTI{ 1 };						/*アンチエイリアス倍率*/
+	bool YSync{ true };							/*垂直同期*/
+	bool windowmode{ false };						/*ウィンドウor全画面*/
+	float drawdist{ 100.0f };						/*木の描画距離*/
+	int gndx = 8;
+	/**/
+	int vehc = 0;								/*車両数*/
+	vehicle* vecs{ NULL };							/*車輛情報*/
+	VECTOR view, view_r;							/*通常視点の角度、距離*/
+	int* fonts{ NULL };							/*フォント*/
+	int se_[13];								/*効果音*/
+	int ui_reload[4] = { 0 };						/*UI用*/
+	int effHndle[effects] = { 0 };						/*エフェクトリソース*/
+public:
+	Myclass();
+	bool get_usegrab(void) { return usegrab; }
+	int get_gndx(void) { return gndx; }
+	float get_drawdist(void) { return drawdist; }
+	void write_option(void);						//未実装
+	bool set_fonts(int arg_num, ...);					//(必要なフォント数,サイズ1,サイズ2, ...)
+	bool set_veh(void);
+	int window_choosev(void);						//車両選択
+	void set_viewrad(VECTOR vv);
+	void set_view_r(void);
+	void Screen_Flip(LONGLONG waits);
+	~Myclass();
+	void set_se_vol(unsigned char size);
+	void play_sound(int p1);
+	int* get_ui2(void) { return ui_reload; }
+	int get_font(int p1) { return fonts[p1]; }				//フォントハンドル取り出し
+	VECTOR get_view_r(void) { return view_r; }
+	VECTOR get_view_pos(void) { return VScale(VGet(sin(view_r.y) * cos(view_r.x), sin(view_r.x), cos(view_r.y) * cos(view_r.x)), 15.0f * view_r.z); }
+	int get_effHandle(int p1) { return effHndle[p1]; }
+	vehicle* get_vehicle(int p1) { return &vecs[p1]; }
+};
+class HUMANS {
+private:
+	struct humans {
+		int obj{ -1 };
+		int neck{ 0 };
+		VECTOR nvec{ VGet(0,0,0) };
+		int amine[animes]{ 0 };
+		float time[animes]{ 0.f };
+		float alltime[animes]{ 0.f };
+		float per[animes]{ 0.f };
+		char vflug{ 0 };
+		float voicetime{ 0.f };
+		float voicealltime[voice]{ 0 };
+		int voices[voice]{ 0 };
+		int vsound[voice]{ 0 };
+	}*hum{ NULL };
+	int human{ 0 };								/*乗員人数*/
+	bool usegrab{ false };							/*人の物理演算のオフ、オン、一人だけオン*/
+	int inmodel_handle{ 0 };						//中モデル
+	bool in_f{ false };							//中描画スイッチ
+	int inflames;								//inmodelのフレーム数
+	VECTOR* locin{ NULL };							/*inmodelのフレーム*/
+	VECTOR* posold{ NULL };							/*inmodelの前回のフレーム*/
+	bool first;								//初回フラグ
+public:
+	HUMANS(bool useg);
+	void set_humans(int inmod);
+	void set_humanvc_vol(unsigned char size);
+	void set_humanmove(players player, VECTOR rad, float fps);
+	void draw_human(int p1);
+	void draw_humanall();
+	void delete_human(void);
+	~HUMANS();
+
+	void start_humanvoice(int p1);
+	void start_humananime(int p1);
+	VECTOR get_neckpos() { return MV1GetFramePosition(hum[0].obj, hum[0].neck);}
+	VECTOR get_campos() { return MV1GetFramePosition(inmodel_handle, bone_hatch); }
+};
+class MAPS {
+private:
+	/*setting*/
+	int groundx;
+	float drawdist;
+	/**/
+	int treec = 750;							/*木の数*/
+	struct trees {
+		int mnear = 0;							/**/
+		int mfar = 0;							/**/
+		int* nears = 0;							/**/
+		int* fars = 0;							/**/
+		sorts* t_sort;
+		VECTOR* pos = 0;						/**/
+		VECTOR* rad = 0;
+		bool* hit = 0;
+	} tree{ NULL };
+	int looktree = 0;							/*tree描画数*/
+	int shadow_seminear;							/*shadow中距離*/
+	int shadow_near;							/*shadow近距離*/
+	int shadow_far;								/*shadowマップ用*/
+	int m_model, minmap;							/*mapモデル*/
+	int texp,texo, texn, texm,texl;						/*mapテクスチャ*/
+	int sky_model;								/*skyモデル*/
+	int sky_sun;								/*sunpic*/
+	VECTOR lightvec;							/*light方向*/
+	/*grass*/
+	int grasss = 50000;							/*grassの数*/
+	VERTEX3D* grassver;							/**/
+	DWORD* grassind;							/**/
+	int VerBuf, IndexBuf;							/**/
+	int grass, graph;							/*grassモデル、画像ハンドル*/
+	int IndexNum, VerNum;							/**/
+	int GgHandle;								/**/
+	int vnum, pnum;								/**/
+	MV1_REF_POLYGONLIST RefMesh;						/**/
+	//campos
+	VECTOR camera, viewv, upv;						/**/
+	float rat;								/**/
+public:
+	MAPS(int map_size,float draw_dist);
+	~MAPS();
+	void set_map_readyb(int set);
+	bool set_map_ready(void);
+	void set_camerapos(VECTOR pos, VECTOR vec, VECTOR up, float ratio);
+	void set_map_shadow_near(float vier_r);
+	void draw_map_track(float loc[], int p_handle, int fnum, float yrad);
+	void draw_map_model(void);
+	void set_map_track(void);
+	void draw_map_sky(void);
+	void delete_map(void);
+	int get_map_handle() { return m_model; }
+	int get_minmap() { return texp; }
+	int get_map_shadow_far() { return shadow_far; }
+	int get_map_shadow_near() { return shadow_near; }
+	int get_map_shadow_seminear() { return shadow_seminear; }
+	void set_hitplayer(VECTOR pos);
+	void draw_trees(void);
+	void draw_grass(void);
+};
+class UIS {
+private:
+	/**/
+	int ui_reload[4] = { 0 };						/*弾UI*/
+	struct country { int ui_sight[9] = { 0 }; } *UI_main{ NULL };		/*国別UI*/
+	int countries = 1;							/*国数*/
+	float gearf = 0.f;							/*変速*/
+	float recs = 0.f;							/*跳弾表現用*/
+	players *pplayer;							/*playerdata*/
+	/*debug*/
+	float deb[60][6 + 1]{ 0.f };
+	LONGLONG waypoint{ 0 };							/*時間取得*/
+	float waydeb[6]{ 0 };
+	int seldeb{ 0 };
+public:
+	UIS();
+	void draw_load(void);								/*ロード画面*/
+	void set_state(players* play);							/*使用するポインタの指定*/
+	void set_reco(void);								/*反射スイッチ*/
+	void draw_sight(float posx, float posy, float ratio, float dist, int font);	/*照準UI*/
+	void draw_ui(int selfammo);							/*メインUI*/
+
+	void put_way(void);
+	void end_way(void);
+	void debug(float fps, float time);
+	~UIS();
+};
+
+void setcv(float neard, float fard, VECTOR cam, VECTOR view, VECTOR up, float fov);//カメラ情報指定
+void getdist(VECTOR *startpos, VECTOR vector, float *dist, float speed, float fps);//startposに測距情報を出力
+//effect
+void set_effect(EffectS *efh,VECTOR pos,VECTOR nor);
+void set_pos_effect(EffectS *efh, int handle);
+//play_class予定
+void set_normal(float* xnor, float* znor, int maphandle, VECTOR position);
+bool get_reco(players* play, players* tgt, int i,int guns);
+void set_gunrad(players *play, float rat_r);
+bool set_shift(players *play);
+//
+#endif
