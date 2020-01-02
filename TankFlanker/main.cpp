@@ -43,7 +43,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 	parts.set_fonts(18);
 	SetUseASyncLoadFlag(TRUE);
 		//hit-------------------------------------------------------------------//
-		int hit_mod = MV1LoadModel("data/hit/hit.mv1");
+		const auto hit_mod = MV1Handle::LoadModel("data/hit/hit.mv1");
 		//screen----------------------------------------------------------------//
 		int minimap = MakeScreen(dispx, dispy, FALSE);				/*ミニマップ*/
 		int skyscreen = MakeScreen(dispx, dispy, FALSE);			/*空*/
@@ -123,9 +123,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			/*players*/
 			SetCreate3DSoundFlag(TRUE);
 			for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
-				player[p_cnt].obj = MV1DuplicateModel(player[p_cnt].ptr->model);
-				player[p_cnt].colobj = MV1DuplicateModel(player[p_cnt].ptr->colmodel);
-				for (i = 0; i < 3; i++) { player[p_cnt].hitpic[i] = MV1DuplicateModel(hit_mod); }
+				player[p_cnt].obj = player[p_cnt].ptr->model.DuplicateModel();
+				player[p_cnt].colobj = player[p_cnt].ptr->colmodel.DuplicateModel();
+				for (i = 0; i < 3; i++) { player[p_cnt].hitpic[i] = hit_mod.DuplicateModel(); }
 				player[p_cnt].se[0] = LoadSoundMem("data/audio/se/engine/0.wav");
 				player[p_cnt].se[1] = LoadSoundMem("data/audio/se/fire/gun.wav");
 				for (i = 2; i < 10; ++i) {
@@ -156,11 +156,11 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		//players
 		for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 			//色調
-			for (i = 0; i < MV1GetMaterialNum(player[p_cnt].obj); ++i) {
-				MV1SetMaterialSpcColor(player[p_cnt].obj, i, GetColorF(0.85f, 0.82f, 0.78f, 0.5f));
-				MV1SetMaterialSpcPower(player[p_cnt].obj, i, 5.0f);
+			for (i = 0; i < MV1GetMaterialNum(player[p_cnt].obj.get()); ++i) {
+				MV1SetMaterialSpcColor(player[p_cnt].obj.get(), i, GetColorF(0.85f, 0.82f, 0.78f, 0.5f));
+				MV1SetMaterialSpcPower(player[p_cnt].obj.get(), i, 5.0f);
 			}
-			MV1SetMaterialDrawAlphaTestAll(player[p_cnt].obj, TRUE, DX_CMP_GREATER, 128);
+			MV1SetMaterialDrawAlphaTestAll(player[p_cnt].obj.get(), TRUE, DX_CMP_GREATER, 128);
 			//リセット
 			player[p_cnt].hitbuf = 0;
 			player[p_cnt].gear = 0;
@@ -168,7 +168,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			player[p_cnt].atkf = -1;
 			player[p_cnt].aim = -2;
 			//hit
-			for (i = 0; i < player[p_cnt].ptr->colmeshes; ++i) { MV1SetupCollInfo(player[p_cnt].colobj, -1, 5, 5, 5, i); }
+			for (i = 0; i < player[p_cnt].ptr->colmeshes; ++i) { MV1SetupCollInfo(player[p_cnt].colobj.get(), -1, 5, 5, 5); }
 
 			player[p_cnt].hitssort.resize(player[p_cnt].ptr->colmeshes);		//p_sort = new sorts[playerc]; if (p_sort == NULL) { break; }
 			//player[p_cnt].hitsort = new sorts[player[p_cnt].ptr->colmeshes]; if (player[p_cnt].hitsort == NULL) { break; }
@@ -187,14 +187,14 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			//wheel
 			player[p_cnt].Spring = new float[player[p_cnt].ptr->frames]; if (player[p_cnt].Spring == NULL) { break; }
 			for (i = bone_wheel; i < player[p_cnt].ptr->frames; ++i) { player[p_cnt].Spring[i] = 0.f; }
-			MV1SetMatrix(player[p_cnt].colobj, MGetTranslate(VGet(0, 0, 0)));
+			MV1SetMatrix(player[p_cnt].colobj.get(), MGetTranslate(VGet(0, 0, 0)));
 			//装てん
 			player[p_cnt].loadcnt[0] = 1;
 			//ypos反映
-			HitPoly = MV1CollCheck_Line(mapparts.get_map_handle(), 0, VAdd(player[p_cnt].pos, VGet(0.0f, (float)map_x, 0.0f)), VAdd(player[p_cnt].pos, VGet(0.0f, -(float)map_x, 0.0f)));
+			HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, VAdd(player[p_cnt].pos, VGet(0.0f, (float)map_x, 0.0f)), VAdd(player[p_cnt].pos, VGet(0.0f, -(float)map_x, 0.0f)));
 			if (HitPoly.HitFlag) { player[p_cnt].pos.y = HitPoly.HitPosition.y; }
 			for (i = 0; i < waypc; ++i) {
-				HitPoly = MV1CollCheck_Line(mapparts.get_map_handle(), 0, VAdd(player[p_cnt].waypos[i], VGet(0.0f, (float)map_x, 0.0f)), VAdd(player[p_cnt].waypos[i], VGet(0.0f, -(float)map_x, 0.0f)));
+				HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, VAdd(player[p_cnt].waypos[i], VGet(0.0f, (float)map_x, 0.0f)), VAdd(player[p_cnt].waypos[i], VGet(0.0f, -(float)map_x, 0.0f)));
 				if (HitPoly.HitFlag) { player[p_cnt].waypos[i].y = HitPoly.HitPosition.y; }
 			}
 			//
@@ -380,12 +380,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 							}
 							else {
 								player[p_cnt].gear = 1;																	//*変速
-								tempvec[1] = MV1GetFramePosition(player[p_cnt].obj, bone_gun1);												//*元のベクトル
-								tempvec[0] = VNorm(VSub(MV1GetFramePosition(player[player[p_cnt].atkf].obj, bone_gun1), tempvec[1]));							//*向くベクトル
-								tmpf = VSize(VSub(MV1GetFramePosition(player[player[p_cnt].atkf].obj, bone_gun1), tempvec[1]));
-								getdist(&tempvec[1], VNorm(VSub(MV1GetFramePosition(player[p_cnt].obj, bone_gun2), tempvec[1])), &tmpf, player[p_cnt].ptr->gun_speed[player[p_cnt].ammotype], f_rates);
+								tempvec[1] = MV1GetFramePosition(player[p_cnt].obj.get(), bone_gun1);												//*元のベクトル
+								tempvec[0] = VNorm(VSub(MV1GetFramePosition(player[player[p_cnt].atkf].obj.get(), bone_gun1), tempvec[1]));							//*向くベクトル
+								tmpf = VSize(VSub(MV1GetFramePosition(player[player[p_cnt].atkf].obj.get(), bone_gun1), tempvec[1]));
+								getdist(&tempvec[1], VNorm(VSub(MV1GetFramePosition(player[p_cnt].obj.get(), bone_gun2), tempvec[1])), &tmpf, player[p_cnt].ptr->gun_speed[player[p_cnt].ammotype], f_rates);
 
-								tempvec[1] = VNorm(VSub(tempvec[1], MV1GetFramePosition(player[p_cnt].obj, bone_gun1)));
+								tempvec[1] = VNorm(VSub(tempvec[1], MV1GetFramePosition(player[p_cnt].obj.get(), bone_gun1)));
 								cpu_move = tempvec[1].y * sqrtf(powf(tempvec[0].x, 2) + powf(tempvec[0].z, 2)) - sqrtf(powf(tempvec[1].x, 2) + powf(tempvec[1].z, 2)) * tempvec[0].y;	//*砲
 								if (cpu_move <= 0) { player[p_cnt].move |= KEY_TURNUP_; }
 								if (cpu_move > 0) { player[p_cnt].move |= KEY_TURNDWN; }
@@ -395,7 +395,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 								if (cpu_move < 0) { player[p_cnt].move |= KEY_GOLEFT_; }
 								if (cpu_move > 0) { player[p_cnt].move |= KEY_GORIGHT; }
 								if (VSize(VCross(tempvec[1], tempvec[0])) < sin(deg2rad(1))) {
-									HitPoly = MV1CollCheck_Line(mapparts.get_map_handle(), 0, MV1GetFramePosition(player[p_cnt].obj, bone_gun1), MV1GetFramePosition(player[player[p_cnt].atkf].obj, bone_gun1));
+									HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, MV1GetFramePosition(player[p_cnt].obj.get(), bone_gun1), MV1GetFramePosition(player[player[p_cnt].atkf].obj.get(), bone_gun1));
 									if (!HitPoly.HitFlag) {
 										if (player[p_cnt].loadcnt[0] == 0) {
 											if ((player[p_cnt].move & KEY_GOFLONT) != 0) { player[p_cnt].move -= KEY_GOFLONT; }
@@ -544,11 +544,11 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 				/*砲撃その他*/
 				for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 					//地形判定
-					HitPoly = MV1CollCheck_Line(mapparts.get_map_handle(), 0, VAdd(player[p_cnt].pos, VGet(0.0f, 2.0f, 0.0f)), VAdd(player[p_cnt].pos, VGet(0.0f, -0.05f, 0.0f)));//0.3ms
+					HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, VAdd(player[p_cnt].pos, VGet(0.0f, 2.0f, 0.0f)), VAdd(player[p_cnt].pos, VGet(0.0f, -0.05f, 0.0f)));//0.3ms
 					if (HitPoly.HitFlag) {
 						player[p_cnt].pos.y = HitPoly.HitPosition.y;
 						player[p_cnt].yace = 0.0f;
-						set_normal(&(player[p_cnt].xnor), &(player[p_cnt].znor), mapparts.get_map_handle(), player[p_cnt].pos);//0.6ms
+						set_normal(&(player[p_cnt].xnor), &(player[p_cnt].znor), mapparts.get_map_handle().get(), player[p_cnt].pos);//0.6ms
 						player[p_cnt].nor = VTransform(VGet(0,1.f,0), MMult(MGetRotX(player[p_cnt].xnor), MGetRotZ(player[p_cnt].znor)));
 						//player[p_cnt].nor = VAdd(player[p_cnt].nor, VScale(VSub(HitPoly.Normal, player[p_cnt].nor), 0.1f));
 						/*speed*/
@@ -557,7 +557,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 						if (player[p_cnt].gear == 0) { player[p_cnt].speed *= 0.95f; }
 						if (player[p_cnt].gear < 0 || (player[p_cnt].move & KEY_GOFLONT) == 0) { player[p_cnt].flont *= 0.95f; }
 						/*track*/
-						mapparts.draw_map_track(player[p_cnt].Spring, player[p_cnt].obj, player[p_cnt].ptr->frames, player[p_cnt].yrad);//0.1ms
+						mapparts.draw_map_track(player[p_cnt].Spring, player[p_cnt].obj.get(), player[p_cnt].ptr->frames, player[p_cnt].yrad);//0.1ms
 					}
 					else {
 						player[p_cnt].pos.y += player[p_cnt].yace; player[p_cnt].yace += M_GR / 2.0f / fps / fps;
@@ -577,39 +577,39 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 					/*砲塔行列*/
 					player[p_cnt].ps_t = MMult(MGetRotY(player[p_cnt].gunrad.x), MGetTranslate(player[p_cnt].ptr->loc[bone_trt]));
 					//all
-					MV1SetMatrix(player[p_cnt].colobj, player[p_cnt].ps_m);
-					MV1SetMatrix(player[p_cnt].obj, player[p_cnt].ps_m);
+					MV1SetMatrix(player[p_cnt].colobj.get(), player[p_cnt].ps_m);
+					MV1SetMatrix(player[p_cnt].obj.get(), player[p_cnt].ps_m);
 					//common
 					for (i = bone_trt; i < player[p_cnt].ptr->frames; ++i) {
 						if (i == bone_trt) {
-							MV1SetFrameUserLocalMatrix(player[p_cnt].obj, i, player[p_cnt].ps_t);
-							MV1SetFrameUserLocalMatrix(player[p_cnt].colobj, i, player[p_cnt].ps_t);
+							MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, player[p_cnt].ps_t);
+							MV1SetFrameUserLocalMatrix(player[p_cnt].colobj.get(), i, player[p_cnt].ps_t);
 						}
 						else if (i == bone_gun1) {
 							mtemp = MMult(MMult(MGetRotX(player[p_cnt].gunrad.y), MGetTranslate(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[bone_trt]))), player[p_cnt].ps_t);
-							MV1SetFrameUserLocalMatrix(player[p_cnt].obj, i, mtemp);
-							MV1SetFrameUserLocalMatrix(player[p_cnt].colobj, i, mtemp);
+							MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, mtemp);
+							MV1SetFrameUserLocalMatrix(player[p_cnt].colobj.get(), i, mtemp);
 						}
 						else if (i == bone_gun2) {
 							mtemp = MGetTranslate(VAdd(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[bone_gun1]), VGet(0, 0, player[p_cnt].fired)));
-							MV1SetFrameUserLocalMatrix(player[p_cnt].obj, i, mtemp);
-							MV1SetFrameUserLocalMatrix(player[p_cnt].colobj, i, mtemp);
+							MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, mtemp);
+							MV1SetFrameUserLocalMatrix(player[p_cnt].colobj.get(), i, mtemp);
 						}
 						else if (i == bone_gun) {
-							MV1SetFrameUserLocalMatrix(player[p_cnt].obj, i, MMult(MMult(MGetRotX(player[p_cnt].gunrad.y), MGetTranslate(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[bone_trt]))), player[p_cnt].ps_t));
+							MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, MMult(MMult(MGetRotX(player[p_cnt].gunrad.y), MGetTranslate(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[bone_trt]))), player[p_cnt].ps_t));
 						}
 						else if (i == bone_gun_) {
-							MV1SetFrameUserLocalMatrix(player[p_cnt].obj, i, MGetTranslate(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[bone_gun])));
+							MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, MGetTranslate(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[bone_gun])));
 						}
 						else if (i >= bone_wheel && i < player[p_cnt].ptr->frames - 4) {
 							if ((i - bone_wheel) % 2 == 1) {
-								MV1SetFrameUserLocalMatrix(player[p_cnt].obj, i, MMult(MGetRotX(player[p_cnt].wheelrad[signbit(player[p_cnt].ptr->loc[i].x)+1]), MGetTranslate(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[i - 1]))));
+								MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, MMult(MGetRotX(player[p_cnt].wheelrad[signbit(player[p_cnt].ptr->loc[i].x)+1]), MGetTranslate(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[i - 1]))));
 							}
 							else {
-								MV1ResetFrameUserLocalMatrix(player[p_cnt].obj, i);
-								tempvec[1] = VAdd(MV1GetFramePosition(player[p_cnt].obj, i), VScale(player[p_cnt].nor, 1.0f));
-								tempvec[0] = VAdd(MV1GetFramePosition(player[p_cnt].obj, i), VScale(player[p_cnt].nor, -0.2f));
-								HitPoly = MV1CollCheck_Line(mapparts.get_map_handle(), 0, tempvec[1], tempvec[0]);
+								MV1ResetFrameUserLocalMatrix(player[p_cnt].obj.get(), i);
+								tempvec[1] = VAdd(MV1GetFramePosition(player[p_cnt].obj.get(), i), VScale(player[p_cnt].nor, 1.0f));
+								tempvec[0] = VAdd(MV1GetFramePosition(player[p_cnt].obj.get(), i), VScale(player[p_cnt].nor, -0.2f));
+								HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, tempvec[1], tempvec[0]);
 								if (HitPoly.HitFlag) {
 									tmpf = 1.0f - VSize(VSub(HitPoly.HitPosition, tempvec[1]));
 									player[p_cnt].Spring[i] += 1.0f / fps; if (player[p_cnt].Spring[i] >= tmpf) { player[p_cnt].Spring[i] = tmpf; }
@@ -617,16 +617,16 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 								else {
 									if (player[p_cnt].Spring[i] > -0.2f) { player[p_cnt].Spring[i] += -0.2f / fps; }
 								}
-								MV1SetFrameUserLocalMatrix(player[p_cnt].obj, i, MGetTranslate(VAdd(player[p_cnt].ptr->loc[i], VScale(player[p_cnt].nor, player[p_cnt].Spring[i]))));
+								MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, MGetTranslate(VAdd(player[p_cnt].ptr->loc[i], VScale(player[p_cnt].nor, player[p_cnt].Spring[i]))));
 								//2ms
 							}
 						}
 						else if (i >= player[p_cnt].ptr->frames - 4) {
-							MV1SetFrameUserLocalMatrix(player[p_cnt].obj, i, MMult(MGetRotX(player[p_cnt].wheelrad[signbit(player[p_cnt].ptr->loc[i].x)+1]), MGetTranslate(player[p_cnt].ptr->loc[i])));
+							MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, MMult(MGetRotX(player[p_cnt].wheelrad[signbit(player[p_cnt].ptr->loc[i].x)+1]), MGetTranslate(player[p_cnt].ptr->loc[i])));
 						}
 					}
 					/*collition*/
-					for (i = 0; i < player[p_cnt].ptr->colmeshes; ++i) { MV1RefreshCollInfo(player[p_cnt].colobj, -1, i); }
+					for (i = 0; i < player[p_cnt].ptr->colmeshes; ++i) { MV1RefreshCollInfo(player[p_cnt].colobj.get(), -1); }
 					/**/
 					if (player[p_cnt].fired >= 0.01f) { player[p_cnt].fired *= 0.95f; }
 					if (player[p_cnt].loadcnt[0] > 0) {
@@ -640,9 +640,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 								player[p_cnt].ammo[j].flug = 1;
 								player[p_cnt].ammo[j].speed = player[p_cnt].ptr->gun_speed[player[p_cnt].ammotype] / fps;
 								player[p_cnt].ammo[j].pene = player[p_cnt].ptr->pene[player[p_cnt].ammotype];
-								if (guns == 0) { player[p_cnt].ammo[j].pos = MV1GetFramePosition(player[p_cnt].obj, bone_gun1); }
-								else { player[p_cnt].ammo[j].pos = MV1GetFramePosition(player[p_cnt].obj, bone_gun); }
-								tempvec[0] = VSub(MV1GetFramePosition(player[p_cnt].obj, bone_gun2), MV1GetFramePosition(player[p_cnt].obj, bone_gun1));
+								if (guns == 0) { player[p_cnt].ammo[j].pos = MV1GetFramePosition(player[p_cnt].obj.get(), bone_gun1); }
+								else { player[p_cnt].ammo[j].pos = MV1GetFramePosition(player[p_cnt].obj.get(), bone_gun); }
+								tempvec[0] = VSub(MV1GetFramePosition(player[p_cnt].obj.get(), bone_gun2), MV1GetFramePosition(player[p_cnt].obj.get(), bone_gun1));
 								player[p_cnt].ammo[j].rad.y = atan2(tempvec[0].x, (tempvec[0].z));
 								player[p_cnt].ammo[j].rad.x = atan2(-tempvec[0].y, sqrt(pow(tempvec[0].x, 2) + pow(tempvec[0].z, 2)));
 								tempfx = deg2rad((float)(-1000 + GetRand(2000)) / 10000.f);
@@ -654,14 +654,14 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 								++player[p_cnt].useammo[guns]; player[p_cnt].useammo[guns] &= ammoc-1;
 								++player[p_cnt].loadcnt[guns];
 								if (guns == 0) {
-									set_effect(&(player[p_cnt].effcs[ef_fire]), MV1GetFramePosition(player[p_cnt].obj, bone_gun2), VSub(MV1GetFramePosition(player[p_cnt].obj, bone_gun2), MV1GetFramePosition(player[p_cnt].obj, bone_gun1)));
+									set_effect(&(player[p_cnt].effcs[ef_fire]), MV1GetFramePosition(player[p_cnt].obj.get(), bone_gun2), VSub(MV1GetFramePosition(player[p_cnt].obj.get(), bone_gun2), MV1GetFramePosition(player[p_cnt].obj.get(), bone_gun1)));
 									player[p_cnt].fired = 0.5f;
 									player[p_cnt].firerad = 0;
 									if (p_cnt == 0) { humanparts.start_humananime(2); parts.play_sound(1 + GetRand(6)); }
 									PlaySoundMem(player[p_cnt].se[2 + GetRand(7)], DX_PLAYTYPE_BACK, TRUE);
 								}
 								else {
-									set_effect(&(player[p_cnt].effcs[ef_gun]), MV1GetFramePosition(player[p_cnt].obj, bone_gun_), VGet(0, 0, 0));
+									set_effect(&(player[p_cnt].effcs[ef_gun]), MV1GetFramePosition(player[p_cnt].obj.get(), bone_gun_), VGet(0, 0, 0));
 									PlaySoundMem(player[p_cnt].se[1], DX_PLAYTYPE_BACK, TRUE);
 								}
 							}
@@ -674,7 +674,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 							if (player[p_cnt].ammo[i].flug != 0) {
 								player[p_cnt].ammo[i].repos = player[p_cnt].ammo[i].pos;
 								player[p_cnt].ammo[i].pos = VAdd(player[p_cnt].ammo[i].pos, VScale(player[p_cnt].ammo[i].vec, player[p_cnt].ammo[i].speed));
-								HitPoly = MV1CollCheck_Line(mapparts.get_map_handle(), 0, player[p_cnt].ammo[i].repos, player[p_cnt].ammo[i].pos);
+								HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, player[p_cnt].ammo[i].repos, player[p_cnt].ammo[i].pos);
 								if (HitPoly.HitFlag) { player[p_cnt].ammo[i].pos = HitPoly.HitPosition; }
 								for (tgt_p = 0; tgt_p < playerc; ++tgt_p) {
 									if (p_cnt == tgt_p) { continue; }
@@ -729,10 +729,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 					for (i = 0; i < efs_user; ++i) {
 						if (i != ef_smoke2 && i != ef_smoke3) { set_pos_effect(&player[p_cnt].effcs[i], parts.get_effHandle(i)); }
 					}
-						tempvec[0] = MV1GetFramePosition(player[p_cnt].obj, bone_smoke1);
+						tempvec[0] = MV1GetFramePosition(player[p_cnt].obj.get(), bone_smoke1);
 						SetPosPlayingEffekseer3DEffect(player[p_cnt].effcs[ef_smoke2].efhandle, tempvec[0].x, tempvec[0].y, tempvec[0].z);
 						//SetTargetLocation(player[p_cnt].effcs[ef_smoke2].efhandle, tempvec[0].x, tempvec[0].y, tempvec[0].z);
-						tempvec[0] = MV1GetFramePosition(player[p_cnt].obj, bone_smoke2);
+						tempvec[0] = MV1GetFramePosition(player[p_cnt].obj.get(), bone_smoke2);
 						SetPosPlayingEffekseer3DEffect(player[p_cnt].effcs[ef_smoke3].efhandle, tempvec[0].x, tempvec[0].y, tempvec[0].z);
 						//SetTargetLocation(player[p_cnt].effcs[ef_smoke3].efhandle, tempvec[0].x, tempvec[0].y, tempvec[0].z);
 				}
@@ -742,15 +742,15 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			//uiparts.end_way();//debug5//0
 			/*視点*/
 			if (aim.flug) {
-				campos = MV1GetFramePosition(player[0].obj, bone_gun1);
-				viewpos = MV1GetFramePosition(player[0].obj, bone_gun2);
+				campos = MV1GetFramePosition(player[0].obj.get(), bone_gun1);
+				viewpos = MV1GetFramePosition(player[0].obj.get(), bone_gun2);
 				uppos = player[0].nor;
 			}
 			else {
 				if (parts.get_view_r().z != 0.1f) {
 					campos = VAdd(player[0].pos, VAdd(parts.get_view_pos(), VGet(0, 2, 0)));
 					viewpos = VAdd(player[0].pos, VGet(0, 4, 0));
-					HitPoly = MV1CollCheck_Line(mapparts.get_map_handle(), 0, campos, viewpos); if (HitPoly.HitFlag) { campos = HitPoly.HitPosition; }
+					HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, campos, viewpos); if (HitPoly.HitFlag) { campos = HitPoly.HitPosition; }
 					campos = VAdd(campos, VGet(0, 2, 0));
 					uppos = VGet(0, 1, 0);
 				}
@@ -824,9 +824,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 				else { setcv(0.16f + parts.get_view_r().z, 2000.0f, campos, viewpos, uppos, 45.0f / rat_r); }
 				//----------------------------------------------------------
 				if (aim.flug) {
-					tempvec[0] = MV1GetFramePosition(player[0].obj, bone_gun1);
+					tempvec[0] = MV1GetFramePosition(player[0].obj.get(), bone_gun1);
 					tmpf = player[0].ptr->gun_speed[player[0].ammotype];
-					getdist(&tempvec[0], VNorm(VSub(MV1GetFramePosition(player[0].obj, bone_gun2), MV1GetFramePosition(player[0].obj, bone_gun1))), &aim_r, tmpf, f_rates);
+					getdist(&tempvec[0], VNorm(VSub(MV1GetFramePosition(player[0].obj.get(), bone_gun2), MV1GetFramePosition(player[0].obj.get(), bone_gun1))), &aim_r, tmpf, f_rates);
 					aims = ConvWorldPosToScreenPos(tempvec[0]);
 					aimm = aim_r / 1000.0f * tmpf;
 				}
@@ -854,9 +854,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 							if (tt.second== (float)map_x) { continue; }
 							if (tt.second < (15.0f * parts.get_view_r().z + 20.0f)) { break; }
 							k = tt.first;
-							MV1DrawMesh(player[k].obj, 0);
+							MV1DrawMesh(player[k].obj.get(), 0);
 							for (i = 1; i < player[k].ptr->meshes; ++i) {
-								if (player[k].Hpoint[i + 4] > 0) { MV1DrawMesh(player[k].obj, i); }
+								if (player[k].Hpoint[i + 4] > 0) { MV1DrawMesh(player[k].obj.get(), i); }
 							}
 						}
 					ShadowMap_DrawEnd();
@@ -865,9 +865,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 						for (auto& tt : pssort) {
 							if (tt.second > (15.0f * parts.get_view_r().z + 20.0f)) { continue; }
 							k = tt.first;
-							MV1DrawMesh(player[k].obj, 0);
+							MV1DrawMesh(player[k].obj.get(), 0);
 							for (i = 1; i < player[k].ptr->meshes; ++i) {
-								if (player[k].Hpoint[i + 4] > 0) { MV1DrawMesh(player[k].obj, i); }
+								if (player[k].Hpoint[i + 4] > 0) { MV1DrawMesh(player[k].obj.get(), i); }
 							}
 						}
 					ShadowMap_DrawEnd();
@@ -882,16 +882,16 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 							k = tt.first;
 							if (k != 0 || (k == 0 && !aim.flug)) {
 
-								MV1DrawMesh(player[k].obj, 0);
+								MV1DrawMesh(player[k].obj.get(), 0);
 								for (i = 1; i < player[k].ptr->meshes; ++i) {
-									if (i >= 1 && i < 3) { MV1SetFrameTextureAddressTransform(player[k].obj, 0, 0.0, player[k].wheelrad[i], 1.0, 1.0, 0.5, 0.5, 0.0); }
-									if (i == 3) { MV1ResetFrameTextureAddressTransform(player[k].obj, 0); }
-									if (player[k].Hpoint[i + 4] > 0) { MV1DrawMesh(player[k].obj, i); }
+									if (i >= 1 && i < 3) { MV1SetFrameTextureAddressTransform(player[k].obj.get(), 0, 0.0, player[k].wheelrad[i], 1.0, 1.0, 0.5, 0.5, 0.0); }
+									if (i == 3) { MV1ResetFrameTextureAddressTransform(player[k].obj.get(), 0); }
+									if (player[k].Hpoint[i + 4] > 0) { MV1DrawMesh(player[k].obj.get(), i); }
 								}
 								for (i = 0; i < 3; ++i) {
-									MV1SetRotationZYAxis(player[k].hitpic[i], VSub(MV1GetFramePosition(player[k].colobj, 11 + 3 * i), MV1GetFramePosition(player[k].colobj, 9 + 3 * i)), VSub(MV1GetFramePosition(player[k].colobj, 10 + 3 * i), MV1GetFramePosition(player[k].colobj, 9 + 3 * i)), 0.f);
-									MV1SetPosition(player[k].hitpic[i], VAdd(MV1GetFramePosition(player[k].colobj, 9 + 3 * i), VScale(VSub(MV1GetFramePosition(player[k].colobj, 10 + 3 * i), MV1GetFramePosition(player[k].colobj, 9 + 3 * i)), 0.005f)));
-									MV1DrawFrame(player[k].hitpic[i],player[k].usepic[i]);
+									MV1SetRotationZYAxis(player[k].hitpic[i].get(), VSub(MV1GetFramePosition(player[k].colobj.get(), 11 + 3 * i), MV1GetFramePosition(player[k].colobj.get(), 9 + 3 * i)), VSub(MV1GetFramePosition(player[k].colobj.get(), 10 + 3 * i), MV1GetFramePosition(player[k].colobj.get(), 9 + 3 * i)), 0.f);
+									MV1SetPosition(player[k].hitpic[i].get(), VAdd(MV1GetFramePosition(player[k].colobj.get(), 9 + 3 * i), VScale(VSub(MV1GetFramePosition(player[k].colobj.get(), 10 + 3 * i), MV1GetFramePosition(player[k].colobj.get(), 9 + 3 * i)), 0.005f)));
+									MV1DrawFrame(player[k].hitpic[i].get(),player[k].usepic[i]);
 								}
 							}
 						}
@@ -990,10 +990,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 				delete player[p_cnt].playerfix->GetUserData();
 				player[p_cnt].playerfix->SetUserData(NULL);
 				player[p_cnt].body->DestroyFixture(player[p_cnt].playerfix);
-				MV1DeleteModel(player[p_cnt].obj);
-				MV1DeleteModel(player[p_cnt].colobj);
+				player[p_cnt].obj.Dispose();
+				player[p_cnt].colobj.Dispose();
 				for (i = 0; i < 50; ++i) { DeleteSoundMem(player[p_cnt].se[i]); }
-				for (i = 0; i < 3; i++) { MV1DeleteModel(player[p_cnt].hitpic[i]); }
+				for (i = 0; i < 3; i++) { player[p_cnt].hitpic[i].Dispose(); }
 				player[p_cnt].hitssort.clear();
 				if (player[p_cnt].ammo != NULL) { delete[] player[p_cnt].ammo; player[p_cnt].ammo = NULL; }
 				if (player[p_cnt].Spring != NULL) { delete[] player[p_cnt].Spring; player[p_cnt].Spring = NULL; }

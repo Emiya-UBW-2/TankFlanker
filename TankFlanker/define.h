@@ -29,6 +29,7 @@
 #include<algorithm>
 #include <vector>
 #include <cstring>
+#include "MV1Handle.hpp"
 /*構造体*/
 enum cpu {
 	CPU_NOMAL = 0,
@@ -89,9 +90,9 @@ struct EffectS {
 struct vehicle {
 	std::string name;						/*名前*/
 	int countryc;							/*国*/
-	int model = 0;							/*モデル*/
-	int colmodel = 0;						/*コリジョン*/
-	int inmodel = 0;						/*内装*/
+	MV1Handle model;							/*モデル*/
+	MV1Handle colmodel;						/*コリジョン*/
+	MV1Handle inmodel;						/*内装*/
 	float spdflont[4] = { 0.0f };					/*前進*/
 	float spdback[4] = { 0.0f };					/*後退*/
 	float vehicle_RD = 0.0f;					/*旋回速度*/
@@ -104,7 +105,7 @@ struct vehicle {
 	float gun_speed[3] = { 0.0f };					/*弾速*/
 	float pene[3] = { 0.0f };					/*貫通*/
 	int ammotype[3] = { 0 };					/*弾種*/
-	VECTOR* loc{ NULL };						/*フレームの元座標*/
+	std::vector<VECTOR> loc;						/*フレームの元座標*/
 	VECTOR coloc[4] = { VGet(0,0,0) };				/*box2D用フレーム*/
 	int frames{ 0 };
 	int colmeshes{ 0 };
@@ -114,9 +115,9 @@ struct players {
 	/*情報*/
 	int use{ 0 };							/*使用車両*/
 	vehicle* ptr;							/*vehicle*/
-	int obj{ 0 };							/*モデル*/
-	int colobj{ 0 };						/*コリジョン*/
-	int hitpic[3];							/*弾痕モデル*/
+	MV1Handle obj;							/*モデル*/
+	MV1Handle colobj;						/*コリジョン*/
+	MV1Handle hitpic[3];							/*弾痕モデル*/
 	char type{ 0 };							/*敵味方識別*/
 	int se[50]{ 0 };						/*SE*/
 	/**/
@@ -235,7 +236,7 @@ public:
 class HUMANS {
 private:
 	struct humans {
-		int obj{ -1 };
+		MV1Handle obj;
 		int neck{ 0 };
 		VECTOR nvec{ VGet(0,0,0) };
 		int amine[animes]{ 0 };
@@ -253,7 +254,7 @@ private:
 	bool usegrab{ false };							/*人の物理演算のオフ、オン、一人だけオン*/
 	float f_rate{ 60.f };							/*fps*/
 
-	int inmodel_handle{ 0 };						//中モデル
+	MV1Handle inmodel_handle;						//中モデル
 	bool in_f{ false };							//中描画スイッチ
 	int inflames;								//inmodelのフレーム数
 	VECTOR* locin{ NULL };							/*inmodelのフレーム*/
@@ -261,9 +262,9 @@ private:
 	bool first;								//初回フラグ
 public:
 	HUMANS(bool useg, float frates);
-	void set_humans(int inmod);
+	void set_humans(const MV1Handle& inmod);
 	void set_humanvc_vol(unsigned char size);
-	void set_humanmove(players player, VECTOR rad, float fps);
+	void set_humanmove(const players& player, VECTOR rad, float fps);
 	void draw_human(int p1);
 	void draw_humanall();
 	void delete_human(void);
@@ -271,8 +272,8 @@ public:
 
 	void start_humanvoice(int p1);
 	void start_humananime(int p1);
-	VECTOR get_neckpos() { return MV1GetFramePosition(hum[0].obj, hum[0].neck);}
-	VECTOR get_campos() { return MV1GetFramePosition(inmodel_handle, bone_hatch); }
+	VECTOR get_neckpos() { return MV1GetFramePosition(hum[0].obj.get(), hum[0].neck);}
+	VECTOR get_campos() { return MV1GetFramePosition(inmodel_handle.get(), bone_hatch); }
 };
 class MAPS {
 private:
@@ -282,22 +283,22 @@ private:
 	/**/
 	int treec = 750;							/*木の数*/
 	struct trees {
-		int mnear = 0;							/**/
-		int mfar = 0;							/**/
-		int* nears = 0;							/**/
-		int* fars = 0;							/**/
+		MV1Handle mnear;							/**/
+		MV1Handle mfar;							/**/
+		std::vector<MV1Handle> nears;							/**/
+		std::vector<MV1Handle> fars;							/**/
 		std::vector<pair> treesort;	//sorts* t_sort;
 		VECTOR* pos = 0;						/**/
 		VECTOR* rad = 0;
 		bool* hit = 0;
-	} tree{ NULL };
+	} tree;
 	int looktree = 0;							/*tree描画数*/
 	int shadow_seminear;							/*shadow中距離*/
 	int shadow_near;							/*shadow近距離*/
 	int shadow_far;								/*shadowマップ用*/
-	int m_model, minmap;							/*mapモデル*/
+	MV1Handle m_model, minmap;							/*mapモデル*/
 	int texp,texo, texn, texm,texl;						/*mapテクスチャ*/
-	int sky_model;								/*skyモデル*/
+	MV1Handle sky_model;								/*skyモデル*/
 	int sky_sun;								/*sunpic*/
 	VECTOR lightvec;							/*light方向*/
 	/*grass*/
@@ -305,7 +306,8 @@ private:
 	VERTEX3D* grassver;							/**/
 	DWORD* grassind;							/**/
 	int VerBuf, IndexBuf;							/**/
-	int grass, graph;							/*grassモデル、画像ハンドル*/
+	MV1Handle grass;							/*grassモデル*/
+	int graph;/*画像ハンドル*/
 	int IndexNum, VerNum;							/**/
 	int GgHandle;								/**/
 	int vnum, pnum;								/**/
@@ -325,7 +327,8 @@ public:
 	void set_map_track(void);
 	void draw_map_sky(void);
 	void delete_map(void);
-	int get_map_handle() { return m_model; }
+	MV1Handle& get_map_handle() & noexcept { return m_model; }
+	const MV1Handle& get_map_handle() const & noexcept { return m_model; }
 	int get_minmap() { return texp; }
 	int get_map_shadow_far() { return shadow_far; }
 	int get_map_shadow_near() { return shadow_near; }

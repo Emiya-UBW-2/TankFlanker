@@ -1,9 +1,5 @@
 ﻿#include "define.h"
 #include <string_view>
-int MV1LoadModel(const std::basic_string<TCHAR>& FileName)
-{
-	return DxLib::MV1LoadModelWithStrLen(FileName.c_str(), FileName.length());
-}
 //
 Myclass::Myclass() {
 	using namespace std::literals;
@@ -93,9 +89,9 @@ Myclass::Myclass() {
 	}
 	SetUseASyncLoadFlag(TRUE);
 		for (j = 0; j < vehc; ++j) {
-			vecs[j].model = MV1LoadModel("data/tanks/" + vecs[j].name + "/model.mv1");
-			vecs[j].colmodel = MV1LoadModel("data/tanks/" + vecs[j].name + "/col.mv1");
-			vecs[j].inmodel = MV1LoadModel("data/tanks/" + vecs[j].name + "/in/model.mv1");
+			vecs[j].model = MV1Handle::LoadModel("data/tanks/" + vecs[j].name + "/model.mv1");
+			vecs[j].colmodel = MV1Handle::LoadModel("data/tanks/" + vecs[j].name + "/col.mv1");
+			vecs[j].inmodel = MV1Handle::LoadModel("data/tanks/" + vecs[j].name + "/in/model.mv1");
 		}
 		for (j = 0; j < 13; ++j) {
 			const auto filename = (j < 1) ? "data/audio/se/engine/shift.wav"s
@@ -115,14 +111,14 @@ bool Myclass::set_veh(void) {
 	int i, j, k;
 	LONGLONG waits;								/*時間取得*/
 	for (j = 0; j < vehc; ++j) {
-		vecs[j].meshes = MV1GetMeshNum(vecs[j].model);
-		vecs[j].frames = MV1GetFrameNum(vecs[j].model);
-		vecs[j].colmeshes = MV1GetMeshNum(vecs[j].colmodel);
+		vecs[j].meshes = MV1GetMeshNum(vecs[j].model.get());
+		vecs[j].frames = MV1GetFrameNum(vecs[j].model.get());
+		vecs[j].colmeshes = MV1GetMeshNum(vecs[j].colmodel.get());
 	}
 	for (j = 0; j < vehc; ++j) {
-		vecs[j].loc = new VECTOR[vecs[j].frames]; if (vecs[j].loc == NULL) { return false; }
-		for (i = 0; i < vecs[j].frames; ++i) { vecs[j].loc[i] = MV1GetFramePosition(vecs[j].model, i); }
-		for (i = 0; i < 4; ++i) { vecs[j].coloc[i] = MV1GetFramePosition(vecs[j].colmodel, 5 + i); }
+		vecs[j].loc.reserve(vecs[j].frames);
+		for (i = 0; i < vecs[j].frames; ++i) { vecs[j].loc.emplace_back(MV1GetFramePosition(vecs[j].model.get(), i)); }
+		for (auto& c : vecs[j].coloc) { c = MV1GetFramePosition(vecs[j].colmodel.get(), 5 + i); }
 	}
 	//エフェクト------------------------------------------------------------//
 	k = 0;
@@ -174,9 +170,9 @@ int Myclass::window_choosev(void) {
 			setcv(1.0f, 100.0f, VGet(-sin(real)*(10.f + r), 1, -cos(real)*(10.f + r)), VGet(-sin(real)*r, 2, -cos(real)*r), VGet(0, 1.0f, 0), 45.0f);
 			SetLightDirection(VSub(VGet(-sin(real)*r, 2, -cos(real)*r), VGet(-sin(real)*(10.f + r), 4, -cos(real)*(10.f + r))));
 			for (k = 0; k < vehc; k++) {
-				MV1SetPosition(vecs[k].model, VGet(-sin(deg2rad(360 * k / vehc))*r, 0, -cos(deg2rad(360 * k / vehc))*r));
-				MV1SetRotationXYZ(vecs[k].model, VGet(0, deg2rad((360 * k / vehc + 30)), 0));
-				MV1DrawModel(vecs[k].model);
+				MV1SetPosition(vecs[k].model.get(), VGet(-sin(deg2rad(360 * k / vehc))*r, 0, -cos(deg2rad(360 * k / vehc))*r));
+				MV1SetRotationXYZ(vecs[k].model.get(), VGet(0, deg2rad((360 * k / vehc + 30)), 0));
+				MV1DrawModel(vecs[k].model.get());
 			}
 			DrawFormatStringToHandle(x_r(960) - GetDrawFormatStringWidthToHandle(font72, "%s", vecs[i].name.c_str()) / 2, y_r(154), GetColor(0, 255, 0), font72, "%s", vecs[i].name.c_str());
 			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vehc)) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(850), y_r(850), GetColor(0, 255, 0), font18, "MAX SPD    : %5.2f km/h", vecs[i].spdflont[3] * 3.6f); }
@@ -260,10 +256,9 @@ Myclass::~Myclass() {
 	int j;
 	if (vecs != NULL) {
 		for (j = 0; j < vehc; ++j) {
-			MV1DeleteModel(vecs[j].model);
-			MV1DeleteModel(vecs[j].colmodel);
-			MV1DeleteModel(vecs[j].inmodel);
-			if (vecs[j].loc != NULL) { delete[] vecs[j].loc; }
+			vecs[j].model.Dispose();
+			vecs[j].colmodel.Dispose();
+			vecs[j].inmodel.Dispose();
 		}
 		delete[] vecs;
 	}
@@ -291,13 +286,13 @@ HUMANS::HUMANS(bool useg,float frates){
 	usegrab = useg;
 	f_rate = frates;
 }
-void HUMANS::set_humans(int inmod) {
+void HUMANS::set_humans(const MV1Handle& inmod) {
 	using namespace std::literals;
 	int i, j;
 	//load
 	SetUseASyncLoadFlag(FALSE);
-	inmodel_handle = MV1DuplicateModel(inmod);
-	inflames = MV1GetFrameNum(inmodel_handle);
+	inmodel_handle = inmod.DuplicateModel();
+	inflames = MV1GetFrameNum(inmodel_handle.get());
 	if (inflames - bone_in_turret >= 1) { human = inflames - bone_in_turret; } else { human = 1; }/*乗員*/
 	locin = new VECTOR[inflames]; if (locin == NULL) { return; }
 	posold = new VECTOR[inflames]; if (posold == NULL) { return; }
@@ -305,38 +300,38 @@ void HUMANS::set_humans(int inmod) {
 	for (i = 0; i < human; ++i) {
 		if (usegrab) { MV1SetLoadModelUsePhysicsMode(DX_LOADMODEL_PHYSICS_REALTIME); }
 		else { MV1SetLoadModelUsePhysicsMode(DX_LOADMODEL_PHYSICS_LOADCALC); }
-		hum[i].obj = MV1LoadModel("data/chara/結月ゆかり/model.mv1");
+		hum[i].obj = MV1Handle::LoadModel("data/chara/結月ゆかり/model.mv1");
 	}
 	//
 	for (i = 0; i < human; ++i) {
-		for (j = 0; j < MV1GetMaterialNum(hum[i].obj); ++j) {
-			MV1SetMaterialDifColor(hum[i].obj, j, GetColorF(0.5f, 0.5f, 0.5f, 1.0f));
-			MV1SetMaterialSpcColor(hum[i].obj, j, GetColorF(0.35f, 0.32f, 0.28f, 0.5f));
-			MV1SetMaterialSpcPower(hum[i].obj, j, 1.0f);
+		for (j = 0; j < MV1GetMaterialNum(hum[i].obj.get()); ++j) {
+			MV1SetMaterialDifColor(hum[i].obj.get(), j, GetColorF(0.5f, 0.5f, 0.5f, 1.0f));
+			MV1SetMaterialSpcColor(hum[i].obj.get(), j, GetColorF(0.35f, 0.32f, 0.28f, 0.5f));
+			MV1SetMaterialSpcPower(hum[i].obj.get(), j, 1.0f);
 		}
 		for (j = 0; j < animes; ++j) {
-			hum[i].amine[j] = MV1AttachAnim(hum[i].obj, j, -1, TRUE);
+			hum[i].amine[j] = MV1AttachAnim(hum[i].obj.get(), j, -1, TRUE);
 			hum[i].time[j] = 0.0f;
-			hum[i].alltime[j] = MV1GetAttachAnimTotalTime(hum[i].obj, hum[i].amine[j]);
+			hum[i].alltime[j] = MV1GetAttachAnimTotalTime(hum[i].obj.get(), hum[i].amine[j]);
 			hum[i].per[j] = 0.f;
 		}
 	}
 	for (i = 0; i < voice; ++i) {
-		hum[0].voices[i] = MV1AttachAnim(hum[0].obj, animes + i, -1, TRUE);
-		hum[0].voicealltime[i] = MV1GetAttachAnimTotalTime(hum[0].obj, hum[0].voices[i]);
+		hum[0].voices[i] = MV1AttachAnim(hum[0].obj.get(), animes + i, -1, TRUE);
+		hum[0].voicealltime[i] = MV1GetAttachAnimTotalTime(hum[0].obj.get(), hum[0].voices[i]);
 		hum[0].vsound[i] = LoadSoundMem(("data/chara/結月ゆかり/" + std::to_string(i) + ".wav").c_str());
 	}
 	//
-	MV1SetMatrix(inmodel_handle, MGetTranslate(VGet(0, 0, 0)));
+	MV1SetMatrix(inmodel_handle.get(), MGetTranslate(VGet(0, 0, 0)));
 	for (i = 0; i < inflames; i++) {
-		locin[i] = MV1GetFramePosition(inmodel_handle, i);
-		MV1ResetFrameUserLocalMatrix(inmodel_handle, i);
+		locin[i] = MV1GetFramePosition(inmodel_handle.get(), i);
+		MV1ResetFrameUserLocalMatrix(inmodel_handle.get(), i);
 	}
 	hum[0].neck = 0;
-	for(const TCHAR* re; "首"sv != (re =  MV1GetFrameName(hum[0].obj, hum[0].neck++)); ) {}
+	for(const TCHAR* re; "首"sv != (re =  MV1GetFrameName(hum[0].obj.get(), hum[0].neck++)); ) {}
 	if (hum[0].neck == 0) { hum[0].neck = 121; }//暫定処置
-	MV1SetMatrix(hum[0].obj, MGetTranslate(VGet(0, 0, 0)));
-	hum[0].nvec = VSub(MV1GetFramePosition(hum[0].obj, hum[0].neck), MV1GetFramePosition(hum[0].obj, hum[0].neck - 1));
+	MV1SetMatrix(hum[0].obj.get(), MGetTranslate(VGet(0, 0, 0)));
+	hum[0].nvec = VSub(MV1GetFramePosition(hum[0].obj.get(), hum[0].neck), MV1GetFramePosition(hum[0].obj.get(), hum[0].neck - 1));
 	first = false;
 	hum[0].vflug = -1;
 	return;
@@ -344,33 +339,34 @@ void HUMANS::set_humans(int inmod) {
 void HUMANS::set_humanvc_vol(unsigned char size) {
 	for (int i = 0; i < voice; ++i) { ChangeVolumeSoundMem(size, hum[0].vsound[i]); }
 }
-void HUMANS::set_humanmove(players player, VECTOR rad, float fps) {
+void HUMANS::set_humanmove(const players& player, VECTOR rad, float fps) {
 	float tmpft, tmpfy;
 	int i, j,inflm=inflames;
 	bool grab = usegrab;
-	if (!first) { MV1SetMatrix(inmodel_handle, player.ps_m); }
+	if (!first) { MV1SetMatrix(inmodel_handle.get(), player.ps_m); }
 	for (i = 0; i < inflm; ++i) {
-		posold[i] = MV1GetFramePosition(inmodel_handle, i);
+		posold[i] = MV1GetFramePosition(inmodel_handle.get(), i);
 	}
-	MV1SetMatrix(inmodel_handle, player.ps_m);
+	MV1SetMatrix(inmodel_handle.get(), player.ps_m);
 	for (i = 0; i < inflm; ++i) {
 		if (i == bone_trt) {
-			MV1SetFrameUserLocalMatrix(inmodel_handle, i, player.ps_t);
+			MV1SetFrameUserLocalMatrix(inmodel_handle.get(), i, player.ps_t);
 		}
 		else if (i == bone_gun1) {
-			MV1SetFrameUserLocalMatrix(inmodel_handle, i, MMult(MMult(MGetRotX(player.gunrad.y), MGetTranslate(VSub(locin[i], locin[bone_trt]))), player.ps_t));
+			MV1SetFrameUserLocalMatrix(inmodel_handle.get(), i, MMult(MMult(MGetRotX(player.gunrad.y), MGetTranslate(VSub(locin[i], locin[bone_trt]))), player.ps_t));
 		}
 		else if (i == bone_gun2) {
-			MV1SetFrameUserLocalMatrix(inmodel_handle, i, MGetTranslate(VAdd(VSub(player.ptr->loc[i], player.ptr->loc[bone_gun1]), VGet(0, 0, player.fired))));
+			MV1SetFrameUserLocalMatrix(inmodel_handle.get(), i, MGetTranslate(VAdd(VSub(player.ptr->loc[i], player.ptr->loc[bone_gun1]), VGet(0, 0, player.fired))));
 		}
+		//警告	C6289	不適切な演算子です : || を使用した相互排除は常に 0 でない定数となります。 && を使用しようとしましたか ?
 		else if (i >= bone_hatch &&( i != 9 || i != 10 )) {
-			MV1SetFrameUserLocalMatrix(inmodel_handle, i, MMult(MMult(MGetRotY(player.gunrad.x), MGetTranslate(VSub(locin[i], locin[bone_trt]))), player.ps_t));
+			MV1SetFrameUserLocalMatrix(inmodel_handle.get(), i, MMult(MMult(MGetRotY(player.gunrad.x), MGetTranslate(VSub(locin[i], locin[bone_trt]))), player.ps_t));
 		}
 	}
 
 	if (rad.z >= 0.1f) { in_f = false; }
 	if (rad.z == 0.1f && !in_f) {
-		for (j = 1; j < human; ++j) { MV1PhysicsResetState(hum[j].obj); }
+		for (j = 1; j < human; ++j) { MV1PhysicsResetState(hum[j].obj.get()); }
 		in_f = true;
 	}
 	for (i = 0; i < human; ++i) {
@@ -390,7 +386,27 @@ void HUMANS::set_humanmove(players player, VECTOR rad, float fps) {
 	//反映
 	for (int k = 0; k < divi; ++k) {
 		for (i = 0; i < human; ++i) {
-			MV1SetMatrix(hum[i].obj, MMult(MMult(MGetRotY(player.yrad + player.gunrad.x), MGetRotVec2(VGet(0, 1.f, 0), player.nor)), MGetTranslate(VAdd(posold[bone_in_turret + i], VScale(VSub(MV1GetFramePosition(inmodel_handle, bone_in_turret + i), posold[bone_in_turret + i]), (float)(1 + k) / divi)))));//MMult(MGetRotX(player.xnor), MGetRotZ(player.znor))
+			MV1SetMatrix(
+				hum[i].obj.get(),
+				MMult(
+					MMult(
+						MGetRotY(player.yrad + player.gunrad.x),
+						MGetRotVec2(VGet(0, 1.f, 0), player.nor)
+					),
+					MGetTranslate(
+						VAdd(
+							posold[bone_in_turret + i],
+							VScale(
+								VSub(
+									MV1GetFramePosition(inmodel_handle.get(), bone_in_turret + i),
+									posold[bone_in_turret + i]
+								),
+								(float)(1 + k) / divi
+							)
+						)
+					)
+				)
+			);//MMult(MGetRotX(player.xnor), MGetRotZ(player.znor))
 			if (i == 0) {
 				/*首振り*/
 				tmpft = atanf(sin(rad.y - player.yrad - player.gunrad.x));
@@ -399,12 +415,12 @@ void HUMANS::set_humanmove(players player, VECTOR rad, float fps) {
 				tmpfy = -rad.x;
 				if (tmpfy > deg2rad(20)) { tmpfy = deg2rad(20); }
 				if (tmpfy < deg2rad(-20)) { tmpfy = deg2rad(-20); }
-				MV1SetFrameUserLocalMatrix(hum[i].obj, hum[i].neck, MMult(MGetTranslate(hum[i].nvec), MMult(MGetRotX(tmpfy), MGetRotY(tmpft))));
+				MV1SetFrameUserLocalMatrix(hum[i].obj.get(), hum[i].neck, MMult(MGetTranslate(hum[i].nvec), MMult(MGetRotX(tmpfy), MGetRotY(tmpft))));
 				//voice
 				if (hum[i].vflug != -1) {
 					if (hum[i].voicetime < hum[i].voicealltime[hum[i].vflug]) {
 						if (hum[i].voicetime == 0.0f) { PlaySoundMem(hum[i].vsound[hum[i].vflug], DX_PLAYTYPE_BACK, TRUE); }
-						MV1SetAttachAnimTime(hum[i].obj, hum[i].voices[hum[i].vflug], hum[i].voicetime); hum[i].voicetime += 60.0f / divi / f_rate;//
+						MV1SetAttachAnimTime(hum[i].obj.get(), hum[i].voices[hum[i].vflug], hum[i].voicetime); hum[i].voicetime += 60.0f / divi / f_rate;//
 					}
 					else {
 						hum[i].vflug = -1;
@@ -413,12 +429,12 @@ void HUMANS::set_humanmove(players player, VECTOR rad, float fps) {
 				}
 			}
 			for (j = 0; j < animes; ++j) {
-				MV1SetAttachAnimBlendRate(hum[i].obj, hum[i].amine[j], hum[i].per[j]);
-				MV1SetAttachAnimTime(hum[i].obj, hum[i].amine[j], hum[i].time[j]); hum[i].time[j] += 30.0f / divi / f_rate;//
+				MV1SetAttachAnimBlendRate(hum[i].obj.get(), hum[i].amine[j], hum[i].per[j]);
+				MV1SetAttachAnimTime(hum[i].obj.get(), hum[i].amine[j], hum[i].time[j]); hum[i].time[j] += 30.0f / divi / f_rate;//
 				if (j != 2) { if (hum[i].time[j] >= hum[i].alltime[j]) { hum[i].time[j] = 0.0f; } }
 			}
 			//
-			if (grab) { if (!first) { MV1PhysicsResetState(hum[i].obj); } else { MV1PhysicsCalculation(hum[i].obj, 1000.0f / divi / f_rate); } }
+			if (grab) { if (!first) { MV1PhysicsResetState(hum[i].obj.get()); } else { MV1PhysicsCalculation(hum[i].obj.get(), 1000.0f / divi / f_rate); } }
 			//
 			if (i == 0) { if (!in_f) { break; } }
 		}
@@ -426,18 +442,18 @@ void HUMANS::set_humanmove(players player, VECTOR rad, float fps) {
 	first = true;
 }
 void HUMANS::draw_human(int p1) {
-	MV1DrawModel(hum[p1].obj);
+	MV1DrawModel(hum[p1].obj.get());
 }
 void HUMANS::draw_humanall() {
 	int i;
-	MV1DrawModel(inmodel_handle);
+	MV1DrawModel(inmodel_handle.get());
 	for (i = 0; i < human; ++i) { draw_human(i); }
 }
 void HUMANS::delete_human(void) {
 	int i;
-	MV1DeleteModel(inmodel_handle);
+	inmodel_handle.Dispose();
 	if (hum != NULL) {
-		for (i = 0; i < human; ++i) { MV1DeleteModel(hum[i].obj); }
+		for (i = 0; i < human; ++i) { hum[i].obj.Dispose(); }
 		for (i = 0; i < voice; ++i) { DeleteSoundMem(hum[0].vsound[i]); }
 		delete[] hum; hum = NULL;
 	}
@@ -481,14 +497,14 @@ void MAPS::set_map_readyb(int set){
 	lightvec = VGet(0.5f, -0.5f, 0.5f);
 	SetUseASyncLoadFlag(TRUE);
 		if (set == 0) { tempname = "map"; }
-		tree.mnear = MV1LoadModel((set) ? "data/tree/model.mv1" : "data/map/tree/model.mv1");			/*近木*/
-		tree.mfar = MV1LoadModel((set) ? "data/tree/model2.mv1" : "data/map/tree/model2.mv1");			/*遠木*/
+		tree.mnear = MV1Handle::LoadModel((set) ? "data/tree/model.mv1" : "data/map/tree/model.mv1");			/*近木*/
+		tree.mfar = MV1Handle::LoadModel((set) ? "data/tree/model2.mv1" : "data/map/tree/model2.mv1");			/*遠木*/
 		texl = LoadGraph((set) ? "data/SandDesert_04_00344_FWD.png" : "data/map/SandDesert_04_00344_FWD.png");				/*nor*/
 		texm = LoadGraph((set) ? "data/SandDesert_04_00344_NM.png" : "data/map/SandDesert_04_00344_NM.png");				/*nor*/
-		m_model = MV1LoadModel((set) ? "data/map.mv1" : "data/map/map.mv1");			/*map*/
-		sky_model = MV1LoadModel((set) ? "data/sky/model_sky.mv1" : "data/map/sky/model_sky.mv1");			/*sky*/
+		m_model = MV1Handle::LoadModel((set) ? "data/map.mv1" : "data/map/map.mv1");			/*map*/
+		sky_model = MV1Handle::LoadModel((set) ? "data/sky/model_sky.mv1" : "data/map/sky/model_sky.mv1");			/*sky*/
 		graph = LoadGraph((set) ? "data/grass/grass.png" : "data/map/grass/grass.png");				/*grass*/
-		grass = MV1LoadModel((set) ? "data/grass/grass.mqo" : "data/map/grass/grass.mqo");			/*grass*/
+		grass = MV1Handle::LoadModel((set) ? "data/grass/grass.mqo" : "data/map/grass/grass.mqo");			/*grass*/
 		GgHandle = LoadGraph((set) ? "data/grass/gg.png" : "data/map/grass/gg.png");			/*地面草*/
 	SetUseASyncLoadFlag(FALSE);
 	return;
@@ -498,8 +514,8 @@ bool MAPS::set_map_ready() {
 	VECTOR tmpvect;
 	char x, y, rate;
 	int i, j;
-	tree.nears = new int[treec]; if (tree.nears == NULL) { return false; }
-	tree.fars = new int[treec]; if (tree.fars == NULL) { return false; }
+	tree.nears.resize(treec);
+	tree.fars.resize(treec);
 	tree.treesort.resize(treec);		//	tree.t_sort = new sorts[treec]; if (tree.t_sort == NULL) { return false; }
 
 	tree.pos = new VECTOR[treec]; if (tree.pos == NULL) { return false; }
@@ -507,17 +523,17 @@ bool MAPS::set_map_ready() {
 	tree.hit = new bool[treec]; if (tree.hit == NULL) { return false; }
 
 
-	MV1SetScale(sky_model, VGet(0.2f, 0.2f, 0.2f));
+	MV1SetScale(sky_model.get(), VGet(0.2f, 0.2f, 0.2f));
 
 	SetUseASyncLoadFlag(TRUE);
 		for (j = 0; j < treec; ++j) {
-			tree.nears[j] = MV1DuplicateModel(tree.mnear);
-			tree.fars[j] = MV1DuplicateModel(tree.mfar);
+			tree.nears[j] = tree.mnear.DuplicateModel();
+			tree.fars[j] = tree.mfar.DuplicateModel();
 			tree.hit[j] = true;
 		}
 	SetUseASyncLoadFlag(FALSE);
 
-	MV1SetupCollInfo(m_model, 0, map_x / 5, map_x / 5, map_y / 5);
+	MV1SetupCollInfo(m_model.get(), 0, map_x / 5, map_x / 5, map_y / 5);
 	SetFogStartEnd(10.0f, 1400.0f);					/*fog*/
 	SetFogColor(150, 150, 175);					/*fog*/
 	SetLightDirection(lightvec);
@@ -531,17 +547,17 @@ bool MAPS::set_map_ready() {
 	SetDrawScreen(texp);
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 		for (x = 0; x < rate; x++) { for (y = 0; y < rate; y++) { DrawExtendGraph(groundx * x / rate, groundx * y / rate, groundx* (x + 1) / rate, groundx * (y + 1) / rate, texl, FALSE); } }
-	MV1SetTextureGraphHandle(m_model, 0, texp, FALSE);
+	MV1SetTextureGraphHandle(m_model.get(), 0, texp, FALSE);
 	SetDrawScreen(texn);
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 		DrawBox(0, 0, groundx, groundx, GetColor(121, 121, 255), TRUE);
 		for (x = 0; x < 32; x++) { for (y = 0; y < 32; y++) { DrawExtendGraph(groundx * x / rate, groundx * y / rate, groundx* (x + 1) / rate, groundx * (y + 1) / rate, texm, TRUE); } }
-	MV1SetTextureGraphHandle(m_model, 1, texn, FALSE);
+	MV1SetTextureGraphHandle(m_model.get(), 1, texn, FALSE);
 		/*grass*/
 		vnum = 0;
 		pnum = 0;
-		MV1SetupReferenceMesh(grass, -1, TRUE);				/*参照用メッシュの作成*/
-		RefMesh = MV1GetReferenceMesh(grass, -1, TRUE);			/*参照用メッシュの取得*/
+		MV1SetupReferenceMesh(grass.get(), -1, TRUE);				/*参照用メッシュの作成*/
+		RefMesh = MV1GetReferenceMesh(grass.get(), -1, TRUE);			/*参照用メッシュの取得*/
 		IndexNum = RefMesh.PolygonNum * 3 * grasss;			/*インデックスの数を取得*/
 		VerNum = RefMesh.VertexNum * grasss;				/*頂点の数を取得*/
 		grassver = new VERTEX3D[VerNum];				/*頂点データとインデックスデータを格納するメモリ領域の確保*/
@@ -553,10 +569,10 @@ bool MAPS::set_map_ready() {
 			SetDrawBlendMode(DX_BLENDMODE_ALPHA, 64);
 			DrawRotaGraph( (int)(groundx * (0.5f + tmpvect.x / (float)map_x)), (int)(groundx * (0.5f - tmpvect.z / (float)map_y)), 8.f*groundx / 1024 / 128.0f, 0, GgHandle, TRUE );
 
-			HitPoly = MV1CollCheck_Line(m_model, 0, VAdd(tmpvect, VGet(0.0f, (float)map_x, 0.0f)), VAdd(tmpvect, VGet(0.0f, -(float)map_x, 0.0f)));
+			HitPoly = MV1CollCheck_Line(m_model.get(), 0, VAdd(tmpvect, VGet(0.0f, (float)map_x, 0.0f)), VAdd(tmpvect, VGet(0.0f, -(float)map_x, 0.0f)));
 			if (HitPoly.HitFlag) {
 				MV1SetMatrix(
-					grass,
+					grass.get(),
 					MMult(
 						MGetScale(VGet((float)(200 + GetRand(400)) / 100.0f, (float)(25 + GetRand(100)) / 100.0f, (float)(200 + GetRand(400)) / 100.0f)),
 						MMult(
@@ -566,9 +582,9 @@ bool MAPS::set_map_ready() {
 					)
 				);
 			}
-			//MV1SetScale(grass, VGet((float)(200 + GetRand(400)) / 100.0f, (float)(25 + GetRand(100)) / 100.0f, (float)(200 + GetRand(400)) / 100.0f));	/*拡大*/
-			MV1RefreshReferenceMesh(grass, -1, TRUE);		/*参照用メッシュの更新*/
-			RefMesh = MV1GetReferenceMesh(grass, -1, TRUE);		/*参照用メッシュの取得*/
+			//MV1SetScale(grass.get(), VGet((float)(200 + GetRand(400)) / 100.0f, (float)(25 + GetRand(100)) / 100.0f, (float)(200 + GetRand(400)) / 100.0f));	/*拡大*/
+			MV1RefreshReferenceMesh(grass.get(), -1, TRUE);		/*参照用メッシュの更新*/
+			RefMesh = MV1GetReferenceMesh(grass.get(), -1, TRUE);		/*参照用メッシュの取得*/
 			for (j = 0; j < RefMesh.VertexNum; ++j) {
 				grassver[j + vnum].pos = RefMesh.Vertexs[j].Position;
 				grassver[j + vnum].norm = RefMesh.Vertexs[j].Normal;
@@ -591,22 +607,22 @@ bool MAPS::set_map_ready() {
 		IndexBuf = CreateIndexBuffer(IndexNum, DX_INDEX_TYPE_32BIT);
 		SetVertexBufferData(0, grassver, VerNum, VerBuf);
 		SetIndexBufferData(0, grassind, IndexNum, IndexBuf);
-		MV1SetTextureGraphHandle(m_model, 0, texp, FALSE);
+		MV1SetTextureGraphHandle(m_model.get(), 0, texp, FALSE);
 		/*tree,shadow*/
 	ShadowMap_DrawSetup(shadow_far);
 		for (i = 0; i < treec; ++i) {
 			tmpvect = VGet((float)(-5000 + GetRand(10000)) / 10.0f, 0.0f, (float)(-5000 + GetRand(10000)) / 10.0f);
-			HitPoly = MV1CollCheck_Line(m_model, 0, VAdd(tmpvect, VGet(0.0f, 100.0f, 0.0f)), VAdd(tmpvect, VGet(0.0f, -100.0f, 0.0f)));
+			HitPoly = MV1CollCheck_Line(m_model.get(), 0, VAdd(tmpvect, VGet(0.0f, 100.0f, 0.0f)), VAdd(tmpvect, VGet(0.0f, -100.0f, 0.0f)));
 			if (HitPoly.HitFlag) { tmpvect = HitPoly.HitPosition; }
 			tree.pos[i] = tmpvect;
 			tree.rad[i] = VGet(0.0f, deg2rad(GetRand(360)), 0.0f);
-			MV1SetPosition(tree.nears[i], tree.pos[i]);
-			MV1SetPosition(tree.fars[i], tree.pos[i]);
-			MV1SetRotationXYZ(tree.nears[i], tree.rad[i]);
-			MV1DrawModel(tree.nears[i]);
-			MV1SetMaterialDrawAlphaTestAll(tree.nears[i], TRUE, DX_CMP_GREATER, 128);
+			MV1SetPosition(tree.nears[i].get(), tree.pos[i]);
+			MV1SetPosition(tree.fars[i].get(), tree.pos[i]);
+			MV1SetRotationXYZ(tree.nears[i].get(), tree.rad[i]);
+			MV1DrawModel(tree.nears[i].get());
+			MV1SetMaterialDrawAlphaTestAll(tree.nears[i].get(), TRUE, DX_CMP_GREATER, 128);
 		}
-		MV1DrawModel(m_model);
+		MV1DrawModel(m_model.get());
 	ShadowMap_DrawEnd();
 	return true;
 }
@@ -641,10 +657,10 @@ void MAPS::draw_map_track(float loc[], int p_handle,int fnum, float yrad) {
 
 }
 void MAPS::draw_map_model() {
-	MV1DrawModel(m_model);
+	MV1DrawModel(m_model.get());
 }
 void MAPS::set_map_track() {
-	MV1SetTextureGraphHandle(m_model, 1, texn, FALSE);
+	MV1SetTextureGraphHandle(m_model.get(), 1, texn, FALSE);
 }
 void MAPS::draw_map_sky(void){
 	ClearDrawScreen();
@@ -652,8 +668,8 @@ void MAPS::draw_map_sky(void){
 	SetUseLighting(FALSE);
 	SetFogEnable(FALSE);
 
-	MV1SetPosition(sky_model, camera);
-	MV1DrawModel(sky_model);
+	MV1SetPosition(sky_model.get(), camera);
+	MV1DrawModel(sky_model.get());
 	DrawBillboard3D(VAdd(camera, VScale(VNorm(lightvec), -80.0f)), 0.5f, 0.5f, 10.0f, 0.0f, sky_sun, TRUE);
 
 	SetFogEnable(TRUE);
@@ -670,7 +686,7 @@ void MAPS::set_hitplayer(VECTOR pos) {
 		}
 		else {
 			if (tree.rad[j].x <= deg2rad(85)) {
-				MV1SetRotationXYZ(tree.nears[j], tree.rad[j]);
+				MV1SetRotationXYZ(tree.nears[j].get(), tree.rad[j]);
 				differential(tree.rad[j].x, deg2rad(90), 0.002f);
 			}
 		}
@@ -701,17 +717,17 @@ void MAPS::draw_trees() {
 			else { per = 1.0f; }
 			if (tt.second > drawdist) { per = 1.0f - (tt.second - drawdist) / 200.0f; }
 			if (per > 0) {
-				MV1DrawModel(tree.nears[k]);
+				MV1DrawModel(tree.nears[k].get());
 			}
 		}
 		if (tt.second > drawdist) {
 			if (tt.second < drawdist + 200) { per = (tt.second - drawdist) / 200.0f; }
 			else { per = 1.0f; }
 			if (per > 0) {
-				MV1SetOpacityRate(tree.fars[k], per);
+				MV1SetOpacityRate(tree.fars[k].get(), per);
 				vect = VSub(tree.pos[k], camera);
-				MV1SetRotationXYZ(tree.fars[k], VGet(0.0f, atan2(vect.x, vect.z), 0.0f));
-				MV1DrawModel(tree.fars[k]);
+				MV1SetRotationXYZ(tree.fars[k].get(), VGet(0.0f, atan2(vect.x, vect.z), 0.0f));
+				MV1DrawModel(tree.fars[k].get());
 			}
 		}
 	}
@@ -720,22 +736,22 @@ void MAPS::draw_grass(void) {
 	DrawPolygonIndexed3D_UseVertexBuffer(VerBuf, IndexBuf, graph, TRUE);
 }
 void MAPS::delete_map(void) {
-	MV1DeleteModel(m_model);
-	MV1DeleteModel(sky_model);
-	MV1DeleteModel(tree.mnear);
-	MV1DeleteModel(tree.mfar);
+	m_model.Dispose();
+	sky_model.Dispose();
+	tree.mnear.Dispose();
+	tree.mfar.Dispose();
 	for (int j = 0; j < treec; ++j) {
-		MV1DeleteModel(tree.nears[j]);
-		MV1DeleteModel(tree.fars[j]);
+		tree.nears[j].Dispose();
+		tree.fars[j].Dispose();
 	}
-	if (tree.nears != NULL) { delete[] tree.nears; tree.nears = NULL; }
-	if (tree.fars != NULL) { delete[] tree.fars; tree.fars = NULL; }
+	tree.nears.clear();
+	tree.fars.clear();
 	tree.treesort.clear();
 	if (tree.pos != NULL) { delete[] tree.pos; tree.pos = NULL; }
 	if (tree.rad != NULL) { delete[] tree.rad; tree.rad = NULL; }
 	if (tree.hit != NULL) { delete[] tree.hit; tree.hit = NULL; }
 	DeleteGraph(graph);
-	MV1DeleteModel(grass);
+	grass.Dispose();
 	DeleteGraph(texl);
 	DeleteGraph(texm);
 	if (grassver != NULL) { delete[] grassver; grassver = NULL; }
@@ -1035,7 +1051,7 @@ bool get_reco(players* play, players* tgt, int i, int gun_s) {
 	if (gun_s == 0) {
 		//空間装甲、モジュール
 		for (colmesh = 0; colmesh < tgt->ptr->colmeshes; ++colmesh) {
-			HitPoly = MV1CollCheck_Line(tgt->colobj, -1, play->ammo[i].repos, play->ammo[i].pos, colmesh);
+			HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->ammo[i].repos, play->ammo[i].pos);
 			if (HitPoly.HitFlag) {
 				tgt->hitssort[colmesh] = pair(colmesh, VSize(VSub(HitPoly.HitPosition, play->ammo[i].repos)));
 				f++;
@@ -1052,7 +1068,7 @@ bool get_reco(players* play, players* tgt, int i, int gun_s) {
 				if (tgt->Hpoint[k] > 0) {
 					//空間装甲 //モジュール
 					if (k != 4) {
-						HitPoly = MV1CollCheck_Line(tgt->colobj, -1, play->ammo[i].repos, play->ammo[i].pos, k);
+						HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->ammo[i].repos, play->ammo[i].pos);
 						if (HitPoly.HitFlag) {
 							set_effect(&(play->effcs[ef_reco]), HitPoly.HitPosition, HitPoly.Normal);
 							tgt->Hpoint[k] -= 50; if (tgt->Hpoint[k] <= 0) { tgt->Hpoint[k] = 0; } play->ammo[i].pene /= 2.0f; play->ammo[i].speed /= 2.f;
@@ -1066,16 +1082,16 @@ bool get_reco(players* play, players* tgt, int i, int gun_s) {
 			if (tt.second == 9999.f) { break; }
 		}
 		if (hitnear != -1) {
-			HitPoly = MV1CollCheck_Line(tgt->colobj, -1, play->ammo[i].repos, play->ammo[i].pos, hitnear);
-			MV1SetFrameUserLocalMatrix(tgt->colobj, 9 + 0 + 3 * tgt->hitbuf, MMult(MGetTranslate(HitPoly.HitPosition), MInverse(tgt->ps_m)));
-			MV1SetFrameUserLocalMatrix(tgt->colobj, 9 + 1 + 3 * tgt->hitbuf, MMult(MGetTranslate(VAdd(HitPoly.Normal, HitPoly.HitPosition)), MInverse(tgt->ps_m)));
-			MV1SetFrameUserLocalMatrix(tgt->colobj, 9 + 2 + 3 * tgt->hitbuf, MMult(MGetTranslate(VAdd(VCross(HitPoly.Normal, play->ammo[i].vec), HitPoly.HitPosition)), MInverse(tgt->ps_m)));
+			HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->ammo[i].repos, play->ammo[i].pos);
+			MV1SetFrameUserLocalMatrix(tgt->colobj.get(), 9 + 0 + 3 * tgt->hitbuf, MMult(MGetTranslate(HitPoly.HitPosition), MInverse(tgt->ps_m)));
+			MV1SetFrameUserLocalMatrix(tgt->colobj.get(), 9 + 1 + 3 * tgt->hitbuf, MMult(MGetTranslate(VAdd(HitPoly.Normal, HitPoly.HitPosition)), MInverse(tgt->ps_m)));
+			MV1SetFrameUserLocalMatrix(tgt->colobj.get(), 9 + 2 + 3 * tgt->hitbuf, MMult(MGetTranslate(VAdd(VCross(HitPoly.Normal, play->ammo[i].vec), HitPoly.HitPosition)), MInverse(tgt->ps_m)));
 			set_effect(&(play->effcs[ef_reco]), HitPoly.HitPosition, HitPoly.Normal);
 			if (play->ammo[i].pene > tgt->ptr->armer[hitnear] * (1.0f / abs(VDot(VNorm(play->ammo[i].vec), HitPoly.Normal)))) {
 				if (tgt->Hpoint[0] != 0) {
 					PlaySoundMem(tgt->se[29 + GetRand(1)], DX_PLAYTYPE_BACK, TRUE);
-					set_effect(&(play->effcs[ef_bomb]), MV1GetFramePosition(tgt->obj, bone_engine), VGet(0, 0, 0));
-					set_effect(&(play->effcs[ef_smoke1]), MV1GetFramePosition(tgt->obj, bone_engine), VGet(0, 0, 0));
+					set_effect(&(play->effcs[ef_bomb]), MV1GetFramePosition(tgt->obj.get(), bone_engine), VGet(0, 0, 0));
+					set_effect(&(play->effcs[ef_smoke1]), MV1GetFramePosition(tgt->obj.get(), bone_engine), VGet(0, 0, 0));
 					if (play->hitadd == false) { play->hitadd = true; }
 				}
 				play->ammo[i].flug = 0;
@@ -1095,7 +1111,7 @@ bool get_reco(players* play, players* tgt, int i, int gun_s) {
 
 				tgt->usepic[tgt->hitbuf] = 1;
 			}
-			MV1SetScale(tgt->hitpic[tgt->hitbuf], VGet(play->ptr->ammosize*100.f*(1.0f / abs(VDot(VNorm(play->ammo[i].vec), HitPoly.Normal))), play->ptr->ammosize*100.f, play->ptr->ammosize*100.f));//
+			MV1SetScale(tgt->hitpic[tgt->hitbuf].get(), VGet(play->ptr->ammosize*100.f*(1.0f / abs(VDot(VNorm(play->ammo[i].vec), HitPoly.Normal))), play->ptr->ammosize*100.f, play->ptr->ammosize*100.f));//
 			tgt->hitbuf++; tgt->hitbuf %= 3;
 		}
 	}
@@ -1104,11 +1120,11 @@ bool get_reco(players* play, players* tgt, int i, int gun_s) {
 		tmpf[0] = play->ammo[i].speed;
 		for (colmesh = 0; colmesh < tgt->ptr->colmeshes; ++colmesh) {
 			if (colmesh >= 5) { if (tgt->Hpoint[colmesh] == 0) { continue; } }
-			HitPoly = MV1CollCheck_Line(tgt->colobj, -1, play->ammo[i].repos, play->ammo[i].pos, colmesh);
+			HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->ammo[i].repos, play->ammo[i].pos);
 			if (HitPoly.HitFlag) { tmpf[1] = VSize(VSub(HitPoly.HitPosition, play->ammo[i].repos)); if (tmpf[1] <= tmpf[0]) { tmpf[0] = tmpf[1]; hitnear = colmesh; } }
 		}
 		if (hitnear != -1) {
-			HitPoly = MV1CollCheck_Line(tgt->colobj, -1, play->ammo[i].repos, play->ammo[i].pos, hitnear);
+			HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->ammo[i].repos, play->ammo[i].pos);
 			set_effect(&(play->effcs[ef_reco2]), HitPoly.HitPosition, HitPoly.Normal);
 			PlaySoundMem(tgt->se[10 + GetRand(16)], DX_PLAYTYPE_BACK, TRUE);
 			play->ammo[i].vec = VAdd(play->ammo[i].vec, VScale(HitPoly.Normal, VDot(play->ammo[i].vec, HitPoly.Normal) * -2.0f));
