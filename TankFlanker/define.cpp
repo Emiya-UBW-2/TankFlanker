@@ -1,9 +1,9 @@
 ﻿#include "define.h"
 #include <string_view>
 //
+using std::size_t;
 Myclass::Myclass() {
 	using namespace std::literals;
-	int i, j;
 	WIN32_FIND_DATA win32fdt;
 	HANDLE hFind;
 	char mstr[64];								/*tank*/
@@ -43,7 +43,6 @@ Myclass::Myclass() {
 	MV1SetLoadModelPhysicsWorldGravity(M_GR);				/*重力*/
 	hFind = FindFirstFile("data/tanks/*", &win32fdt);
 	if (hFind != INVALID_HANDLE_VALUE) {
-		i = 0;
 		do {
 			if ((win32fdt.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && (win32fdt.cFileName[0] != '.')) {
 				vecs.resize(vecs.size() + 1);
@@ -52,47 +51,47 @@ Myclass::Myclass() {
 		} while (FindNextFile(hFind, &win32fdt));
 	}//else{ return false; }
 	FindClose(hFind);
-	for (j = 0; j < vecs.size(); ++j) {
-		mdata = FileRead_open(("data/tanks/" + vecs[j].name + "/data.txt").c_str(), FALSE);
-		FileRead_gets(mstr, 64, mdata); vecs[j].countryc = std::stoi(getright(mstr));
-		for (i = 0; i < 4; ++i) {
-			FileRead_gets(mstr, 64, mdata); vecs[j].spdflont[3 - i] = std::stof(getright(mstr)) / 3.6f;
+	for (auto& v : vecs) {
+		mdata = FileRead_open(("data/tanks/" + v.name + "/data.txt").c_str(), FALSE);
+		FileRead_gets(mstr, 64, mdata); v.countryc = std::stoi(getright(mstr));
+		for (size_t i = 0; i < std::size(v.spdflont); ++i) {
+			FileRead_gets(mstr, 64, mdata); v.spdflont[std::size(v.spdflont) - 1u - i] = std::stof(getright(mstr)) / 3.6f;
 		}
-		for (i = 0; i < 4; ++i) {
-			FileRead_gets(mstr, 64, mdata); vecs[j].spdback[i] = std::stof(getright(mstr)) / 3.6f;
+		for (auto& s : v.spdback) {
+			FileRead_gets(mstr, 64, mdata); s = std::stof(getright(mstr)) / 3.6f;
 		}
-		FileRead_gets(mstr, 64, mdata); vecs[j].vehicle_RD = deg2rad(std::stof(getright(mstr)));
-		for (i = 0; i < 4; ++i) {
-			FileRead_gets(mstr, 64, mdata); vecs[j].armer[i] = std::stof(getright(mstr));
+		FileRead_gets(mstr, 64, mdata); v.vehicle_RD = deg2rad(std::stof(getright(mstr)));
+		for (auto& a : v.armer) {
+			FileRead_gets(mstr, 64, mdata); a = std::stof(getright(mstr));
 		}
-		FileRead_gets(mstr, 64, mdata); vecs[j].gun_lim_LR = bool(std::stoul(getright(mstr)));
-		for (i = 0; i < 4; ++i) {
-			FileRead_gets(mstr, 64, mdata); vecs[j].gun_lim_[i] = deg2rad(std::stof(getright(mstr)));
+		FileRead_gets(mstr, 64, mdata); v.gun_lim_LR = bool(std::stoul(getright(mstr)));
+		for (auto& g : v.gun_lim_) {
+			FileRead_gets(mstr, 64, mdata); g = deg2rad(std::stof(getright(mstr)));
 		}
-		FileRead_gets(mstr, 64, mdata); vecs[j].gun_RD = deg2rad(std::stof(getright(mstr)))/f_rate;
-		FileRead_gets(mstr, 64, mdata); vecs[j].reloadtime[0] = std::stoi(getright(mstr))*f_rate;
-		vecs[j].reloadtime[1] = 10;
-		FileRead_gets(mstr, 64, mdata); vecs[j].ammosize = std::stof(getright(mstr)) / 1000.f;
-		for (i = 0; i < 3; ++i) {
-			FileRead_gets(mstr, 64, mdata); vecs[j].ammotype[i] = std::stoi(getright(mstr));
-			FileRead_gets(mstr, 64, mdata); vecs[j].gun_speed[i] = std::stof(getright(mstr));
-			FileRead_gets(mstr, 64, mdata); vecs[j].pene[i] = std::stof(getright(mstr));
+		FileRead_gets(mstr, 64, mdata); v.gun_RD = deg2rad(std::stof(getright(mstr)))/f_rate;
+		FileRead_gets(mstr, 64, mdata); v.reloadtime[0] = std::stoi(getright(mstr))*f_rate;
+		v.reloadtime[1] = 10;
+		FileRead_gets(mstr, 64, mdata); v.ammosize = std::stof(getright(mstr)) / 1000.f;
+		for (size_t i = 0; i < std::size(v.ammotype); ++i) {
+			FileRead_gets(mstr, 64, mdata); v.ammotype[i] = std::stoi(getright(mstr));
+			FileRead_gets(mstr, 64, mdata); v.gun_speed[i] = std::stof(getright(mstr));
+			FileRead_gets(mstr, 64, mdata); v.pene[i] = std::stof(getright(mstr));
 		}
 		FileRead_close(mdata);
 	}
 	SetUseASyncLoadFlag(TRUE);
-		for (j = 0; j < vecs.size(); ++j) {
-			vecs[j].model = MV1Handle::LoadModel("data/tanks/" + vecs[j].name + "/model.mv1");
-			vecs[j].colmodel = MV1Handle::LoadModel("data/tanks/" + vecs[j].name + "/col.mv1");
-			vecs[j].inmodel = MV1Handle::LoadModel("data/tanks/" + vecs[j].name + "/in/model.mv1");
+		for (auto& v : vecs) {
+			v.model = MV1Handle::LoadModel("data/tanks/" + v.name + "/model.mv1");
+			v.colmodel = MV1Handle::LoadModel("data/tanks/" + v.name + "/col.mv1");
+			v.inmodel = MV1Handle::LoadModel("data/tanks/" + v.name + "/in/model.mv1");
 		}
-		for (j = 0; j < 13; ++j) {
+		for (size_t j = 0; j < std::size(se_); ++j) {
 			const auto filename = (j < 1) ? "data/audio/se/engine/shift.wav"s
 				: (j < 8) ? "data/audio/se/eject/" + std::to_string(j - 1) + ".wav"
 				: "data/audio/se/load/" + std::to_string(j - 8) + ".wav";
 			se_[j] = LoadSoundMem(filename.c_str());
 		}
-		for (j = 0; j < 4; ++j) {
+		for (size_t j = 0; j < std::size(ui_reload); ++j) {
 			ui_reload[j] = LoadGraph(("data/ui/ammo_" + std::to_string(j) + ".bmp").c_str());
 		}		/*弾0,弾1,弾2,空弾*/
 	SetUseASyncLoadFlag(FALSE);
@@ -101,27 +100,25 @@ Myclass::Myclass() {
 void Myclass::write_option(void) {
 }
 bool Myclass::set_veh(void) {
-	int i, j, k;
-	LONGLONG waits;								/*時間取得*/
-	for (j = 0; j < vecs.size(); ++j) {
-		vecs[j].meshes = MV1GetMeshNum(vecs[j].model.get());
-		vecs[j].frames = MV1GetFrameNum(vecs[j].model.get());
-		vecs[j].colmeshes = MV1GetMeshNum(vecs[j].colmodel.get());
+	for (auto& v : vecs) {
+		v.meshes = MV1GetMeshNum(v.model.get());
+		v.frames = MV1GetFrameNum(v.model.get());
+		v.colmeshes = MV1GetMeshNum(v.colmodel.get());
 	}
-	for (j = 0; j < vecs.size(); ++j) {
-		vecs[j].loc.reserve(vecs[j].frames);
-		for (i = 0; i < vecs[j].frames; ++i) { vecs[j].loc.emplace_back(MV1GetFramePosition(vecs[j].model.get(), i)); }
-		for (auto& c : vecs[j].coloc) { c = MV1GetFramePosition(vecs[j].colmodel.get(), 5 + i); }
+	for (auto& v : vecs) {
+		v.loc.reserve(v.frames);
+		for (int i = 0; i < v.frames; ++i) { v.loc.emplace_back(MV1GetFramePosition(v.model.get(), i)); }
+		for (size_t i = 0 ;std::size(v.coloc); ++i) { v.coloc[i] = MV1GetFramePosition(v.colmodel.get(), int(5 + i)); }
 	}
 	//エフェクト------------------------------------------------------------//
-	k = 0;
-	for (j = 0; j < effects; ++j) {
-		i = 0;
+	int k = 0;
+	for (int j = 0; j < effects; ++j) {
+		size_t i = 0;
 		while (ProcessMessage() == 0) {
 			effHndle[j] = LoadEffekseerEffect(("data/effect/" + std::to_string(j) + ".efk").c_str());
 			i++;
 
-			waits = GetNowHiPerformanceCount();
+			const auto waits = GetNowHiPerformanceCount();
 			SetDrawScreen(DX_SCREEN_BACK);
 			DrawFormatString(0, (18 * k), GetColor(0, 255, 0), "エフェクト読み込み中…%d/%d", j, effects);//
 			if (effHndle[j] != -1) {
@@ -136,12 +133,8 @@ bool Myclass::set_veh(void) {
 		}
 		k++;
 	}
-	i = 0;
-	while (ProcessMessage() == 0) {
-		waits = GetNowHiPerformanceCount();
-		Screen_Flip(waits);
-		i++;
-		if (i > f_rate) { break; }
+	for (size_t i = 0; i <= f_rate && ProcessMessage() == 0; ++i) {
+		Screen_Flip(GetNowHiPerformanceCount());
 	}
 	return true;
 }
@@ -248,21 +241,21 @@ void Myclass::Screen_Flip(LONGLONG waits){
 }
 Myclass::~Myclass() {
 	int j;
-	for (j = 0; j < 13; ++j) {
-		DeleteSoundMem(se_[j]);
+	for (auto&& s : se_) {
+		DeleteSoundMem(s);
 	}
-	for (j = 0; j < 4; ++j) {
-		DeleteGraph(ui_reload[j]);
+	for (auto&& r : ui_reload) {
+		DeleteGraph(r);
 	}
 
-	for (j = 0; j < effects; ++j) {
-		DeleteEffekseerEffect(effHndle[j]);
+	for (auto&& e : effHndle) {
+		DeleteEffekseerEffect(e);
 	}
 	Effkseer_End();
 	DxLib_End();
 }
 void Myclass::set_se_vol(unsigned char size) {
-	for (int i = 0; i < 13; ++i) { ChangeVolumeSoundMem(size, se_[i]); }
+	for (auto&& s : se_) { ChangeVolumeSoundMem(size, s); }
 }
 void Myclass::play_sound(int p1) {
 	PlaySoundMem(se_[p1], DX_PLAYTYPE_BACK, TRUE);
@@ -323,7 +316,7 @@ void HUMANS::set_humans(const MV1Handle& inmod) {
 	return;
 }
 void HUMANS::set_humanvc_vol(unsigned char size) {
-	for (int i = 0; i < voice; ++i) { ChangeVolumeSoundMem(size, hum[0].vsound[i]); }
+	for (auto&& v : hum[0].vsound) { ChangeVolumeSoundMem(size, v); }
 }
 void HUMANS::set_humanmove(const players& player, VECTOR rad, float fps) {
 	float tmpft, tmpfy;
@@ -754,7 +747,7 @@ UIS::UIS() {
 
 	UI_main = new country[countries]; if (UI_main == NULL) { return; }
 	SetUseASyncLoadFlag(TRUE);
-	for (j = 0; j < 4; ++j) {
+	for (j = 0; j < std::size(ui_reload); ++j) {
 		tempname = "data/ui/ammo_" + std::to_string(j)+".bmp";
 		ui_reload[j] = LoadGraph(tempname.c_str());
 	}		/*弾0,弾1,弾2,空弾*/
