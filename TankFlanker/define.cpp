@@ -11,13 +11,13 @@ Myclass::Myclass() {
 
 	SetOutApplicationLogValidFlag(FALSE);					/*log*/
 	mdata = FileRead_open("data/setting.txt", FALSE);
-	FileRead_gets(mstr, 64, mdata); usegrab		= (bool)atof(getright(mstr).c_str());
-	FileRead_gets(mstr, 64, mdata); ANTI		= (unsigned char)atof(getright(mstr).c_str());
-	FileRead_gets(mstr, 64, mdata); YSync		= (bool)atof(getright(mstr).c_str());
-	FileRead_gets(mstr, 64, mdata); if (YSync) { f_rate = 60.f; } else { f_rate = (float)atof(getright(mstr).c_str()); }
-	FileRead_gets(mstr, 64, mdata); windowmode	= (bool)atof(getright(mstr).c_str());
-	FileRead_gets(mstr, 64, mdata); drawdist	= (float)atof(getright(mstr).c_str());
-	FileRead_gets(mstr, 64, mdata); gndx		= (int)atof(getright(mstr).c_str());
+	FileRead_gets(mstr, 64, mdata); usegrab		= bool(std::stoul(getright(mstr)));
+	FileRead_gets(mstr, 64, mdata); ANTI		= unsigned char(std::stoul(getright(mstr)));
+	FileRead_gets(mstr, 64, mdata); YSync		= bool(std::stoul(getright(mstr)));
+	FileRead_gets(mstr, 64, mdata); f_rate = (YSync)? 60.f: std::stof(getright(mstr));
+	FileRead_gets(mstr, 64, mdata); windowmode	= bool(std::stoul(getright(mstr)));
+	FileRead_gets(mstr, 64, mdata); drawdist	= std::stof(getright(mstr));
+	FileRead_gets(mstr, 64, mdata); gndx		= std::stoi(getright(mstr));
 	FileRead_close(mdata);
 
 	SetMainWindowText("Tank Flanker");
@@ -43,52 +43,45 @@ Myclass::Myclass() {
 	MV1SetLoadModelPhysicsWorldGravity(M_GR);				/*重力*/
 	hFind = FindFirstFile("data/tanks/*", &win32fdt);
 	if (hFind != INVALID_HANDLE_VALUE) {
+		i = 0;
 		do {
 			if ((win32fdt.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && (win32fdt.cFileName[0] != '.')) {
-				++vehc;
+				vecs.resize(vecs.size() + 1);
+				vecs.back().name = win32fdt.cFileName;
 			}
 		} while (FindNextFile(hFind, &win32fdt));
 	}//else{ return false; }
 	FindClose(hFind);
-	vecs = new vehicle[vehc];// if (vecs == NULL) { return false; }
-	hFind = FindFirstFile("data/tanks/*", &win32fdt);
-	if (hFind != INVALID_HANDLE_VALUE) {
-		i = 0;
-		do {
-			if ((win32fdt.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && (win32fdt.cFileName[0] != '.')) { vecs[i++].name = win32fdt.cFileName; }
-		} while (FindNextFile(hFind, &win32fdt));
-	}//else{ return false; }
-	FindClose(hFind);
-	for (j = 0; j < vehc; ++j) {
+	for (j = 0; j < vecs.size(); ++j) {
 		mdata = FileRead_open(("data/tanks/" + vecs[j].name + "/data.txt").c_str(), FALSE);
-		FileRead_gets(mstr, 64, mdata); vecs[j].countryc = (int)(atof(getright(mstr).c_str()));
+		FileRead_gets(mstr, 64, mdata); vecs[j].countryc = std::stoi(getright(mstr));
 		for (i = 0; i < 4; ++i) {
-			FileRead_gets(mstr, 64, mdata); vecs[j].spdflont[3 - i] = (float)atof(getright(mstr).c_str()) / 3.6f;
+			FileRead_gets(mstr, 64, mdata); vecs[j].spdflont[3 - i] = std::stof(getright(mstr)) / 3.6f;
 		}
 		for (i = 0; i < 4; ++i) {
-			FileRead_gets(mstr, 64, mdata); vecs[j].spdback[i] = (float)atof(getright(mstr).c_str()) / 3.6f;
+			FileRead_gets(mstr, 64, mdata); vecs[j].spdback[i] = std::stof(getright(mstr)) / 3.6f;
 		}
-		FileRead_gets(mstr, 64, mdata); vecs[j].vehicle_RD = deg2rad((float)atof(getright(mstr).c_str()));
+		FileRead_gets(mstr, 64, mdata); vecs[j].vehicle_RD = deg2rad(std::stof(getright(mstr)));
 		for (i = 0; i < 4; ++i) {
-			FileRead_gets(mstr, 64, mdata); vecs[j].armer[i] = (float)atof(getright(mstr).c_str());
+			FileRead_gets(mstr, 64, mdata); vecs[j].armer[i] = std::stof(getright(mstr));
 		}
-		FileRead_gets(mstr, 64, mdata); vecs[j].gun_lim_LR = (bool)atof(getright(mstr).c_str());
+		FileRead_gets(mstr, 64, mdata); vecs[j].gun_lim_LR = bool(std::stoul(getright(mstr)));
 		for (i = 0; i < 4; ++i) {
-			FileRead_gets(mstr, 64, mdata); vecs[j].gun_lim_[i] = deg2rad((float)atof(getright(mstr).c_str()));
+			FileRead_gets(mstr, 64, mdata); vecs[j].gun_lim_[i] = deg2rad(std::stof(getright(mstr)));
 		}
-		FileRead_gets(mstr, 64, mdata); vecs[j].gun_RD = deg2rad((float)atof(getright(mstr).c_str()))/f_rate;
-		FileRead_gets(mstr, 64, mdata); vecs[j].reloadtime[0] = (int)(atof(getright(mstr).c_str())*f_rate);
+		FileRead_gets(mstr, 64, mdata); vecs[j].gun_RD = deg2rad(std::stof(getright(mstr)))/f_rate;
+		FileRead_gets(mstr, 64, mdata); vecs[j].reloadtime[0] = std::stoi(getright(mstr))*f_rate;
 		vecs[j].reloadtime[1] = 10;
-		FileRead_gets(mstr, 64, mdata); vecs[j].ammosize = (float)atof(getright(mstr).c_str()) / 1000.f;
+		FileRead_gets(mstr, 64, mdata); vecs[j].ammosize = std::stof(getright(mstr)) / 1000.f;
 		for (i = 0; i < 3; ++i) {
-			FileRead_gets(mstr, 64, mdata); vecs[j].ammotype[i] = (int)atof(getright(mstr).c_str());
-			FileRead_gets(mstr, 64, mdata); vecs[j].gun_speed[i] = (float)atof(getright(mstr).c_str());
-			FileRead_gets(mstr, 64, mdata); vecs[j].pene[i] = (float)atof(getright(mstr).c_str());
+			FileRead_gets(mstr, 64, mdata); vecs[j].ammotype[i] = std::stoi(getright(mstr));
+			FileRead_gets(mstr, 64, mdata); vecs[j].gun_speed[i] = std::stof(getright(mstr));
+			FileRead_gets(mstr, 64, mdata); vecs[j].pene[i] = std::stof(getright(mstr));
 		}
 		FileRead_close(mdata);
 	}
 	SetUseASyncLoadFlag(TRUE);
-		for (j = 0; j < vehc; ++j) {
+		for (j = 0; j < vecs.size(); ++j) {
 			vecs[j].model = MV1Handle::LoadModel("data/tanks/" + vecs[j].name + "/model.mv1");
 			vecs[j].colmodel = MV1Handle::LoadModel("data/tanks/" + vecs[j].name + "/col.mv1");
 			vecs[j].inmodel = MV1Handle::LoadModel("data/tanks/" + vecs[j].name + "/in/model.mv1");
@@ -110,12 +103,12 @@ void Myclass::write_option(void) {
 bool Myclass::set_veh(void) {
 	int i, j, k;
 	LONGLONG waits;								/*時間取得*/
-	for (j = 0; j < vehc; ++j) {
+	for (j = 0; j < vecs.size(); ++j) {
 		vecs[j].meshes = MV1GetMeshNum(vecs[j].model.get());
 		vecs[j].frames = MV1GetFrameNum(vecs[j].model.get());
 		vecs[j].colmeshes = MV1GetMeshNum(vecs[j].colmodel.get());
 	}
-	for (j = 0; j < vehc; ++j) {
+	for (j = 0; j < vecs.size(); ++j) {
 		vecs[j].loc.reserve(vecs[j].frames);
 		for (i = 0; i < vecs[j].frames; ++i) { vecs[j].loc.emplace_back(MV1GetFramePosition(vecs[j].model.get(), i)); }
 		for (auto& c : vecs[j].coloc) { c = MV1GetFramePosition(vecs[j].colmodel.get(), 5 + i); }
@@ -157,7 +150,8 @@ int Myclass::window_choosev(void) {
 	SetMouseDispFlag(TRUE);
 	int font18 = CreateFontToHandle(NULL, x_r(18), y_r(18 / 3), DX_FONTTYPE_ANTIALIASING);
 	int font72 = CreateFontToHandle(NULL, x_r(72), y_r(72 / 3), DX_FONTTYPE_ANTIALIASING);
-	int i = 0, k, l = 0, m, x = 0, y = 0;
+	int i = 0, k, l = 0, x = 0, y = 0;
+	unsigned int m;
 	int mousex, mousey;
 	float real = 0.f, r = 5.f, unt = 0.f;
 	LONGLONG waits;
@@ -166,21 +160,21 @@ int Myclass::window_choosev(void) {
 		if (CheckHitKey(KEY_INPUT_ESCAPE) != 0) { i = -1; break; }				//end
 		SetDrawScreen(DX_SCREEN_BACK);
 		ClearDrawScreen();
-			differential(real, deg2rad(360 * l / vehc), 0.05f);
+			differential(real, deg2rad(360 * l / vecs.size()), 0.05f);
 			setcv(1.0f, 100.0f, VGet(-sin(real)*(10.f + r), 1, -cos(real)*(10.f + r)), VGet(-sin(real)*r, 2, -cos(real)*r), VGet(0, 1.0f, 0), 45.0f);
 			SetLightDirection(VSub(VGet(-sin(real)*r, 2, -cos(real)*r), VGet(-sin(real)*(10.f + r), 4, -cos(real)*(10.f + r))));
-			for (k = 0; k < vehc; k++) {
-				MV1SetPosition(vecs[k].model.get(), VGet(-sin(deg2rad(360 * k / vehc))*r, 0, -cos(deg2rad(360 * k / vehc))*r));
-				MV1SetRotationXYZ(vecs[k].model.get(), VGet(0, deg2rad((360 * k / vehc + 30)), 0));
+			for (k = 0; k < vecs.size(); k++) {
+				MV1SetPosition(vecs[k].model.get(), VGet(-sin(deg2rad(360 * k / vecs.size()))*r, 0, -cos(deg2rad(360 * k / vecs.size()))*r));
+				MV1SetRotationXYZ(vecs[k].model.get(), VGet(0, deg2rad((360 * k / vecs.size() + 30)), 0));
 				MV1DrawModel(vecs[k].model.get());
 			}
 			DrawFormatStringToHandle(x_r(960) - GetDrawFormatStringWidthToHandle(font72, "%s", vecs[i].name.c_str()) / 2, y_r(154), GetColor(0, 255, 0), font72, "%s", vecs[i].name.c_str());
-			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vehc)) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(850), y_r(850), GetColor(0, 255, 0), font18, "MAX SPD    : %5.2f km/h", vecs[i].spdflont[3] * 3.6f); }
-			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vehc)) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(850), y_r(870), GetColor(0, 255, 0), font18, "BACK SPD   : %5.2f km/h", vecs[i].spdback[3] * 3.6f); }
-			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vehc)) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(1140), y_r(810), GetColor(0, 255, 0), font18, "TURN SPEED : %5.2f deg/s", vecs[i].vehicle_RD * 180 / DX_PI_F); }
-			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vehc)) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(1120), y_r(580), GetColor(0, 255, 0), font18, "MAX ARMER  : %5.2f mm", vecs[i].armer[0]); }
-			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vehc)) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(650), y_r(410), GetColor(0, 255, 0), font18, "GUN RAD     : %5.2f°～%5.2f°", vecs[i].gun_lim_[2] * 180 / DX_PI_F, vecs[i].gun_lim_[3] * 180 / DX_PI_F); }
-			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vehc)) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(650), y_r(430), GetColor(0, 255, 0), font18, "GUN CALIBER : %05.1fmm", vecs[i].ammosize*1000.f); }
+			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(850), y_r(850), GetColor(0, 255, 0), font18, "MAX SPD    : %5.2f km/h", vecs[i].spdflont[3] * 3.6f); }
+			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(850), y_r(870), GetColor(0, 255, 0), font18, "BACK SPD   : %5.2f km/h", vecs[i].spdback[3] * 3.6f); }
+			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(1140), y_r(810), GetColor(0, 255, 0), font18, "TURN SPEED : %5.2f deg/s", vecs[i].vehicle_RD * 180 / DX_PI_F); }
+			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(1120), y_r(580), GetColor(0, 255, 0), font18, "MAX ARMER  : %5.2f mm", vecs[i].armer[0]); }
+			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(650), y_r(410), GetColor(0, 255, 0), font18, "GUN RAD     : %5.2f°～%5.2f°", vecs[i].gun_lim_[2] * 180 / DX_PI_F, vecs[i].gun_lim_[3] * 180 / DX_PI_F); }
+			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(650), y_r(430), GetColor(0, 255, 0), font18, "GUN CALIBER : %05.1fmm", vecs[i].ammosize*1000.f); }
 			//
 			DrawFormatStringToHandle(x_r(0), y_r(18 * 1), GetColor(0, 255, 0), font18, "%s", "SETTING");
 			DrawFormatStringToHandle(x_r(0), y_r(18 * 2), GetColor(0, 255, 0), font18, " 人の物理演算         : %s", usegrab ? "TRUE" : "FALSE");
@@ -193,7 +187,7 @@ int Myclass::window_choosev(void) {
 			GetMousePoint(&mousex, &mousey);
 			if (inm(x_r(360), y_r(340), x_r(400), y_r(740))) {
 				m = GetColor(255, 255, 0);
-				if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0) { m = GetColor(255, 0, 0); ++x; if (x == 1) { l++; i++; if (i > vehc - 1) { i = 0; } } } else { x = 0; }
+				if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0) { m = GetColor(255, 0, 0); ++x; if (x == 1) { l++; i++; if (i > vecs.size() - 1) { i = 0; } } } else { x = 0; }
 			}
 			else { m = GetColor(0, 255, 0); }
 			DrawBox(x_r(360), y_r(340), x_r(400), y_r(740), m, FALSE);
@@ -201,7 +195,7 @@ int Myclass::window_choosev(void) {
 			//
 			if (inm(x_r(1520), y_r(340), x_r(1560), y_r(740))) {
 				m = GetColor(255, 255, 0);
-				if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0) { m = GetColor(255, 0, 0); ++y; if (y == 1) { l--;  i--; if (i < 0) { i = vehc - 1; } } } else { y = 0; }
+				if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0) { m = GetColor(255, 0, 0); ++y; if (y == 1) { l--;  i--; if (i < 0) { i = int(vecs.size() - 1); } } } else { y = 0; }
 			}
 			else { m = GetColor(0, 255, 0); }
 			DrawBox(x_r(1520), y_r(340), x_r(1560), y_r(740), m, FALSE);
@@ -254,14 +248,6 @@ void Myclass::Screen_Flip(LONGLONG waits){
 }
 Myclass::~Myclass() {
 	int j;
-	if (vecs != NULL) {
-		for (j = 0; j < vehc; ++j) {
-			vecs[j].model.Dispose();
-			vecs[j].colmodel.Dispose();
-			vecs[j].inmodel.Dispose();
-		}
-		delete[] vecs;
-	}
 	for (j = 0; j < 13; ++j) {
 		DeleteSoundMem(se_[j]);
 	}

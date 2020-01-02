@@ -110,7 +110,11 @@ struct vehicle {
 	int frames{ 0 };
 	int colmeshes{ 0 };
 	int meshes{ 0 };
+	vehicle() = default;
+	vehicle(const vehicle&) = delete;
+	vehicle(vehicle&&) = default;
 };
+static_assert(std::is_move_constructible_v<vehicle>);
 struct players {
 	/*情報*/
 	int use{ 0 };							/*使用車両*/
@@ -196,7 +200,7 @@ private:
 	int gndx = 8;
 	/**/
 	int vehc = 0;								/*車両数*/
-	vehicle* vecs{ NULL };							/*車輛情報*/
+	std::vector<vehicle> vecs;							/*車輛情報*/
 	VECTOR view, view_r;							/*通常視点の角度、距離*/
 	std::vector<int> fonts{};							/*フォント*/
 	int se_[13];								/*効果音*/
