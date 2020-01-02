@@ -111,22 +111,6 @@ Myclass::Myclass() {
 }
 void Myclass::write_option(void) {
 }
-bool Myclass::set_fonts(int arg_num, ...) {
-	va_list args;
-	int value, i;
-	if (arg_num < 1) { return false; }
-	va_start(args, arg_num);
-
-	fonts = new int[arg_num]; if (fonts == NULL) { return false; }
-	SetUseASyncLoadFlag(TRUE);
-		for (i = 0; i < arg_num; i++) {
-			value = va_arg(args, int);
-			fonts[i] = CreateFontToHandle(NULL, x_r(value), y_r(value / 3), DX_FONTTYPE_ANTIALIASING_EDGE);
-		}
-	SetUseASyncLoadFlag(FALSE);
-	va_end(args);
-	return true;
-}
 bool Myclass::set_veh(void) {
 	int i, j, k;
 	LONGLONG waits;								/*時間取得*/
@@ -274,7 +258,6 @@ void Myclass::Screen_Flip(LONGLONG waits){
 }
 Myclass::~Myclass() {
 	int j;
-	if (fonts != NULL) { delete[] fonts; }
 	if (vecs != NULL) {
 		for (j = 0; j < vehc; ++j) {
 			MV1DeleteModel(vecs[j].model);

@@ -40,7 +40,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 	UIS	uiparts;
 	float f_rates = parts.get_f_rate();
 	//load------------------------------------------------------------------//
-	parts.set_fonts(1, 18);
+	parts.set_fonts(18);
 	SetUseASyncLoadFlag(TRUE);
 		//hit-------------------------------------------------------------------//
 		int hit_mod = MV1LoadModel("data/hit/hit.mv1");

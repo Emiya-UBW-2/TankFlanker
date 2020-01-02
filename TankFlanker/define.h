@@ -197,7 +197,7 @@ private:
 	int vehc = 0;								/*車両数*/
 	vehicle* vecs{ NULL };							/*車輛情報*/
 	VECTOR view, view_r;							/*通常視点の角度、距離*/
-	int* fonts{ NULL };							/*フォント*/
+	std::vector<int> fonts{};							/*フォント*/
 	int se_[13];								/*効果音*/
 	int ui_reload[4] = { 0 };						/*UI用*/
 	int effHndle[effects] = { 0 };						/*エフェクトリソース*/
@@ -208,7 +208,15 @@ public:
 	float get_drawdist(void) { return drawdist; }
 	float get_f_rate(void) { return f_rate; }
 	void write_option(void);						//未実装
-	bool set_fonts(int arg_num, ...);					//(必要なフォント数,サイズ1,サイズ2, ...)
+	//bool set_fonts(int arg_num, ...);					//(必要なフォント数,サイズ1,サイズ2, ...)
+	template<typename ...Args>
+	void set_fonts(Args&& ...args)
+	{
+		SetUseASyncLoadFlag(true);
+		this->fonts.emplace(this->fonts.end(), std::forward<Args>(args)...);
+		SetUseASyncLoadFlag(false);
+	}
+
 	bool set_veh(void);
 	int window_choosev(void);						//車両選択
 	void set_viewrad(VECTOR vv);
