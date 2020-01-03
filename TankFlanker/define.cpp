@@ -42,59 +42,49 @@ Myclass::Myclass() {
 	MV1SetLoadModelPhysicsWorldGravity(M_GR);				/*重力*/
 	hFind = FindFirstFile("data/tanks/*", &win32fdt);
 	if (hFind != INVALID_HANDLE_VALUE) {
+		i = 0;
 		do {
 			if ((win32fdt.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && (win32fdt.cFileName[0] != '.')) {
-				++vehc;
+				vecs.resize(i+1);
+				vecs[i].name = win32fdt.cFileName;
+
+				tempname = "data/tanks/" + vecs[i].name + "/data.txt";
+				mdata = FileRead_open(tempname.c_str(), FALSE);
+				FileRead_gets(mstr, 64, mdata); vecs[i].countryc = (int)(atof(getright(mstr).c_str()));
+				for (j = 0; j < 4; ++j) {
+					FileRead_gets(mstr, 64, mdata); vecs[i].spdflont[3 - j] = (float)atof(getright(mstr).c_str()) / 3.6f;
+				}
+				for (j = 0; j < 4; ++j) {
+					FileRead_gets(mstr, 64, mdata); vecs[i].spdback[j] = (float)atof(getright(mstr).c_str()) / 3.6f;
+				}
+				FileRead_gets(mstr, 64, mdata); vecs[i].vehicle_RD = deg2rad((float)atof(getright(mstr).c_str()));
+				for (j = 0; j < 4; ++j) {
+					FileRead_gets(mstr, 64, mdata); vecs[i].armer[j] = (float)atof(getright(mstr).c_str());
+				}
+				FileRead_gets(mstr, 64, mdata); vecs[i].gun_lim_LR = (bool)atof(getright(mstr).c_str());
+				for (j = 0; j < 4; ++j) {
+					FileRead_gets(mstr, 64, mdata); vecs[i].gun_lim_[j] = deg2rad((float)atof(getright(mstr).c_str()));
+				}
+				FileRead_gets(mstr, 64, mdata); vecs[i].gun_RD = deg2rad((float)atof(getright(mstr).c_str())) / f_rate;
+				FileRead_gets(mstr, 64, mdata); vecs[i].reloadtime[0] = (int)(atof(getright(mstr).c_str())*f_rate);
+				vecs[i].reloadtime[1] = 10;
+				FileRead_gets(mstr, 64, mdata); vecs[i].ammosize = (float)atof(getright(mstr).c_str()) / 1000.f;
+				for (j = 0; j < 3; ++j) {
+					FileRead_gets(mstr, 64, mdata); vecs[i].ammotype[j] = (int)atof(getright(mstr).c_str());
+					FileRead_gets(mstr, 64, mdata); vecs[i].gun_speed[j] = (float)atof(getright(mstr).c_str());
+					FileRead_gets(mstr, 64, mdata); vecs[i].pene[j] = (float)atof(getright(mstr).c_str());
+				}
+				FileRead_close(mdata);
+				i++;
 			}
 		} while (FindNextFile(hFind, &win32fdt));
 	}//else{ return false; }
 	FindClose(hFind);
-	vecs = new vehicle[vehc];// if (vecs == NULL) { return false; }
-	hFind = FindFirstFile("data/tanks/*", &win32fdt);
-	if (hFind != INVALID_HANDLE_VALUE) {
-		i = 0;
-		do {
-			if ((win32fdt.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && (win32fdt.cFileName[0] != '.')) { vecs[i++].name = win32fdt.cFileName; }
-		} while (FindNextFile(hFind, &win32fdt));
-	}//else{ return false; }
-	FindClose(hFind);
-	for (j = 0; j < vehc; ++j) {
-		tempname = "data/tanks/"+ vecs[j].name+ "/data.txt";
-		mdata = FileRead_open(tempname.c_str(), FALSE);
-		FileRead_gets(mstr, 64, mdata); vecs[j].countryc = (int)(atof(getright(mstr).c_str()));
-		for (i = 0; i < 4; ++i) {
-			FileRead_gets(mstr, 64, mdata); vecs[j].spdflont[3 - i] = (float)atof(getright(mstr).c_str()) / 3.6f;
-		}
-		for (i = 0; i < 4; ++i) {
-			FileRead_gets(mstr, 64, mdata); vecs[j].spdback[i] = (float)atof(getright(mstr).c_str()) / 3.6f;
-		}
-		FileRead_gets(mstr, 64, mdata); vecs[j].vehicle_RD = deg2rad((float)atof(getright(mstr).c_str()));
-		for (i = 0; i < 4; ++i) {
-			FileRead_gets(mstr, 64, mdata); vecs[j].armer[i] = (float)atof(getright(mstr).c_str());
-		}
-		FileRead_gets(mstr, 64, mdata); vecs[j].gun_lim_LR = (bool)atof(getright(mstr).c_str());
-		for (i = 0; i < 4; ++i) {
-			FileRead_gets(mstr, 64, mdata); vecs[j].gun_lim_[i] = deg2rad((float)atof(getright(mstr).c_str()));
-		}
-		FileRead_gets(mstr, 64, mdata); vecs[j].gun_RD = deg2rad((float)atof(getright(mstr).c_str()))/f_rate;
-		FileRead_gets(mstr, 64, mdata); vecs[j].reloadtime[0] = (int)(atof(getright(mstr).c_str())*f_rate);
-		vecs[j].reloadtime[1] = 10;
-		FileRead_gets(mstr, 64, mdata); vecs[j].ammosize = (float)atof(getright(mstr).c_str()) / 1000.f;
-		for (i = 0; i < 3; ++i) {
-			FileRead_gets(mstr, 64, mdata); vecs[j].ammotype[i] = (int)atof(getright(mstr).c_str());
-			FileRead_gets(mstr, 64, mdata); vecs[j].gun_speed[i] = (float)atof(getright(mstr).c_str());
-			FileRead_gets(mstr, 64, mdata); vecs[j].pene[i] = (float)atof(getright(mstr).c_str());
-		}
-		FileRead_close(mdata);
-	}
 	SetUseASyncLoadFlag(TRUE);
-		for (j = 0; j < vehc; ++j) {
-			tempname = "data/tanks/" + vecs[j].name + "/model.mv1";
-			vecs[j].model = MV1LoadModel(tempname.c_str());
-			tempname = "data/tanks/" + vecs[j].name + "/col.mv1";
-			vecs[j].colmodel = MV1LoadModel(tempname.c_str());
-			tempname = "data/tanks/" + vecs[j].name + "/in/model.mv1";
-			vecs[j].inmodel = MV1LoadModel(tempname.c_str());
+		for (j = 0; j < vecs.size(); ++j) {
+			tempname = "data/tanks/" + vecs[j].name + "/model.mv1";		vecs[j].model = MV1LoadModel(tempname.c_str());
+			tempname = "data/tanks/" + vecs[j].name + "/col.mv1";		vecs[j].colmodel = MV1LoadModel(tempname.c_str());
+			tempname = "data/tanks/" + vecs[j].name + "/in/model.mv1";	vecs[j].inmodel = MV1LoadModel(tempname.c_str());
 		}
 		for (j = 0; j < 13; ++j) {
 			if (j < 1) { tempname = "data/audio/se/engine/shift.wav"; }
@@ -103,9 +93,8 @@ Myclass::Myclass() {
 			se_[j] = LoadSoundMem(tempname.c_str());
 		}
 		for (j = 0; j < 4; ++j) {
-			tempname = "data/ui/ammo_" + std::to_string(j) + ".bmp";
-			ui_reload[j] = LoadGraph(tempname.c_str());
-		}		/*弾0,弾1,弾2,空弾*/
+			tempname = "data/ui/ammo_" + std::to_string(j) + ".bmp";	ui_reload[j] = LoadGraph(tempname.c_str());
+		}/*弾0,弾1,弾2,空弾*/
 	SetUseASyncLoadFlag(FALSE);
 	//return true;
 }
@@ -116,12 +105,10 @@ bool Myclass::set_fonts(int arg_num, ...) {
 	int value, i;
 	if (arg_num < 1) { return false; }
 	va_start(args, arg_num);
-
-	fonts = new int[arg_num]; if (fonts == NULL) { return false; }
 	SetUseASyncLoadFlag(TRUE);
 		for (i = 0; i < arg_num; i++) {
 			value = va_arg(args, int);
-			fonts[i] = CreateFontToHandle(NULL, x_r(value), y_r(value / 3), DX_FONTTYPE_ANTIALIASING_EDGE);
+			fonts.push_back(CreateFontToHandle(NULL, x_r(value), y_r(value / 3), DX_FONTTYPE_ANTIALIASING_EDGE));
 		}
 	SetUseASyncLoadFlag(FALSE);
 	va_end(args);
@@ -131,14 +118,11 @@ bool Myclass::set_veh(void) {
 	std::string tempname;
 	int i, j, k;
 	LONGLONG waits;								/*時間取得*/
-	for (j = 0; j < vehc; ++j) {
+	for (j = 0; j < vecs.size(); ++j) {
 		vecs[j].meshes = MV1GetMeshNum(vecs[j].model);
 		vecs[j].frames = MV1GetFrameNum(vecs[j].model);
 		vecs[j].colmeshes = MV1GetMeshNum(vecs[j].colmodel);
-	}
-	for (j = 0; j < vehc; ++j) {
-		vecs[j].loc = new VECTOR[vecs[j].frames]; if (vecs[j].loc == NULL) { return false; }
-		for (i = 0; i < vecs[j].frames; ++i) { vecs[j].loc[i] = MV1GetFramePosition(vecs[j].model, i); }
+		for (i = 0; i < vecs[j].frames; ++i) { vecs[j].loc.push_back(MV1GetFramePosition(vecs[j].model, i)); }
 		for (i = 0; i < 4; ++i) { vecs[j].coloc[i] = MV1GetFramePosition(vecs[j].colmodel, 5 + i); }
 	}
 	//エフェクト------------------------------------------------------------//
@@ -180,6 +164,7 @@ int Myclass::window_choosev(void) {
 	int font18 = CreateFontToHandle(NULL, x_r(18), y_r(18 / 3), DX_FONTTYPE_ANTIALIASING);
 	int font72 = CreateFontToHandle(NULL, x_r(72), y_r(72 / 3), DX_FONTTYPE_ANTIALIASING);
 	int i = 0, k, l = 0, m, x = 0, y = 0;
+	int all = (int)vecs.size();
 	int mousex, mousey;
 	float real = 0.f, r = 5.f, unt = 0.f;
 	LONGLONG waits;
@@ -188,21 +173,21 @@ int Myclass::window_choosev(void) {
 		if (CheckHitKey(KEY_INPUT_ESCAPE) != 0) { i = -1; break; }				//end
 		SetDrawScreen(DX_SCREEN_BACK);
 		ClearDrawScreen();
-			differential(real, deg2rad(360 * l / vehc), 0.05f);
+			differential(real, deg2rad(360 * l / all), 0.05f);
 			setcv(1.0f, 100.0f, VGet(-sin(real)*(10.f + r), 1, -cos(real)*(10.f + r)), VGet(-sin(real)*r, 2, -cos(real)*r), VGet(0, 1.0f, 0), 45.0f);
 			SetLightDirection(VSub(VGet(-sin(real)*r, 2, -cos(real)*r), VGet(-sin(real)*(10.f + r), 4, -cos(real)*(10.f + r))));
-			for (k = 0; k < vehc; k++) {
-				MV1SetPosition(vecs[k].model, VGet(-sin(deg2rad(360 * k / vehc))*r, 0, -cos(deg2rad(360 * k / vehc))*r));
-				MV1SetRotationXYZ(vecs[k].model, VGet(0, deg2rad((360 * k / vehc + 30)), 0));
+			for (k = 0; k < all; k++) {
+				MV1SetPosition(vecs[k].model, VGet(-sin(deg2rad(360 * k / all))*r, 0, -cos(deg2rad(360 * k / all))*r));
+				MV1SetRotationXYZ(vecs[k].model, VGet(0, deg2rad((360 * k / all + 30)), 0));
 				MV1DrawModel(vecs[k].model);
 			}
 			DrawFormatStringToHandle(x_r(960) - GetDrawFormatStringWidthToHandle(font72, "%s", vecs[i].name.c_str()) / 2, y_r(154), GetColor(0, 255, 0), font72, "%s", vecs[i].name.c_str());
-			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vehc)) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(850), y_r(850), GetColor(0, 255, 0), font18, "MAX SPD    : %5.2f km/h", vecs[i].spdflont[3] * 3.6f); }
-			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vehc)) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(850), y_r(870), GetColor(0, 255, 0), font18, "BACK SPD   : %5.2f km/h", vecs[i].spdback[3] * 3.6f); }
-			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vehc)) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(1140), y_r(810), GetColor(0, 255, 0), font18, "TURN SPEED : %5.2f deg/s", vecs[i].vehicle_RD * 180 / DX_PI_F); }
-			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vehc)) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(1120), y_r(580), GetColor(0, 255, 0), font18, "MAX ARMER  : %5.2f mm", vecs[i].armer[0]); }
-			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vehc)) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(650), y_r(410), GetColor(0, 255, 0), font18, "GUN RAD     : %5.2f°～%5.2f°", vecs[i].gun_lim_[2] * 180 / DX_PI_F, vecs[i].gun_lim_[3] * 180 / DX_PI_F); }
-			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vehc)) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(650), y_r(430), GetColor(0, 255, 0), font18, "GUN CALIBER : %05.1fmm", vecs[i].ammosize*1000.f); }
+			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / all)) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(850), y_r(850), GetColor(0, 255, 0), font18, "MAX SPD    : %5.2f km/h", vecs[i].spdflont[3] * 3.6f); }
+			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / all)) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(850), y_r(870), GetColor(0, 255, 0), font18, "BACK SPD   : %5.2f km/h", vecs[i].spdback[3] * 3.6f); }
+			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / all)) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(1140), y_r(810), GetColor(0, 255, 0), font18, "TURN SPEED : %5.2f deg/s", vecs[i].vehicle_RD * 180 / DX_PI_F); }
+			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / all)) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(1120), y_r(580), GetColor(0, 255, 0), font18, "MAX ARMER  : %5.2f mm", vecs[i].armer[0]); }
+			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / all)) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(650), y_r(410), GetColor(0, 255, 0), font18, "GUN RAD     : %5.2f°～%5.2f°", vecs[i].gun_lim_[2] * 180 / DX_PI_F, vecs[i].gun_lim_[3] * 180 / DX_PI_F); }
+			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / all)) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(650), y_r(430), GetColor(0, 255, 0), font18, "GUN CALIBER : %05.1fmm", vecs[i].ammosize*1000.f); }
 			//
 			DrawFormatStringToHandle(x_r(0), y_r(18 * 1), GetColor(0, 255, 0), font18, "%s", "SETTING");
 			DrawFormatStringToHandle(x_r(0), y_r(18 * 2), GetColor(0, 255, 0), font18, " 人の物理演算         : %s", usegrab ? "TRUE" : "FALSE");
@@ -215,7 +200,7 @@ int Myclass::window_choosev(void) {
 			GetMousePoint(&mousex, &mousey);
 			if (inm(x_r(360), y_r(340), x_r(400), y_r(740))) {
 				m = GetColor(255, 255, 0);
-				if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0) { m = GetColor(255, 0, 0); ++x; if (x == 1) { l++; i++; if (i > vehc - 1) { i = 0; } } } else { x = 0; }
+				if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0) { m = GetColor(255, 0, 0); ++x; if (x == 1) { l++; i++; if (i > all - 1) { i = 0; } } } else { x = 0; }
 			}
 			else { m = GetColor(0, 255, 0); }
 			DrawBox(x_r(360), y_r(340), x_r(400), y_r(740), m, FALSE);
@@ -223,7 +208,7 @@ int Myclass::window_choosev(void) {
 			//
 			if (inm(x_r(1520), y_r(340), x_r(1560), y_r(740))) {
 				m = GetColor(255, 255, 0);
-				if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0) { m = GetColor(255, 0, 0); ++y; if (y == 1) { l--;  i--; if (i < 0) { i = vehc - 1; } } } else { y = 0; }
+				if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0) { m = GetColor(255, 0, 0); ++y; if (y == 1) { l--;  i--; if (i < 0) { i = all - 1; } } } else { y = 0; }
 			}
 			else { m = GetColor(0, 255, 0); }
 			DrawBox(x_r(1520), y_r(340), x_r(1560), y_r(740), m, FALSE);
@@ -275,27 +260,6 @@ void Myclass::Screen_Flip(LONGLONG waits){
 	if (!YSync) { do {} while (GetNowHiPerformanceCount() - waits < 1000000.0f / f_rate); }
 }
 Myclass::~Myclass() {
-	int j;
-	if (fonts != NULL) { delete[] fonts; }
-	if (vecs != NULL) {
-		for (j = 0; j < vehc; ++j) {
-			MV1DeleteModel(vecs[j].model);
-			MV1DeleteModel(vecs[j].colmodel);
-			MV1DeleteModel(vecs[j].inmodel);
-			if (vecs[j].loc != NULL) { delete[] vecs[j].loc; }
-		}
-		delete[] vecs;
-	}
-	for (j = 0; j < 13; ++j) {
-		DeleteSoundMem(se_[j]);
-	}
-	for (j = 0; j < 4; ++j) {
-		DeleteGraph(ui_reload[j]);
-	}
-
-	for (j = 0; j < effects; ++j) {
-		DeleteEffekseerEffect(effHndle[j]);
-	}
 	Effkseer_End();
 	DxLib_End();
 }
@@ -318,9 +282,8 @@ void HUMANS::set_humans(int inmod) {
 	inmodel_handle = MV1DuplicateModel(inmod);
 	inflames = MV1GetFrameNum(inmodel_handle);
 	if (inflames - bone_in_turret >= 1) { human = inflames - bone_in_turret; } else { human = 1; }/*乗員*/
-	locin = new VECTOR[inflames]; if (locin == NULL) { return; }
-	posold = new VECTOR[inflames]; if (posold == NULL) { return; }
-	hum = new humans[human]; if (hum == NULL) { return; }
+	pos_old.resize(inflames);
+	hum.resize(human);
 	for (i = 0; i < human; ++i) {
 		if (usegrab) { MV1SetLoadModelUsePhysicsMode(DX_LOADMODEL_PHYSICS_REALTIME); }
 		else { MV1SetLoadModelUsePhysicsMode(DX_LOADMODEL_PHYSICS_LOADCALC); }
@@ -351,7 +314,7 @@ void HUMANS::set_humans(int inmod) {
 	//
 	MV1SetMatrix(inmodel_handle, MGetTranslate(VGet(0, 0, 0)));
 	for (i = 0; i < inflames; i++) {
-		locin[i] = MV1GetFramePosition(inmodel_handle, i);
+		locin.push_back(MV1GetFramePosition(inmodel_handle, i));
 		MV1ResetFrameUserLocalMatrix(inmodel_handle, i);
 	}
 	hum[0].neck = 0;
@@ -371,9 +334,7 @@ void HUMANS::set_humanmove(players player, VECTOR rad, float fps) {
 	int i, j,inflm=inflames;
 	bool grab = usegrab;
 	if (!first) { MV1SetMatrix(inmodel_handle, player.ps_m); }
-	for (i = 0; i < inflm; ++i) {
-		posold[i] = MV1GetFramePosition(inmodel_handle, i);
-	}
+	for (i = 0; i < inflm; ++i) { pos_old[i] = MV1GetFramePosition(inmodel_handle, i); }
 	MV1SetMatrix(inmodel_handle, player.ps_m);
 	for (i = 0; i < inflm; ++i) {
 		if (i == bone_trt) {
@@ -412,7 +373,7 @@ void HUMANS::set_humanmove(players player, VECTOR rad, float fps) {
 	//反映
 	for (int k = 0; k < divi; ++k) {
 		for (i = 0; i < human; ++i) {
-			MV1SetMatrix(hum[i].obj, MMult(MMult(MGetRotY(player.yrad + player.gunrad.x), MGetRotVec2(VGet(0, 1.f, 0), player.nor)), MGetTranslate(VAdd(posold[bone_in_turret + i], VScale(VSub(MV1GetFramePosition(inmodel_handle, bone_in_turret + i), posold[bone_in_turret + i]), (float)(1 + k) / divi)))));//MMult(MGetRotX(player.xnor), MGetRotZ(player.znor))
+			MV1SetMatrix(hum[i].obj, MMult(MMult(MGetRotY(player.yrad + player.gunrad.x), MGetRotVec2(VGet(0, 1.f, 0), player.nor)), MGetTranslate(VAdd(pos_old[bone_in_turret + i], VScale(VSub(MV1GetFramePosition(inmodel_handle, bone_in_turret + i), pos_old[bone_in_turret + i]), (float)(1 + k) / divi)))));//MMult(MGetRotX(player.xnor), MGetRotZ(player.znor))
 			if (i == 0) {
 				/*首振り*/
 				tmpft = atanf(sin(rad.y - player.yrad - player.gunrad.x));
@@ -458,17 +419,12 @@ void HUMANS::draw_humanall() {
 void HUMANS::delete_human(void) {
 	int i;
 	MV1DeleteModel(inmodel_handle);
-	if (hum != NULL) {
-		for (i = 0; i < human; ++i) { MV1DeleteModel(hum[i].obj); }
-		for (i = 0; i < voice; ++i) { DeleteSoundMem(hum[0].vsound[i]); }
-		delete[] hum; hum = NULL;
-	}
-	if (locin != NULL) { delete[] locin; locin = NULL; }
-	if (posold != NULL) { delete[] posold; posold = NULL; }
+	for (i = 0; i < human; ++i) { MV1DeleteModel(hum[i].obj); }
+	for (i = 0; i < voice; ++i) { DeleteSoundMem(hum[0].vsound[i]); }
+	hum.clear();
+	locin.clear();
+	pos_old.clear();
 }
-HUMANS::~HUMANS() {
-}
-
 void HUMANS::start_humanvoice(int p1) {
 	hum[0].vflug = p1;
 }
@@ -492,12 +448,6 @@ MAPS::MAPS(int map_size, float draw_dist){
 	texn = MakeScreen(groundx, groundx, FALSE);				/*実マップ*/
 	SetUseASyncLoadFlag(FALSE);
 }
-MAPS::~MAPS(){
-	DeleteGraph(sky_sun);
-	DeleteGraph(texo);
-	DeleteGraph(texp);
-	DeleteGraph(texn);
-}
 void MAPS::set_map_readyb(int set){
 	std::string tempname,tempname2;
 	lightvec = VGet(0.5f, -0.5f, 0.5f);
@@ -520,22 +470,17 @@ bool MAPS::set_map_ready() {
 	VECTOR tmpvect;
 	char x, y, rate;
 	int i, j;
-	tree.nears = new int[treec]; if (tree.nears == NULL) { return false; }
-	tree.fars = new int[treec]; if (tree.fars == NULL) { return false; }
-	tree.treesort.resize(treec);		//	tree.t_sort = new sorts[treec]; if (tree.t_sort == NULL) { return false; }
 
-	tree.pos = new VECTOR[treec]; if (tree.pos == NULL) { return false; }
-	tree.rad = new VECTOR[treec]; if (tree.rad == NULL) { return false; }
-	tree.hit = new bool[treec]; if (tree.hit == NULL) { return false; }
-
-
+	tree.treesort.resize(treec);
+	tree.pos.resize(treec);
+	tree.rad.resize(treec);
 	MV1SetScale(sky_model, VGet(0.2f, 0.2f, 0.2f));
 
 	SetUseASyncLoadFlag(TRUE);
 		for (j = 0; j < treec; ++j) {
-			tree.nears[j] = MV1DuplicateModel(tree.mnear);
-			tree.fars[j] = MV1DuplicateModel(tree.mfar);
-			tree.hit[j] = true;
+			tree.nears.push_back(MV1DuplicateModel(tree.mnear));
+			tree.fars.push_back(MV1DuplicateModel(tree.mfar));
+			tree.hit.push_back(true);//
 		}
 	SetUseASyncLoadFlag(FALSE);
 
@@ -566,8 +511,12 @@ bool MAPS::set_map_ready() {
 		RefMesh = MV1GetReferenceMesh(grass, -1, TRUE);			/*参照用メッシュの取得*/
 		IndexNum = RefMesh.PolygonNum * 3 * grasss;			/*インデックスの数を取得*/
 		VerNum = RefMesh.VertexNum * grasss;				/*頂点の数を取得*/
-		grassver = new VERTEX3D[VerNum];				/*頂点データとインデックスデータを格納するメモリ領域の確保*/
-		grassind = new DWORD[IndexNum];					/*頂点データとインデックスデータを格納するメモリ領域の確保*/
+
+		grassver = new VERTEX3D[VerNum];
+		grassind = new DWORD[IndexNum];
+		//grassver.resize(VerNum);					/*頂点データとインデックスデータを格納するメモリ領域の確保*/
+		//grassind.resize(IndexNum);					/*頂点データとインデックスデータを格納するメモリ領域の確保*/
+
 		for (i = 0; i < grasss; ++i) {
 			tmpvect = VGet((float)(-5000 + GetRand(10000)) / 10.0f, 0.0f, (float)(-5000 + GetRand(10000)) / 10.0f);
 			//
@@ -640,24 +589,15 @@ void MAPS::set_camerapos(VECTOR pos, VECTOR vec, VECTOR up,float ratio){
 }
 void MAPS::set_map_shadow_near(float vier_r){
 	float shadow_dist = 15.0f * vier_r + 10.0f; if (shadow_dist <= 10.0f) { shadow_dist = 10.0f; }
-	SetShadowMapDrawArea(shadow_near,
-		VSub(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist)),
-		VAdd(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist))
-	);
-	SetShadowMapDrawArea(shadow_seminear,
-		VSub(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist*2)),
-		VAdd(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist*2))
-	);
+	SetShadowMapDrawArea(shadow_near, VSub(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist)), VAdd(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist)));
+	SetShadowMapDrawArea(shadow_seminear, VSub(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist * 2)), VAdd(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist * 2)));
 }
-void MAPS::draw_map_track(float loc[], int p_handle,int fnum, float yrad) {
+void MAPS::draw_map_track(players*player) {
 	SetDrawScreen(texn);
-	for (int i = bone_wheel; i < fnum - 4; i += 2) {
-		if (loc[i] >= -0.15f) {
-			VECTOR tempvec = MV1GetFramePosition(p_handle, i);
-			DrawRotaGraph(
-				(int)(groundx * (0.5f + tempvec.x / (float)map_x)), (int)(groundx * (0.5f - tempvec.z / (float)map_y)),
-				1.f*groundx / 1024 / 195.0f, yrad, texo, TRUE
-			);
+	for (int i = bone_wheel; i < player->ptr->frames - 4; i += 2) {
+		if (player->Springs[i] >= -0.15f) {
+			VECTOR tempvec = MV1GetFramePosition(player->obj, i);
+			DrawRotaGraph((int)(groundx * (0.5f + tempvec.x / (float)map_x)), (int)(groundx * (0.5f - tempvec.z / (float)map_y)), 1.f*groundx / 1024 / 195.0f, player->yrad, texo, TRUE);
 		}
 	}
 
@@ -750,18 +690,23 @@ void MAPS::delete_map(void) {
 		MV1DeleteModel(tree.nears[j]);
 		MV1DeleteModel(tree.fars[j]);
 	}
-	if (tree.nears != NULL) { delete[] tree.nears; tree.nears = NULL; }
-	if (tree.fars != NULL) { delete[] tree.fars; tree.fars = NULL; }
 	tree.treesort.clear();
-	if (tree.pos != NULL) { delete[] tree.pos; tree.pos = NULL; }
-	if (tree.rad != NULL) { delete[] tree.rad; tree.rad = NULL; }
-	if (tree.hit != NULL) { delete[] tree.hit; tree.hit = NULL; }
 	DeleteGraph(graph);
 	MV1DeleteModel(grass);
 	DeleteGraph(texl);
 	DeleteGraph(texm);
+	tree.nears.clear();
+	tree.fars.clear();
+	tree.pos.clear();
+	tree.rad.clear();
+	tree.hit.clear();
+
 	if (grassver != NULL) { delete[] grassver; grassver = NULL; }
 	if (grassind != NULL) { delete[] grassind; grassind = NULL; }
+	/*
+	grassver.clear();
+	grassind.clear();
+	*/
 }
 //
 UIS::UIS() {
@@ -769,60 +714,41 @@ UIS::UIS() {
 	std::string tempname, tempname2;
 	WIN32_FIND_DATA win32fdt;
 	HANDLE hFind;
-	
+
 	countries = 1;
 
-	UI_main = new country[countries]; if (UI_main == NULL) { return; }
+	UI_main.resize(countries);/*改善*/
 	SetUseASyncLoadFlag(TRUE);
-	for (j = 0; j < 4; ++j) {
-		tempname = "data/ui/ammo_" + std::to_string(j)+".bmp";
-		ui_reload[j] = LoadGraph(tempname.c_str());
-	}		/*弾0,弾1,弾2,空弾*/
-
-	hFind = FindFirstFile("data/ui/body/*.png", &win32fdt);
-	if (hFind != INVALID_HANDLE_VALUE) {
-		ui_bmax = 0;
-		ui_tmax = 0;
-		do {
-			if (win32fdt.cFileName[0] == 'B') { ++ui_bmax; }
-			if (win32fdt.cFileName[0] == 'T') { ++ui_tmax; }
-		} while (FindNextFile(hFind, &win32fdt));
-	}//else{ return false; }
-	FindClose(hFind);
-	ui_body = new int[ui_bmax]; if (ui_body == NULL) { return; }
-	ui_turret = new int[ui_tmax]; if (ui_turret == NULL) { return; }
-	hFind = FindFirstFile("data/ui/body/*.png", &win32fdt);
-	if (hFind != INVALID_HANDLE_VALUE) {
-		i = 0;
-		j = 0;
-		do {
-			if (win32fdt.cFileName[0] == 'B') {
-				tempname = "data/ui/body/";
-				tempname += win32fdt.cFileName;
-				ui_body[i] = LoadGraph(tempname.c_str()); i++;
+		for (j = 0; j < 4; ++j) {
+			tempname = "data/ui/ammo_" + std::to_string(j)+".bmp";
+			ui_reload[j] = LoadGraph(tempname.c_str());
+		}/*弾0,弾1,弾2,空弾*/
+		hFind = FindFirstFile("data/ui/body/*.png", &win32fdt);
+		if (hFind != INVALID_HANDLE_VALUE) {
+			i = 0;
+			j = 0;
+			do {
+				if (win32fdt.cFileName[0] == 'B') {
+					tempname = "data/ui/body/";
+					tempname += win32fdt.cFileName;
+					UI_body.push_back(LoadGraph(tempname.c_str()));
+				}
+				if (win32fdt.cFileName[0] == 'T') {
+					tempname = "data/ui/body/";
+					tempname += win32fdt.cFileName;
+					UI_turret.push_back(LoadGraph(tempname.c_str()));
+				}
+			} while (FindNextFile(hFind, &win32fdt));
+		}//else{ return false; }
+		FindClose(hFind);
+		for (j = 0; j < countries; ++j) {
+			tempname = "German";
+			for (i = 0; i < 8; ++i) {
+				tempname2 = "data/ui/" + tempname + "/" + std::to_string(i) + ".png";
+				UI_main[j].ui_sight[i] = LoadGraph(tempname2.c_str());
 			}
-			if (win32fdt.cFileName[0] == 'T') {
-				tempname = "data/ui/body/";
-				tempname += win32fdt.cFileName;
-				ui_turret[j] = LoadGraph(tempname.c_str()); j++;
-			}
-		} while (FindNextFile(hFind, &win32fdt));
-	}//else{ return false; }
-	FindClose(hFind);
-
-
-
-	for (j = 0; j < countries; ++j) {
-		tempname = "German";
-		for (i = 0; i < 9; ++i) {
-			tempname2 = "data/ui/body/";
-			tempname2 += win32fdt.cFileName;
-			tempname2 += "/" + std::to_string(j) + ".png";
-			UI_main[j].ui_sight[i] = LoadGraph(tempname2.c_str());
 		}
-	}
 	SetUseASyncLoadFlag(FALSE);
-
 }
 void UIS::draw_load(void){
 	int i;
@@ -890,7 +816,6 @@ void UIS::draw_sight(float posx, float posy, float ratio, float dist, int font) 
 	DrawFormatStringToHandle(x_r(1056), y_r(648), GetColor(255, 255, 255), font, "[x%02.1f]", ratio);
 }
 void UIS::draw_ui(int selfammo, float y_v) {
-	int j;
 	float pers;
 	/*跳弾*/
 	if (recs >= 0.01f) {
@@ -901,49 +826,56 @@ void UIS::draw_ui(int selfammo, float y_v) {
 	/*弾*/
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
 	if (pplayer->loadcnt[0] > 0) {
-		DrawRotaGraph(dispx - (int)(384 * pplayer->loadcnt[0] / pplayer->ptr->reloadtime[0]) + 192, 64, 1.0, 0.0, ui_reload[pplayer->ammotype], TRUE);
+		DrawRotaGraph(x_r(2112 - (int)(384 * pplayer->loadcnt[0] / pplayer->ptr->reloadtime[0])), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[pplayer->ammotype], TRUE);
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(128.0f * pow(1.0f - (float)pplayer->loadcnt[0] / (float)pplayer->ptr->reloadtime[0], 10)));
-		if (selfammo == 0) { DrawRotaGraph(dispx - 384, 64 * 1, 1.0, 0.0, ui_reload[3], TRUE); }
-		else { DrawRotaGraph(dispx - 384, 64 * 1, 1.0, 0.0, ui_reload[(pplayer->ammotype - 1) % 3], TRUE); }
+		if (selfammo == 0) {
+			DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[3], TRUE);
+		}
+		else {
+			DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[(pplayer->ammotype - 1) % 3], TRUE);
+		}
 	}
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
-	if (pplayer->loadcnt[0] == 0) { DrawRotaGraph(dispx - 384, 64 * 1, 1.0, 0.0, ui_reload[pplayer->ammotype], TRUE); }
-	DrawRotaGraph(dispx - (int)(192 * pplayer->loadcnt[0] / pplayer->ptr->reloadtime[0]) - 192, 64, 1.0, 0.0, ui_reload[pplayer->ammotype], TRUE);
-	DrawRotaGraph(dispx - 192 * 5 / 6, 128, 1.0, 0.0, ui_reload[(pplayer->ammotype + 1) % 3], TRUE);
-	DrawRotaGraph(dispx - 192 * 4 / 6, 192, 1.0, 0.0, ui_reload[(pplayer->ammotype + 2) % 3], TRUE);
+	if (pplayer->loadcnt[0] == 0) {
+		DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[pplayer->ammotype], TRUE);
+	}
+	DrawRotaGraph(x_r(1728 - (int)(192 * pplayer->loadcnt[0] / pplayer->ptr->reloadtime[0])), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[pplayer->ammotype], TRUE);
+	DrawRotaGraph(x_r(1760), y_r(128), (double)x_r(40) / 40.0, 0.0, ui_reload[(pplayer->ammotype + 1) % 3], TRUE);
+	DrawRotaGraph(x_r(1792), y_r(192), (double)x_r(40) / 40.0, 0.0, ui_reload[(pplayer->ammotype + 2) % 3], TRUE);
 	/*速度計*/
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 	DrawExtendGraph(x_r(0), y_r(888), x_r(192), y_r(1080), UI_main[pplayer->ptr->countryc].ui_sight[3], TRUE);
 	DrawRotaGraph(x_r(96), y_r(984), x_r(192) / 152, deg2rad(120.0f * pplayer->speed / pplayer->ptr->spdflont[3] - 60.f), UI_main[pplayer->ptr->countryc].ui_sight[4], TRUE);
-	DrawRectGraph(x_r(192), y_r(892), 0, (int)(54.0f * (4.0f - gearf)), 40, 54, UI_main[pplayer->ptr->countryc].ui_sight[5], TRUE);
-	DrawExtendGraph(x_r(192), y_r(888), x_r(232), y_r(950), UI_main[pplayer->ptr->countryc].ui_sight[6], TRUE);
+
+	SetDrawArea(x_r(192), y_r(892), x_r(192 + 40), y_r(892 + 54));
+	DrawRotaGraph(x_r(192 + 40 / 2), y_r(892 + 54 / 2 + (int)(54.0f * gearf)), (double)x_r(40) / 40.0, 0.f, UI_main[pplayer->ptr->countryc].ui_sight[5], TRUE);
+	SetDrawArea(x_r(0), y_r(0), x_r(1920), y_r(1080));
+
+	DrawExtendGraph(x_r(192), y_r(892 - 4), x_r(232), y_r(950), UI_main[pplayer->ptr->countryc].ui_sight[6], TRUE);
 	differential(gearf, (float)pplayer->gear, 0.1f);
 
-	for (int i = 0; i < ui_bmax; ++i) {
+	for (int i = 0; i < UI_body.size(); ++i) {
 		if (i >= 1 && i <= 2) {
-			pers = 1.f - (float)pplayer->Hpoint[5 + i - 1] / 100.f;
-			if (pers >= 0.8f) { j = SetDrawBright(50, 50, 255); }
-			else { j = SetDrawBright((int)(255.f * sin(pers*DX_PI_F / 2)), (int)(255.f * cos(pers*DX_PI_F / 2)), 0); }
+			pers = 1.f - (float)pplayer->HP[5 + i - 1] / 100.f;
+			if (pers >= 0.8f) { SetDrawBright(50, 50, 255); }
+			else { SetDrawBright((int)(255.f * sin(pers*DX_PI_F / 2)), (int)(255.f * cos(pers*DX_PI_F / 2)), 0); }
 		}
 		else {
 			SetDrawBright(255, 255, 255);
 		}
-		DrawRotaGraph(x_r(292 + 100), y_r(1080 - 100), x_r(200) / 200, y_v + pplayer->yrad, ui_body[i], TRUE);
+		DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, -y_v + pplayer->yrad, UI_body[i], TRUE);
 	}
 
-	for (int i = 0; i < ui_tmax; ++i) {
+	for (int i = 0; i < UI_turret.size(); ++i) {
 		if (i == 0) {
-			pers = 1.f - (float)pplayer->Hpoint[4 + i] / 100.f;
-			if (pers >= 0.8f) { j = SetDrawBright(50, 50, 255); }
-			else { j = SetDrawBright((int)(255.f * sin(pers*DX_PI_F / 2)), (int)(255.f * cos(pers*DX_PI_F / 2)), 0); }
+			pers = 1.f - (float)pplayer->HP[4 + i] / 100.f;
+			if (pers >= 0.8f) { SetDrawBright(50, 50, 255); }
+			else { SetDrawBright((int)(255.f * sin(pers*DX_PI_F / 2)), (int)(255.f * cos(pers*DX_PI_F / 2)), 0); }
 		}
-		else {
-			SetDrawBright(255, 255, 255);
-		}
-
-		DrawRotaGraph(x_r(292 + 100), y_r(1080 - 100), x_r(200) / 200, y_v + pplayer->yrad + pplayer->gunrad.x, ui_turret[i], TRUE);
+		else { SetDrawBright(255, 255, 255); }
+		DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, -y_v + pplayer->yrad + pplayer->gunrad.x, UI_turret[i], TRUE);
 	}
-	//DrawFormatString(x_r(1056), y_r(594), GetColor(255, 255, 255), "[%03d][%03d]", ui_bmax,ui_tmax);
+	//DrawFormatString(x_r(1056), y_r(594), GetColor(255, 255, 255), "[%03d][%03d]", UI_body.size(),UI_turret.size());
 }
 
 void UIS::put_way(void){
@@ -981,20 +913,6 @@ void UIS::debug(float fps, float time) {
 	for (j = 1; j < 6; ++j) {
 		DrawFormatString(100, 100 + 18 + j * 18, GetColor(255, 255, 255), "%d(%.2fms)", j, waydeb[j] - waydeb[j - 1]);
 	}
-}
-
-UIS::~UIS() {
-	int j, i;
-
-	for (j = 0; j < 4; ++j) { DeleteGraph(ui_reload[j]); }
-	for (j = 0; j < countries; ++j) {
-		for (i = 0; i < 9; ++i) {
-			DeleteGraph(UI_main[j].ui_sight[i]);
-		}
-	}
-	if (UI_main != NULL) { delete[] UI_main; UI_main = NULL; }
-	if (ui_body != NULL) { delete[] ui_body; ui_body = NULL; }
-	if (ui_turret != NULL) { delete[] ui_turret; ui_turret = NULL; }
 }
 //
 void setcv(float neard, float fard, VECTOR cam, VECTOR view, VECTOR up, float fov) {
@@ -1057,9 +975,9 @@ bool get_reco(players* play, players* tgt, int i, int gun_s) {
 	if (gun_s == 0) {
 		//空間装甲、モジュール
 		for (colmesh = 0; colmesh < tgt->ptr->colmeshes; ++colmesh) {
-			HitPoly = MV1CollCheck_Line(tgt->colobj, -1, play->ammo[i].repos, play->ammo[i].pos, colmesh);
+			HitPoly = MV1CollCheck_Line(tgt->colobj, -1, play->Ammo[i].repos, play->Ammo[i].pos, colmesh);
 			if (HitPoly.HitFlag) {
-				tgt->hitssort[colmesh] = pair(colmesh, VSize(VSub(HitPoly.HitPosition, play->ammo[i].repos)));
+				tgt->hitssort[colmesh] = pair(colmesh, VSize(VSub(HitPoly.HitPosition, play->Ammo[i].repos)));
 				f++;
 			}
 			else {
@@ -1071,13 +989,13 @@ bool get_reco(players* play, players* tgt, int i, int gun_s) {
 		for (auto& tt : tgt->hitssort) {
 			k = tt.first;
 			if (k >= 4) {
-				if (tgt->Hpoint[k] > 0) {
+				if (tgt->HP[k] > 0) {
 					//空間装甲 //モジュール
 					if (k != 4) {
-						HitPoly = MV1CollCheck_Line(tgt->colobj, -1, play->ammo[i].repos, play->ammo[i].pos, k);
+						HitPoly = MV1CollCheck_Line(tgt->colobj, -1, play->Ammo[i].repos, play->Ammo[i].pos, k);
 						if (HitPoly.HitFlag) {
 							set_effect(&(play->effcs[ef_reco]), HitPoly.HitPosition, HitPoly.Normal);
-							tgt->Hpoint[k] -= 50; if (tgt->Hpoint[k] <= 0) { tgt->Hpoint[k] = 0; } play->ammo[i].pene /= 2.0f; play->ammo[i].speed /= 2.f;
+							tgt->HP[k] -= 50; if (tgt->HP[k] <= 0) { tgt->HP[k] = 0; } play->Ammo[i].pene /= 2.0f; play->Ammo[i].speed /= 2.f;
 						}
 					}
 				}
@@ -1088,20 +1006,20 @@ bool get_reco(players* play, players* tgt, int i, int gun_s) {
 			if (tt.second == 9999.f) { break; }
 		}
 		if (hitnear != -1) {
-			HitPoly = MV1CollCheck_Line(tgt->colobj, -1, play->ammo[i].repos, play->ammo[i].pos, hitnear);
+			HitPoly = MV1CollCheck_Line(tgt->colobj, -1, play->Ammo[i].repos, play->Ammo[i].pos, hitnear);
 			MV1SetFrameUserLocalMatrix(tgt->colobj, 9 + 0 + 3 * tgt->hitbuf, MMult(MGetTranslate(HitPoly.HitPosition), MInverse(tgt->ps_m)));
 			MV1SetFrameUserLocalMatrix(tgt->colobj, 9 + 1 + 3 * tgt->hitbuf, MMult(MGetTranslate(VAdd(HitPoly.Normal, HitPoly.HitPosition)), MInverse(tgt->ps_m)));
-			MV1SetFrameUserLocalMatrix(tgt->colobj, 9 + 2 + 3 * tgt->hitbuf, MMult(MGetTranslate(VAdd(VCross(HitPoly.Normal, play->ammo[i].vec), HitPoly.HitPosition)), MInverse(tgt->ps_m)));
+			MV1SetFrameUserLocalMatrix(tgt->colobj, 9 + 2 + 3 * tgt->hitbuf, MMult(MGetTranslate(VAdd(VCross(HitPoly.Normal, play->Ammo[i].vec), HitPoly.HitPosition)), MInverse(tgt->ps_m)));
 			set_effect(&(play->effcs[ef_reco]), HitPoly.HitPosition, HitPoly.Normal);
-			if (play->ammo[i].pene > tgt->ptr->armer[hitnear] * (1.0f / abs(VDot(VNorm(play->ammo[i].vec), HitPoly.Normal)))) {
-				if (tgt->Hpoint[0] != 0) {
+			if (play->Ammo[i].pene > tgt->ptr->armer[hitnear] * (1.0f / abs(VDot(VNorm(play->Ammo[i].vec), HitPoly.Normal)))) {
+				if (tgt->HP[0] != 0) {
 					PlaySoundMem(tgt->se[29 + GetRand(1)], DX_PLAYTYPE_BACK, TRUE);
 					set_effect(&(play->effcs[ef_bomb]), MV1GetFramePosition(tgt->obj, bone_engine), VGet(0, 0, 0));
 					set_effect(&(play->effcs[ef_smoke1]), MV1GetFramePosition(tgt->obj, bone_engine), VGet(0, 0, 0));
 					if (play->hitadd == false) { play->hitadd = true; }
 				}
-				play->ammo[i].flug = 0;
-				tgt->Hpoint[0] = 0;
+				play->Ammo[i].flug = 0;
+				tgt->HP[0] = 0;
 				tgt->usepic[tgt->hitbuf] = 0;
 			}
 			else {
@@ -1110,31 +1028,31 @@ bool get_reco(players* play, players* tgt, int i, int gun_s) {
 					tgt->recorad = atan2(HitPoly.HitPosition.x - tgt->pos.x, HitPoly.HitPosition.z - tgt->pos.z);
 					tgt->recoadd = true;
 				}
-				play->ammo[i].vec = VAdd(play->ammo[i].vec, VScale(HitPoly.Normal, VDot(play->ammo[i].vec, HitPoly.Normal) * -2.0f));
-				play->ammo[i].pos = VAdd(HitPoly.HitPosition, VScale(play->ammo[i].vec, 0.01f));
+				play->Ammo[i].vec = VAdd(play->Ammo[i].vec, VScale(HitPoly.Normal, VDot(play->Ammo[i].vec, HitPoly.Normal) * -2.0f));
+				play->Ammo[i].pos = VAdd(HitPoly.HitPosition, VScale(play->Ammo[i].vec, 0.01f));
 
-				play->ammo[i].pene /= 2.0f; play->ammo[i].speed /= 2.f;
+				play->Ammo[i].pene /= 2.0f; play->Ammo[i].speed /= 2.f;
 
 				tgt->usepic[tgt->hitbuf] = 1;
 			}
-			MV1SetScale(tgt->hitpic[tgt->hitbuf], VGet(play->ptr->ammosize*100.f*(1.0f / abs(VDot(VNorm(play->ammo[i].vec), HitPoly.Normal))), play->ptr->ammosize*100.f, play->ptr->ammosize*100.f));//
+			MV1SetScale(tgt->hitpic[tgt->hitbuf], VGet(play->ptr->ammosize*100.f*(1.0f / abs(VDot(VNorm(play->Ammo[i].vec), HitPoly.Normal))), play->ptr->ammosize*100.f, play->ptr->ammosize*100.f));//
 			tgt->hitbuf++; tgt->hitbuf %= 3;
 		}
 	}
 	//同軸機銃
 	else {
-		tmpf[0] = play->ammo[i].speed;
+		tmpf[0] = play->Ammo[i].speed;
 		for (colmesh = 0; colmesh < tgt->ptr->colmeshes; ++colmesh) {
-			if (colmesh >= 5) { if (tgt->Hpoint[colmesh] == 0) { continue; } }
-			HitPoly = MV1CollCheck_Line(tgt->colobj, -1, play->ammo[i].repos, play->ammo[i].pos, colmesh);
-			if (HitPoly.HitFlag) { tmpf[1] = VSize(VSub(HitPoly.HitPosition, play->ammo[i].repos)); if (tmpf[1] <= tmpf[0]) { tmpf[0] = tmpf[1]; hitnear = colmesh; } }
+			if (colmesh >= 5) { if (tgt->HP[colmesh] == 0) { continue; } }
+			HitPoly = MV1CollCheck_Line(tgt->colobj, -1, play->Ammo[i].repos, play->Ammo[i].pos, colmesh);
+			if (HitPoly.HitFlag) { tmpf[1] = VSize(VSub(HitPoly.HitPosition, play->Ammo[i].repos)); if (tmpf[1] <= tmpf[0]) { tmpf[0] = tmpf[1]; hitnear = colmesh; } }
 		}
 		if (hitnear != -1) {
-			HitPoly = MV1CollCheck_Line(tgt->colobj, -1, play->ammo[i].repos, play->ammo[i].pos, hitnear);
+			HitPoly = MV1CollCheck_Line(tgt->colobj, -1, play->Ammo[i].repos, play->Ammo[i].pos, hitnear);
 			set_effect(&(play->effcs[ef_reco2]), HitPoly.HitPosition, HitPoly.Normal);
 			PlaySoundMem(tgt->se[10 + GetRand(16)], DX_PLAYTYPE_BACK, TRUE);
-			play->ammo[i].vec = VAdd(play->ammo[i].vec, VScale(HitPoly.Normal, VDot(play->ammo[i].vec, HitPoly.Normal) * -2.0f));
-			play->ammo[i].pos = VAdd(HitPoly.HitPosition, VScale(play->ammo[i].vec, 0.01f));
+			play->Ammo[i].vec = VAdd(play->Ammo[i].vec, VScale(HitPoly.Normal, VDot(play->Ammo[i].vec, HitPoly.Normal) * -2.0f));
+			play->Ammo[i].pos = VAdd(HitPoly.HitPosition, VScale(play->Ammo[i].vec, 0.01f));
 		}
 	}
 	if (hitnear != -1) { return true; }

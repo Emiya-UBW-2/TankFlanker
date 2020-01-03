@@ -29,6 +29,7 @@
 #include<algorithm>
 #include <vector>
 #include <cstring>
+#include <string_view>
 /*構造体*/
 enum cpu {
 	CPU_NOMAL = 0,
@@ -73,6 +74,7 @@ enum Effect {
 	ef_smoke3	= 9,//読み込まない
 	efs_user	= 10
 };
+
 struct ammos {
 	int flug = 0;
 	int cnt = 0;
@@ -104,7 +106,7 @@ struct vehicle {
 	float gun_speed[3] = { 0.0f };					/*弾速*/
 	float pene[3] = { 0.0f };					/*貫通*/
 	int ammotype[3] = { 0 };					/*弾種*/
-	VECTOR* loc{ NULL };						/*フレームの元座標*/
+	std::vector<VECTOR> loc;					/*フレームの元座標*/
 	VECTOR coloc[4] = { VGet(0,0,0) };				/*box2D用フレーム*/
 	int frames{ 0 };
 	int colmeshes{ 0 };
@@ -121,20 +123,15 @@ struct players {
 	int se[50]{ 0 };						/*SE*/
 	/**/
 	int move{ 0 };							/*キー操作*/
-
 	VECTOR pos{ VGet(0, 0, 0) };					/*座標*/
 	MATRIX ps_m;							/*車体行列*/
 	MATRIX ps_t;							/*砲塔行列*/
-
-	MATRIX* ps_o;
-
+	//std::vector<MATRIX> ps_all;					/*行列*/
 	float yace{ 0.f };						/*加速度*/
 	float speed{ 0.f }, speedrec{ 0.f }, flont{ 0.f }, back{ 0.f };	/*速度関連*/
 	VECTOR vec{ VGet(0, 0, 0) };					/*移動ベクトル*/
-
 	float xnor{ 0.f }, znor{ 0.f }, znorrec{ 0.f };			/*法線角度*/
 	VECTOR nor{ VGet(0, 0, 0) };					/*法線*/
-
 	float yrad{ 0.f };						/*角度*/
 	float yadd{ 0.f };						/*角速度*/
 	int recoall{ 0 };						/*弾き角度*/
@@ -148,11 +145,10 @@ struct players {
 	int wayspd[waypc]{ 0 };						/*速度指定*/
 	int state{ 0 };							/*ステータス*/
 	/**/
-	ammos* ammo{ NULL };						/*ammo*/
-	float* Spring{ NULL };						/*サス*/
-	short* Hpoint{ NULL };						/*HP*/
-
-	std::vector<pair> hitssort;	//sorts* hitsort{ NULL };
+	std::vector<ammos> Ammo;					/*確保する弾(arrayでもいい？)*/
+	std::vector<float> Springs;					/*スプリング*/
+	std::vector<short> HP;						/*ライフ*/
+	std::vector<pair> hitssort;					/*当たった順番*/
 	/**/
 	int gear{ 0 };							/*変速*/
 	unsigned int gearu{ 0 };					/*キー*/
@@ -183,6 +179,28 @@ struct switches {
 	int cnt{ 0 };
 };
 /*CLASS*/
+/*
+class MV1Handle {
+private:
+	int handle_;
+	constexpr MV1Handle(int h) noexcept : handle_(h) {}
+public:
+	constexpr MV1Handle() noexcept : handle_(-1) {}
+	MV1Handle(const MV1Handle&) = delete;
+	MV1Handle(MV1Handle&&) = default;
+	MV1Handle& operator=(const MV1Handle&) = delete;
+	MV1Handle& operator=(MV1Handle&&) = default;
+	~MV1Handle() noexcept {
+		if (-1 != this->handle_) { MV1DeleteModel(this->handle_); }
+	}
+	void Dispose() noexcept {
+		if (-1 != this->handle_) { MV1DeleteModel(this->handle_); this->handle_ = -1; }
+	}
+	int get() const noexcept { return handle_; }
+	MV1Handle DuplicateModel() const noexcept { return DxLib::MV1DuplicateModel(this->handle_); }
+	static MV1Handle LoadModel(std::basic_string_view<TCHAR> FileName) noexcept { return DxLib::MV1LoadModelWithStrLen(FileName.data(), FileName.length()); }
+};
+//*/
 class Myclass {
 private:
 	/*setting*/
@@ -194,10 +212,9 @@ private:
 	float drawdist{ 100.0f };						/*木の描画距離*/
 	int gndx = 8;
 	/**/
-	int vehc = 0;								/*車両数*/
-	vehicle* vecs{ NULL };							/*車輛情報*/
+	std::vector<vehicle> vecs;						/*車輛情報*/
 	VECTOR view, view_r;							/*通常視点の角度、距離*/
-	int* fonts{ NULL };							/*フォント*/
+	std::vector<int> fonts;							/*フォント*/
 	int se_[13];								/*効果音*/
 	int ui_reload[4] = { 0 };						/*UI用*/
 	int effHndle[effects] = { 0 };						/*エフェクトリソース*/
@@ -239,17 +256,16 @@ private:
 		float voicealltime[voice]{ 0 };
 		int voices[voice]{ 0 };
 		int vsound[voice]{ 0 };
-	}*hum{ NULL };
+	};
 	int human{ 0 };								/*乗員人数*/
-
 	bool usegrab{ false };							/*人の物理演算のオフ、オン、一人だけオン*/
 	float f_rate{ 60.f };							/*fps*/
-
 	int inmodel_handle{ 0 };						//中モデル
 	bool in_f{ false };							//中描画スイッチ
 	int inflames;								//inmodelのフレーム数
-	VECTOR* locin{ NULL };							/*inmodelのフレーム*/
-	VECTOR* posold{ NULL };							/*inmodelの前回のフレーム*/
+	std::vector<humans> hum;						/**/
+	std::vector<VECTOR> locin;						/*inmodelのフレーム*/
+	std::vector<VECTOR> pos_old;						/*inmodelの前回のフレーム*/
 	bool first;								//初回フラグ
 public:
 	HUMANS(bool useg, float frates);
@@ -259,8 +275,6 @@ public:
 	void draw_human(int p1);
 	void draw_humanall();
 	void delete_human(void);
-	~HUMANS();
-
 	void start_humanvoice(int p1);
 	void start_humananime(int p1);
 	VECTOR get_neckpos() { return MV1GetFramePosition(hum[0].obj, hum[0].neck);}
@@ -276,13 +290,13 @@ private:
 	struct trees {
 		int mnear = 0;							/**/
 		int mfar = 0;							/**/
-		int* nears = 0;							/**/
-		int* fars = 0;							/**/
-		std::vector<pair> treesort;	//sorts* t_sort;
-		VECTOR* pos = 0;						/**/
-		VECTOR* rad = 0;
-		bool* hit = 0;
-	} tree{ NULL };
+		std::vector<int> nears;
+		std::vector<int> fars;
+		std::vector<pair> treesort;
+		std::vector<VECTOR> pos;
+		std::vector<VECTOR> rad;
+		std::vector<bool> hit;
+	}tree{ NULL };
 	int looktree = 0;							/*tree描画数*/
 	int shadow_seminear;							/*shadow中距離*/
 	int shadow_near;							/*shadow近距離*/
@@ -294,6 +308,8 @@ private:
 	VECTOR lightvec;							/*light方向*/
 	/*grass*/
 	int grasss = 50000;							/*grassの数*/
+	//std::vector<VERTEX3D> grassver;
+	//std::vector<DWORD> grassind;
 	VERTEX3D* grassver;							/**/
 	DWORD* grassind;							/**/
 	int VerBuf, IndexBuf;							/**/
@@ -307,12 +323,11 @@ private:
 	float rat;								/**/
 public:
 	MAPS(int map_size,float draw_dist);
-	~MAPS();
 	void set_map_readyb(int set);
 	bool set_map_ready(void);
 	void set_camerapos(VECTOR pos, VECTOR vec, VECTOR up, float ratio);
 	void set_map_shadow_near(float vier_r);
-	void draw_map_track(float loc[], int p_handle, int fnum, float yrad);
+	void draw_map_track(players*player);
 	void draw_map_model(void);
 	void set_map_track(void);
 	void draw_map_sky(void);
@@ -330,11 +345,10 @@ class UIS {
 private:
 	/**/
 	int ui_reload[4] = { 0 };						/*弾UI*/
-	int *ui_body{ NULL };						/*弾UI*/
-	int *ui_turret{ NULL };						/*弾UI*/
-	int ui_bmax = 0;
-	int ui_tmax = 0;
-	struct country { int ui_sight[9] = { 0 }; } *UI_main{ NULL };		/*国別UI*/
+	std::vector<int> UI_body;						/*弾UI*/
+	std::vector<int> UI_turret;						/*弾UI*/
+	struct country { int ui_sight[8] = { 0 }; };/*改善*/
+	std::vector<country> UI_main;						/*国別UI*/
 	int countries = 1;							/*国数*/
 	float gearf = 0.f;							/*変速*/
 	float recs = 0.f;							/*跳弾表現用*/
@@ -351,11 +365,9 @@ public:
 	void set_reco(void);								/*反射スイッチ*/
 	void draw_sight(float posx, float posy, float ratio, float dist, int font);	/*照準UI*/
 	void draw_ui(int selfammo,float y_v);							/*メインUI*/
-
 	void put_way(void);
 	void end_way(void);
 	void debug(float fps, float time);
-	~UIS();
 };
 /**/
 void setcv(float neard, float fard, VECTOR cam, VECTOR view, VECTOR up, float fov);//カメラ情報指定
