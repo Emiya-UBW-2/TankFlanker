@@ -232,8 +232,11 @@ public:
 	void set_fonts(Args&& ...args)
 	{
 		SetUseASyncLoadFlag(true);
-		auto create = [](int value) { return DxLib::CreateFontToHandle(NULL, x_r(value), y_r(value / 3), DX_FONTTYPE_ANTIALIASING_EDGE); }
-		this->fonts.emplace(this->fonts.end(), create(args)...);
+		//C++17: fold expression
+		//ref:
+		// - https://cpprefjp.github.io/lang/cpp17/folding_expressions.html
+		// - https://stackoverflow.com/questions/45519117/using-fold-expression-to-merge-multiple-vector
+		(this->fonts.emplace(this->fonts.end(), DxLib::CreateFontToHandle(NULL, x_r(args), y_r(args / 3), DX_FONTTYPE_ANTIALIASING_EDGE)), ...);
 		SetUseASyncLoadFlag(false);
 	}
 

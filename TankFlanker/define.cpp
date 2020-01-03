@@ -415,7 +415,6 @@ void HUMANS::draw_humanall() {
 	for (i = 0; i < human; ++i) { draw_human(i); }
 }
 void HUMANS::delete_human(void) {
-	int i;
 	inmodel_handle.Dispose();
 	for (auto& h : hum) { h.obj.Dispose(); }
 	for (auto& v : hum[0].vsound) { DeleteSoundMem(v); }
