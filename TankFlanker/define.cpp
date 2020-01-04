@@ -1,7 +1,6 @@
 ﻿#include "define.h"
 #include <string_view>
 //
-using std::size_t;
 Myclass::Myclass() {
 	using namespace std::literals;
 	WIN32_FIND_DATA win32fdt;
@@ -445,11 +444,9 @@ MAPS::MAPS(int map_size, float draw_dist){
 	texn = MakeScreen(groundx, groundx, FALSE);				/*実マップ*/
 	SetUseASyncLoadFlag(FALSE);
 }
-void MAPS::set_map_readyb(int set){
-	std::string tempname,tempname2;
+void MAPS::set_map_readyb(bool set){
 	lightvec = VGet(0.5f, -0.5f, 0.5f);
 	SetUseASyncLoadFlag(TRUE);
-		if (set == 0) { tempname = "map"; }
 		tree.mnear = MV1ModelHandle::Load((set) ? "data/tree/model.mv1" : "data/map/tree/model.mv1");			/*近木*/
 		tree.mfar = MV1ModelHandle::Load((set) ? "data/tree/model2.mv1" : "data/map/tree/model2.mv1");			/*遠木*/
 		texl = LoadGraph((set) ? "data/SandDesert_04_00344_FWD.png" : "data/map/SandDesert_04_00344_FWD.png");				/*nor*/

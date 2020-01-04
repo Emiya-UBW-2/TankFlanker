@@ -1,5 +1,21 @@
 #include "define.h"
 #include <memory>
+size_t count_impl(const TCHAR* pattern) {
+	WIN32_FIND_DATA win32fdt;
+	size_t cnt = 0;
+	const auto hFind = FindFirstFile(pattern, &win32fdt);
+	if (hFind != INVALID_HANDLE_VALUE) {
+		do { if (win32fdt.cFileName[0] != '.') { ++cnt; } } while (FindNextFile(hFind, &win32fdt));
+	}
+	FindClose(hFind);
+	return cnt;
+}
+size_t count_team() {
+	return count_impl("stage/data_0/team/*.txt");
+}
+size_t count_enemy() {
+	return count_impl("stage/data_0/enemy/*.txt");
+}
 /*main*/
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd) {
 	//temp------------------------------------------------------------------//
@@ -14,7 +30,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 	std::string tempname;
 	//変数------------------------------------------------------------------//
 	bool out{ false };							/*終了フラグ*/
-	int playerc, teamc, enemyc, mapc;					/*player人数*/
 	std::vector<pair> pssort;						/*playerソート*/
 	std::vector<players> player;						/*player*/
 	VECTOR aims;								/*照準器座標*/
@@ -60,23 +75,13 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		k = parts.window_choosev(); if (k == -1) { return 0; }		/*player指定*/
 
 		mdata = FileRead_open("stage/data_0/main.txt", FALSE);
-		FileRead_gets(mstr, 64, mdata); mapc = (int)atof(getright(mstr).c_str());
+		FileRead_gets(mstr, 64, mdata);
+		const bool mapc = bool(std::stoul(getright(mstr)));
 		FileRead_close(mdata);
 
-		teamc = 0;
-		hFind = FindFirstFile("stage/data_0/team/*.txt", &win32fdt);
-		if (hFind != INVALID_HANDLE_VALUE) {
-			do { if (win32fdt.cFileName[0] != '.') { ++teamc; } } while (FindNextFile(hFind, &win32fdt));
-		}
-		FindClose(hFind);
-		enemyc = 0;
-		hFind = FindFirstFile("stage/data_0/enemy/*.txt", &win32fdt);
-		if (hFind != INVALID_HANDLE_VALUE) {
-			do { if (win32fdt.cFileName[0] != '.') { ++enemyc; } } while (FindNextFile(hFind, &win32fdt));
-		}
-		FindClose(hFind);
-
-		playerc = teamc + enemyc;
+		const size_t teamc = count_team();
+		const size_t enemyc = count_enemy();
+		const size_t playerc = teamc + enemyc;
 
 		player.resize(playerc);
 		pssort.resize(playerc);
@@ -84,7 +89,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		for (size_t p_cnt = 0; p_cnt < teamc; ++p_cnt) {
 			tempname = "stage/data_0/team/" + std::to_string(p_cnt) + ".txt";
 			mdata = FileRead_open(tempname.c_str(), FALSE);
-			//FileRead_gets(mstr, 64, mdata); mapc = (int)atof(getright(mstr).c_str());
 			FileRead_close(mdata);
 
 			if (p_cnt == 0) { player[p_cnt].use = k; }
@@ -100,7 +104,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		for (size_t p_cnt = teamc; p_cnt < playerc; ++p_cnt) {
 			tempname = "stage/data_0/enemy/" + std::to_string(p_cnt) + ".txt";
 			mdata = FileRead_open(tempname.c_str(), FALSE);
-			//FileRead_gets(mstr, 64, mdata); mapc = (int)atof(getright(mstr).c_str());
 			FileRead_close(mdata);
 
 			player[p_cnt].use = 1;// p_cnt % parts.get_vehc();
