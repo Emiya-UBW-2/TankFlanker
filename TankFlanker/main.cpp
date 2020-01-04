@@ -1,9 +1,9 @@
 #include "define.h"
-
+#include <memory>
 /*main*/
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd) {
 	//temp------------------------------------------------------------------//
-	int i, j, k, p_cnt, tgt_p, guns;
+	int i, j, k, tgt_p, guns;
 	int mousex, mousey;							/*mouse*/
 	float tmpf, tempfx, tempfy,turn_bias;
 	VECTOR tempvec[2];
@@ -37,7 +37,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 	Myclass	parts;
 	HUMANS	humanparts(parts.get_usegrab(), parts.get_f_rate());		/*車内関係*/
 	MAPS	mapparts(parts.get_gndx(), parts.get_drawdist());		/*地形、ステージ関係*/
-	UIS	uiparts;
+	auto uiparts = std::make_unique<UIS>();
 	float f_rates = parts.get_f_rate();
 	//load------------------------------------------------------------------//
 	parts.set_fonts(18);
@@ -51,7 +51,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		int HighBrightScreen = MakeScreen(dispx, dispy, FALSE);			/*エフェクト*/
 		int GaussScreen = MakeScreen(dispx / EXTEND, dispy / EXTEND, FALSE);	/*エフェクト*/
 	SetUseASyncLoadFlag(FALSE);
-	uiparts.draw_load();//
+	uiparts->draw_load();//
 	if (parts.set_veh() != true) { return -1; }
 	/*物理開始*/
 	b2World world(b2Vec2(0.0f, 0.0f));					// 剛体を保持およびシミュレートするワールドオブジェクトを構築
@@ -81,7 +81,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		player.resize(playerc);
 		pssort.resize(playerc);
 		//設定
-		for (p_cnt = 0; p_cnt < teamc; ++p_cnt) {
+		for (size_t p_cnt = 0; p_cnt < teamc; ++p_cnt) {
 			tempname = "stage/data_0/team/" + std::to_string(p_cnt) + ".txt";
 			mdata = FileRead_open(tempname.c_str(), FALSE);
 			//FileRead_gets(mstr, 64, mdata); mapc = (int)atof(getright(mstr).c_str());
@@ -97,7 +97,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 				player[p_cnt].wayspd[i] = 2;
 			}
 		}
-		for (p_cnt = teamc; p_cnt < playerc; ++p_cnt) {
+		for (size_t p_cnt = teamc; p_cnt < playerc; ++p_cnt) {
 			tempname = "stage/data_0/enemy/" + std::to_string(p_cnt) + ".txt";
 			mdata = FileRead_open(tempname.c_str(), FALSE);
 			//FileRead_gets(mstr, 64, mdata); mapc = (int)atof(getright(mstr).c_str());
@@ -113,16 +113,16 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			}
 		}
 		/*vehsから引き継ぎ*/
-		for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+		for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 			player[p_cnt].ptr = parts.get_vehicle(player[p_cnt].use);
 		}
 		/*UI*/
-		uiparts.set_state(&player[0]);
+		uiparts->set_state(&player[0]);
 		/*load*/
 		SetUseASyncLoadFlag(TRUE);
 			/*players*/
 			SetCreate3DSoundFlag(TRUE);
-			for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+			for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 				player[p_cnt].obj = player[p_cnt].ptr->model.Duplicate();
 				player[p_cnt].colobj = player[p_cnt].ptr->colmodel.Duplicate();
 				for (i = 0; i < 3; i++) { player[p_cnt].hitpic[i] = hit_mod.Duplicate(); }
@@ -148,13 +148,13 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		SetCreate3DSoundFlag(FALSE);
 		SetUseASyncLoadFlag(FALSE);
 		mapparts.set_map_readyb(mapc);
-		uiparts.draw_load();//
+		uiparts->draw_load();//
 		/*human*/
 		humanparts.set_humans(player[0].ptr->inmodel);
 		/*map*/
 		if (mapparts.set_map_ready() != true) { break; }
 		//players
-		for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+		for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 			//色調
 			for (i = 0; i < MV1GetMaterialNum(player[p_cnt].obj.get()); ++i) {
 				MV1SetMaterialSpcColor(player[p_cnt].obj.get(), i, GetColorF(0.85f, 0.82f, 0.78f, 0.5f));
@@ -199,7 +199,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			//
 		}
 		//物理set
-		for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+		for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 			player[p_cnt].dynamicBox.SetAsBox(
 				(player[p_cnt].ptr->coloc[0].x - player[p_cnt].ptr->coloc[2].x) / 2,
 				(player[p_cnt].ptr->coloc[0].z - player[p_cnt].ptr->coloc[2].z) / 2,
@@ -221,7 +221,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		/*音量調整*/
 		humanparts.set_humanvc_vol(255);
 		parts.set_se_vol(128);
-		for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+		for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 			for (i = 1; i < 27; ++i) { ChangeVolumeSoundMem(128, player[p_cnt].se[i]); }
 			for (i = 29; i < 31; ++i) { ChangeVolumeSoundMem(128, player[p_cnt].se[i]); }
 		}
@@ -237,7 +237,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		parts.set_viewrad(VGet(0.f, player[0].yrad, 1.f));
 		SetCursorPos(x_r(960), y_r(540));
 		old_time = GetNowHiPerformanceCount() + (LONGLONG)(1000000.0f / f_rates);
-		for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+		for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 			player[p_cnt].effcs[ef_smoke2].efhandle = parts.get_effHandle(ef_smoke2).Play3D();
 			player[p_cnt].effcs[ef_smoke3].efhandle = parts.get_effHandle(ef_smoke2).Play3D();
 			PlaySoundMem(player[p_cnt].se[0], DX_PLAYTYPE_LOOP, TRUE);
@@ -255,7 +255,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			waits = GetNowHiPerformanceCount();
 			fps = 1000000.0f / (float)(waits - old_time);
 			old_time = GetNowHiPerformanceCount();
-			uiparts.put_way();//debug
+			uiparts->put_way();//debug
 			if (GetActiveFlag() == TRUE) {
 				SetMouseDispFlag(FALSE);
 				if (CheckHitKey(KEY_INPUT_ESCAPE) != 0) { out = true; break; }											/*終了*/
@@ -293,7 +293,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 				if (map.flug) {
 					GetMousePoint(&mousex, &mousey); SetMouseDispFlag(TRUE);
 					choose = -1;
-					for (p_cnt = 1; p_cnt < teamc; ++p_cnt) {
+					for (size_t p_cnt = 1; p_cnt < teamc; ++p_cnt) {
 						if (player[p_cnt].HP[0] > 0) { if (inm(x_r(132), y_r(162 + p_cnt * 24), x_r(324), y_r(180 + p_cnt * 24))) { choose = p_cnt; if (keyget[0]) { waysel = p_cnt; } } }
 					}
 					if (player[waysel].HP[0] > 0) {
@@ -330,8 +330,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			}
 			if (true) {
 				/*操作、座標系*/
-				uiparts.end_way();//debug0//0
-				for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+				uiparts->end_way();//debug0//0
+				for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 					if (!map.flug) { player[p_cnt].wayselect = 0; }
 					if (player[p_cnt].HP[0] > 0) {
 						player[p_cnt].move = 0;
@@ -446,9 +446,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 					else { player[p_cnt].move = KEY_TURNUP_; }
 				}
 				//0.2ms~5ms
-				uiparts.end_way();//debug1//0
+				uiparts->end_way();//debug1//0
 				/*共通動作*/
-				for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+				for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 					if (p_cnt == 0) {
 						tmpf = 1.f;
 						if (keyget[8]) { tmpf = 3.f; }//左CTRLを押すと精密エイム
@@ -536,14 +536,14 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 				//0.0ms
 				/*物理演算*/
 				world.Step(1.0f / f_rates, 1, 1);						// シミュレーションの単一ステップを実行するように世界に指示します。 一般に、タイムステップと反復を固定しておくのが最善です。
-				for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+				for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 					player[p_cnt].pos.x = player[p_cnt].body->GetPosition().x;
 					player[p_cnt].pos.z = player[p_cnt].body->GetPosition().y;
 					player[p_cnt].yrad = -player[p_cnt].body->GetAngle();
 				}//0ms
 				//0.0ms
 				/*砲撃その他*/
-				for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+				for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 					//地形判定
 					HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, VAdd(player[p_cnt].pos, VGet(0.0f, 2.0f, 0.0f)), VAdd(player[p_cnt].pos, VGet(0.0f, -0.05f, 0.0f)));//0.3ms
 					if (HitPoly.HitFlag) {
@@ -706,7 +706,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 					}
 					if (player[p_cnt].recoadd) {
 						if (player[p_cnt].recoall < 180) {
-							if (p_cnt == 0 && player[p_cnt].recoall == 0) { uiparts.set_reco(); }
+							if (p_cnt == 0 && player[p_cnt].recoall == 0) { uiparts->set_reco(); }
 							if (player[p_cnt].recoall <= 90) { player[p_cnt].recoall += 900 / (int)fps; }
 							else { player[p_cnt].recoall += 180 / (int)fps; }
 						}
@@ -721,14 +721,14 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 				/*轍更新*/
 				mapparts.set_map_track();
 				//0ms
-				uiparts.end_way();//debug2//0
+				uiparts->end_way();//debug2//0
 				/*human*/
 				humanparts.set_humanmove(player[0], parts.get_view_r(), fps);
 				//(usegrab=TRUE)0.9~1.0ms(FALSE)0.1ms
-				uiparts.end_way();//debug3//0
-				uiparts.end_way();//debug4//0
+				uiparts->end_way();//debug3//0
+				uiparts->end_way();//debug4//0
 				/*effect*/
-				for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+				for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 					for (i = 0; i < efs_user; ++i) {
 						if (i != ef_smoke2 && i != ef_smoke3) { set_pos_effect(&player[p_cnt].effcs[i], parts.get_effHandle(i)); }
 					}
@@ -742,7 +742,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 				UpdateEffekseer3D();
 				//0.6ms
 			}
-			//uiparts.end_way();//debug5//0
+			//uiparts->end_way();//debug5//0
 			/*視点*/
 			if (aim.flug) {
 				campos = MV1GetFramePosition(player[0].obj.get(), bone_gun1);
@@ -772,24 +772,24 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 				SetDrawScreen(minimap);
 				ClearDrawScreen();
 				DrawExtendGraph(x_r(420), y_r(0), x_r(1500), y_r(1080), mapparts.get_minmap(), FALSE);
-				for (p_cnt = 0; p_cnt < teamc; ++p_cnt) {
+				for (size_t p_cnt = 0; p_cnt < teamc; ++p_cnt) {
 					i = GetColor(0, 255, 0);
 					if (player[p_cnt].HP[0] == 0) { i = GetColor(0, 128, 0); }
 					DrawCircle(x_(player[p_cnt].pos.x), y_(player[p_cnt].pos.z), 5, i, 1);
 				}
-				for (p_cnt = teamc; p_cnt < playerc; ++p_cnt) {
+				for (size_t p_cnt = teamc; p_cnt < playerc; ++p_cnt) {
 					i = GetColor(255, 0, 0);
 					if (player[p_cnt].HP[0] == 0) { i = GetColor(128, 0, 0); }
 					DrawCircle(x_(player[p_cnt].pos.x), y_(player[p_cnt].pos.z), 5, i, 1);
 				}
 				//teamc + enemyc
-				for (p_cnt = 1; p_cnt < teamc; ++p_cnt) {
+				for (size_t p_cnt = 1; p_cnt < teamc; ++p_cnt) {
 					DrawLine(x_(player[p_cnt].pos.x), y_(player[p_cnt].pos.z), x_(player[p_cnt].waypos[player[p_cnt].waynow].x), y_(player[p_cnt].waypos[player[p_cnt].waynow].z), GetColor(255, 0, 0), 3);
 					for (j = player[p_cnt].waynow; j < waypc - 1; ++j) {
 						DrawLine(x_(player[p_cnt].waypos[j].x), y_(player[p_cnt].waypos[j].z), x_(player[p_cnt].waypos[j + 1].x), y_(player[p_cnt].waypos[j + 1].z), GetColor(255, 64 * j, 0), 3);
 					}
 				}
-				for (p_cnt = 0; p_cnt < teamc; ++p_cnt) {
+				for (size_t p_cnt = 0; p_cnt < teamc; ++p_cnt) {
 					//ステータス
 					if (p_cnt == waysel) {
 						k = GetColor(255, 255, 0);
@@ -805,7 +805,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 					//進軍
 					for (k = 0; k < player[p_cnt].wayselect; k++) { DrawBox(x_r(348 + k * 12), y_r(162 + p_cnt * 24), x_r(356 + k * 12), y_r(180 + p_cnt * 24), GetColor(50, 50, 255), TRUE); }
 				}
-				for (p_cnt = teamc; p_cnt < playerc; ++p_cnt) {
+				for (size_t p_cnt = teamc; p_cnt < playerc; ++p_cnt) {
 					k = GetColor(255, 0, 0);
 					if (player[p_cnt].HP[0] == 0) { k = GetColor(128, 128, 128); }
 					DrawBox(x_r(1500), y_r(162 + (p_cnt - teamc) * 24), x_r(1692), y_r(180 + (p_cnt - teamc) * 24), k, TRUE);
@@ -834,9 +834,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 					aimm = aim_r / 1000.0f * tmpf;
 				}
 				//pos
-				for (p_cnt = 1; p_cnt < playerc; ++p_cnt) { player[p_cnt].iconpos = ConvWorldPosToScreenPos(VAdd(player[p_cnt].pos, VGet(0, VSize(VSub(player[p_cnt].pos, player[0].pos)) / 40 + 6, 0))); }
+				for (size_t p_cnt = 1; p_cnt < playerc; ++p_cnt) { player[p_cnt].iconpos = ConvWorldPosToScreenPos(VAdd(player[p_cnt].pos, VGet(0, VSize(VSub(player[p_cnt].pos, player[0].pos)) / 40 + 6, 0))); }
 
-				for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+				for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 					if (CheckCameraViewClip_Box(VAdd(player[p_cnt].pos, VGet(-5, 0, -5)), VAdd(player[p_cnt].pos, VGet(5, 3, 5))) == TRUE) {
 						pssort[p_cnt] = pair(p_cnt, (float)map_x);
 					}
@@ -905,7 +905,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 					//ammo
 					SetUseLighting(FALSE);
 					SetFogEnable(FALSE);
-					for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+					for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 						for (i = 0; i < ammoc; ++i) {
 							if (player[p_cnt].Ammo[i].flug != 0) {
 								tmpf = 4.f*player[p_cnt].Ammo[i].speed / (player[p_cnt].ptr->gun_speed[player[p_cnt].ammotype] / fps);
@@ -962,7 +962,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 				DrawExtendGraph(0, 0, dispx, dispy, GaussScreen, FALSE);
 				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 				/*UI*/
-				if (aim.flug) { uiparts.draw_sight(aims.x, aims.y, rat_r, aimm, parts.get_font(0)); }/*照準器*/
+				if (aim.flug) { uiparts->draw_sight(aims.x, aims.y, rat_r, aimm, parts.get_font(0)); }/*照準器*/
 				else {
 					for (auto& tt : pssort) {
 						if (tt.second == (float)map_x) { continue; }
@@ -976,18 +976,18 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 						}
 					}
 				}/*アイコン*/
-				uiparts.draw_ui(selfammo, parts.get_view_r().y);/*main*/
+				uiparts->draw_ui(selfammo, parts.get_view_r().y);/*main*/
 			}
 			/*debug*/
 			//DrawFormatStringToHandle(x_r(18), y_r(1062), GetColor(255, 255, 255), parts.get_font(0), "start-stop(%.2fms)", (float)stop_w / 1000.f);
-			uiparts.debug(fps, (float)(GetNowHiPerformanceCount() - waits) / 1000.0f);
+			uiparts->debug(fps, (float)(GetNowHiPerformanceCount() - waits) / 1000.0f);
 
 			parts.Screen_Flip(waits);
 		}
 		//delete
 		mapparts.delete_map();
 		humanparts.delete_human();
-		for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+		for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 			/*エフェクト*/
 			for (auto&& e : player[p_cnt].effcs) e.efhandle.Dispose();
 			/*Box2D*/
