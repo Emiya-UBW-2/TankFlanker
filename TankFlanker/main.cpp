@@ -23,7 +23,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 	int selfammo;								/*UI用*/
 	switches aim, map;							/*視点変更*/
 	float ratio, rat_r, aim_r;						/*照準視点　倍率、実倍率、距離*/
-	int waysel, way, choose;						/*指揮視点　指揮車両、マウストリガー、マウス選択*/
+	int waysel, choose = -1;						/*指揮視点　指揮車両、マウス選択*/
+	std::uint8_t way = 0; //マウストリガー
 	LONGLONG old_time, waits;						/*時間取得*/
 	VECTOR campos, viewpos, uppos;						/*カメラ*/
 	MV1_COLL_RESULT_POLY HitPoly;						/*あたり判定*/
@@ -237,8 +238,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		SetCursorPos(x_r(960), y_r(540));
 		old_time = GetNowHiPerformanceCount() + (LONGLONG)(1000000.0f / f_rates);
 		for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
-			player[p_cnt].effcs[ef_smoke2].efhandle = PlayEffekseer3DEffect(parts.get_effHandle(ef_smoke2));
-			player[p_cnt].effcs[ef_smoke3].efhandle = PlayEffekseer3DEffect(parts.get_effHandle(ef_smoke2));
+			player[p_cnt].effcs[ef_smoke2].efhandle = parts.get_effHandle(ef_smoke2).Play3D();
+			player[p_cnt].effcs[ef_smoke3].efhandle = parts.get_effHandle(ef_smoke2).Play3D();
 			PlaySoundMem(player[p_cnt].se[0], DX_PLAYTYPE_LOOP, TRUE);
 			PlaySoundMem(player[p_cnt].se[27], DX_PLAYTYPE_LOOP, TRUE);
 			PlaySoundMem(player[p_cnt].se[28], DX_PLAYTYPE_LOOP, TRUE);
@@ -299,7 +300,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 						if (player[waysel].wayselect <= waypc - 1) {
 							if (inm(x_r(420), y_r(0), x_r(1500), y_r(1080))) {
 								if (keyget[0]) {
-									++way;
+									way = (std::min)(way + 1, 2);
 									if (way == 1) {
 										if (player[waysel].wayselect == 0) { player[waysel].waynow = 0; }
 										player[waysel].waypos[player[waysel].wayselect] = VGet(_2x(mousex), 0, _2y(mousey));
@@ -732,10 +733,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 						if (i != ef_smoke2 && i != ef_smoke3) { set_pos_effect(&player[p_cnt].effcs[i], parts.get_effHandle(i)); }
 					}
 						tempvec[0] = MV1GetFramePosition(player[p_cnt].obj.get(), bone_smoke1);
-						SetPosPlayingEffekseer3DEffect(player[p_cnt].effcs[ef_smoke2].efhandle, tempvec[0].x, tempvec[0].y, tempvec[0].z);
+						player[p_cnt].effcs[ef_smoke2].efhandle.SetPos(tempvec[0].x, tempvec[0].y, tempvec[0].z);
 						//SetTargetLocation(player[p_cnt].effcs[ef_smoke2].efhandle, tempvec[0].x, tempvec[0].y, tempvec[0].z);
 						tempvec[0] = MV1GetFramePosition(player[p_cnt].obj.get(), bone_smoke2);
-						SetPosPlayingEffekseer3DEffect(player[p_cnt].effcs[ef_smoke3].efhandle, tempvec[0].x, tempvec[0].y, tempvec[0].z);
+						player[p_cnt].effcs[ef_smoke3].efhandle.SetPos(tempvec[0].x, tempvec[0].y, tempvec[0].z);
 						//SetTargetLocation(player[p_cnt].effcs[ef_smoke3].efhandle, tempvec[0].x, tempvec[0].y, tempvec[0].z);
 				}
 				UpdateEffekseer3D();
@@ -988,7 +989,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		humanparts.delete_human();
 		for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 			/*エフェクト*/
-			for (i = 0; i < efs_user; i++) { StopEffekseer3DEffect(player[p_cnt].effcs[i].efhandle); }
+			for (auto&& e : player[p_cnt].effcs) e.efhandle.Dispose();
 			/*Box2D*/
 			delete player[p_cnt].playerfix->GetUserData();
 			player[p_cnt].playerfix->SetUserData(NULL);

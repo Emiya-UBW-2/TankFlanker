@@ -113,20 +113,20 @@ bool Myclass::set_veh(void) {
 	for (int j = 0; j < effects; ++j) {
 		size_t i = 0;
 		while (ProcessMessage() == 0) {
-			effHndle[j] = LoadEffekseerEffect(("data/effect/" + std::to_string(j) + ".efk").c_str());
+			effHndle[j] = EffekseerEffectHandle::load("data/effect/" + std::to_string(j) + ".efk");
 			i++;
 
 			const auto waits = GetNowHiPerformanceCount();
 			SetDrawScreen(DX_SCREEN_BACK);
 			DrawFormatString(0, (18 * k), GetColor(0, 255, 0), "エフェクト読み込み中…%d/%d", j, effects);//
-			if (effHndle[j] != -1) {
+			if (effHndle[j]) {
 				k++; DrawFormatString(0, (18 * k), GetColor(255, 255, 0), "エフェクト読み込み成功…%d", j);
 			}
 			if (i > f_rate) {
 				k++; DrawFormatString(0, (18 * k), GetColor(255, 0, 0), "エフェクト読み込み失敗…%d", j);
 			}
 			Screen_Flip(waits);
-			if (effHndle[j] != -1) { break; }
+			if (effHndle[j]) { break; }
 			if (i > f_rate) { break; }
 		}
 		k++;
@@ -422,7 +422,7 @@ void HUMANS::delete_human(void) {
 	locin.clear();
 	pos_old.clear();
 }
-void HUMANS::start_humanvoice(int p1) {
+void HUMANS::start_humanvoice(std::int8_t p1) {
 	hum[0].vflug = p1;
 }
 void HUMANS::start_humananime(int p1) {
@@ -929,11 +929,11 @@ void set_effect(EffectS * efh, VECTOR pos, VECTOR nor) {
 	efh->effpos = pos;
 	efh->effnor = nor;
 }
-void set_pos_effect(EffectS *efh, int handle) {
+void set_pos_effect(EffectS *efh, const EffekseerEffectHandle& handle) {
 	if (efh->efflug) {
-		efh->efhandle = PlayEffekseer3DEffect(handle);
-		SetPosPlayingEffekseer3DEffect(efh->efhandle, efh->effpos.x, efh->effpos.y, efh->effpos.z);
-		SetRotationPlayingEffekseer3DEffect(efh->efhandle, atan2(efh->effnor.y, sqrt(pow(efh->effnor.x, 2) + pow(efh->effnor.z, 2))), atan2(-efh->effnor.x, -efh->effnor.z), 0);
+		efh->efhandle = handle.Play3D();
+		efh->efhandle.SetPos(efh->effpos.x, efh->effpos.y, efh->effpos.z);
+		efh->efhandle.SetRotation(atan2(efh->effnor.y, sqrt(pow(efh->effnor.x, 2) + pow(efh->effnor.z, 2))), atan2(-efh->effnor.x, -efh->effnor.z), 0);
 		efh->efflug = false;
 	}
 	//IsEffekseer3DEffectPlaying(player[0].effcs[i].efhandle)

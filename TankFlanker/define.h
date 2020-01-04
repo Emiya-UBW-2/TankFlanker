@@ -30,7 +30,9 @@
 #include <vector>
 #include <cstring>
 #include "MV1Handle.hpp"
+#include "EffekseerEffectHandle.hpp"
 #include <string_view>
+#include <cstdint>
 /*構造体*/
 enum cpu {
 	CPU_NOMAL = 0,
@@ -84,7 +86,7 @@ struct ammos {
 	VECTOR pos{ VGet(0, 0, 0) }, repos{ VGet(0, 0, 0) }, vec{ VGet(0, 0, 0) }, rad{ VGet(0, 0, 0) };
 };
 struct EffectS {
-	int efhandle{ -1 };						/**/
+	Effekseer3DPlayingHandle efhandle;						/**/
 	bool efflug{ 0 };						/**/
 	VECTOR effpos = { VGet(0, 0, 0) };				/**/
 	VECTOR effnor = { VGet(0, 0, 0) };				/**/
@@ -219,7 +221,7 @@ private:
 	std::vector<int> fonts;							/*フォント*/
 	int se_[13];								/*効果音*/
 	int ui_reload[4] = { 0 };						/*UI用*/
-	int effHndle[effects] = { 0 };						/*エフェクトリソース*/
+	EffekseerEffectHandle effHndle[effects];						/*エフェクトリソース*/
 public:
 	Myclass();
 	bool get_usegrab(void) { return usegrab; }
@@ -252,7 +254,8 @@ public:
 	int get_font(int p1) { return fonts[p1]; }				//フォントハンドル取り出し
 	VECTOR get_view_r(void) { return view_r; }
 	VECTOR get_view_pos(void) { return VScale(VGet(sin(view_r.y) * cos(view_r.x), sin(view_r.x), cos(view_r.y) * cos(view_r.x)), 15.0f * view_r.z); }
-	int get_effHandle(int p1) { return effHndle[p1]; }
+	EffekseerEffectHandle& get_effHandle(int p1) noexcept { return effHndle[p1]; }
+	const EffekseerEffectHandle& get_effHandle(int p1) const noexcept { return effHndle[p1]; }
 	vehicle* get_vehicle(int p1) { return &vecs[p1]; }
 };
 class HUMANS {
@@ -290,7 +293,7 @@ public:
 	void draw_human(int p1);
 	void draw_humanall();
 	void delete_human(void);
-	void start_humanvoice(int p1);
+	void start_humanvoice(std::int8_t p1);
 	void start_humananime(int p1);
 	VECTOR get_neckpos() { return MV1GetFramePosition(hum[0].obj.get(), hum[0].neck);}
 	VECTOR get_campos() { return MV1GetFramePosition(inmodel_handle.get(), bone_hatch); }
@@ -390,7 +393,7 @@ void setcv(float neard, float fard, VECTOR cam, VECTOR view, VECTOR up, float fo
 void getdist(VECTOR *startpos, VECTOR vector, float *dist, float speed, float fps);//startposに測距情報を出力
 //effect
 void set_effect(EffectS *efh,VECTOR pos,VECTOR nor);
-void set_pos_effect(EffectS *efh, int handle);
+void set_pos_effect(EffectS *efh, const EffekseerEffectHandle& handle);
 //play_class予定
 void set_normal(float* xnor, float* znor, int maphandle, VECTOR position);
 bool get_reco(players* play, players* tgt, int i,int guns);
