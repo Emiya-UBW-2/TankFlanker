@@ -38,14 +38,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 	int selfammo;								/*UI用*/
 	switches aim, map;							/*視点変更*/
 	float ratio, rat_r, aim_r;						/*照準視点　倍率、実倍率、距離*/
-	int waysel, choose = -1;						/*指揮視点　指揮車両、マウス選択*/
+	size_t waysel, choose = -1;						/*指揮視点　指揮車両、マウス選択*/
 	std::uint8_t way = 0; //マウストリガー
 	LONGLONG old_time, waits;						/*時間取得*/
 	VECTOR campos, viewpos, uppos;						/*カメラ*/
 	MV1_COLL_RESULT_POLY HitPoly;						/*あたり判定*/
 	float cpu_move;
-	WIN32_FIND_DATA win32fdt;
-	HANDLE hFind;
 	char mstr[64];								/*tank*/
 	int mdata;								/*tank*/
 	//init------------------------------------------------------------------//
@@ -69,7 +67,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 	uiparts->draw_load();//
 	if (parts.set_veh() != true) { return -1; }
 	/*物理開始*/
-	b2World world(b2Vec2(0.0f, 0.0f));					// 剛体を保持およびシミュレートするワールドオブジェクトを構築
+	auto world = std::make_unique<b2World>(b2Vec2(0.0f, 0.0f));					// 剛体を保持およびシミュレートするワールドオブジェクトを構築
 	//これ以降繰り返しロード------------------------------------------------//
 	do {
 		k = parts.window_choosev(); if (k == -1) { return 0; }		/*player指定*/
@@ -218,7 +216,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			player[p_cnt].bodyDef.type = b2_dynamicBody;
 			player[p_cnt].bodyDef.position.Set(player[p_cnt].pos.x, player[p_cnt].pos.z);
 			player[p_cnt].bodyDef.angle = -player[p_cnt].yrad;
-			player[p_cnt].body = world.CreateBody(&(player[p_cnt].bodyDef));
+			player[p_cnt].body = world->CreateBody(&(player[p_cnt].bodyDef));
 			player[p_cnt].playerfix = player[p_cnt].body->CreateFixture(&(player[p_cnt].fixtureDef));		// シェイプをボディに追加します。
 		}
 		/*音量調整*/
@@ -295,7 +293,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 				else { if (player[0].loadcnt[0] == 0) { selfammo = 0; } }											/*弾種変更*/
 				if (map.flug) {
 					GetMousePoint(&mousex, &mousey); SetMouseDispFlag(TRUE);
-					choose = -1;
+					choose = (std::numeric_limits<size_t>::max)();
 					for (size_t p_cnt = 1; p_cnt < teamc; ++p_cnt) {
 						if (player[p_cnt].HP[0] > 0) { if (inm(x_r(132), y_r(162 + p_cnt * 24), x_r(324), y_r(180 + p_cnt * 24))) { choose = p_cnt; if (keyget[0]) { waysel = p_cnt; } } }
 					}
@@ -538,7 +536,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 				}//0.1ms
 				//0.0ms
 				/*物理演算*/
-				world.Step(1.0f / f_rates, 1, 1);						// シミュレーションの単一ステップを実行するように世界に指示します。 一般に、タイムステップと反復を固定しておくのが最善です。
+				world->Step(1.0f / f_rates, 1, 1);						// シミュレーションの単一ステップを実行するように世界に指示します。 一般に、タイムステップと反復を固定しておくのが最善です。
 				for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 					player[p_cnt].pos.x = player[p_cnt].body->GetPosition().x;
 					player[p_cnt].pos.z = player[p_cnt].body->GetPosition().y;
