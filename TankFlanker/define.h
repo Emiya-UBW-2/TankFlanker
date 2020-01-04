@@ -1,18 +1,18 @@
-#pragma once
-#define dispx		(GetSystemMetrics(SM_CXSCREEN)/1)			/*•`‰æX*/
-#define dispy		(GetSystemMetrics(SM_CYSCREEN)/1)			/*•`‰æY*/
-#define M_GR		-9.8f							/*d—Í‰Á‘¬“x*/
-#define waypc		4							/*ˆÚ“®Šm•Û”*/
-#define ammoc		16							/*–C’eŠm•Û”*/
-#define animes		4							/*lƒAƒjƒ[ƒVƒ‡ƒ“*/
-#define voice		1							/*ƒ{ƒCƒX*/
-#define map_x		1000							/*ƒ}ƒbƒvƒTƒCƒYX*/
-#define map_y		1000							/*ƒ}ƒbƒvƒTƒCƒYY*/
-#define TEAM		1							/*–¡•ûID*/
-#define ENEMY		2							/*“GID*/
-#define EXTEND		4							/*ƒuƒ‹[ƒ€—p*/
-#define gunc		2							/*eA–C‚Ì”*/
-#define divi		2							/*l‚Ì•¨—ˆ—*/
+ï»¿#pragma once
+#define dispx		(GetSystemMetrics(SM_CXSCREEN)/1)			/*æç”»X*/
+#define dispy		(GetSystemMetrics(SM_CYSCREEN)/1)			/*æç”»Y*/
+#define M_GR		-9.8f							/*é‡åŠ›åŠ é€Ÿåº¦*/
+#define waypc		4							/*ç§»å‹•ç¢ºä¿æ•°*/
+#define ammoc		16							/*ç ²å¼¾ç¢ºä¿æ•°*/
+#define animes		4							/*äººã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³*/
+#define voice		1							/*ãƒœã‚¤ã‚¹*/
+#define map_x		1000							/*ãƒãƒƒãƒ—ã‚µã‚¤ã‚ºX*/
+#define map_y		1000							/*ãƒãƒƒãƒ—ã‚µã‚¤ã‚ºY*/
+#define TEAM		1							/*å‘³æ–¹ID*/
+#define ENEMY		2							/*æ•µID*/
+#define EXTEND		4							/*ãƒ–ãƒ«ãƒ¼ãƒ ç”¨*/
+#define gunc		2							/*éŠƒã€ç ²ã®æ•°*/
+#define divi		2							/*äººã®ç‰©ç†å‡¦ç†*/
 
 #ifndef INCLUDED_define_h_
 #define INCLUDED_define_h_
@@ -35,7 +35,7 @@
 #include <cstdint>
 using std::size_t;
 
-/*\‘¢‘Ì*/
+/*æ§‹é€ ä½“*/
 enum cpu {
 	CPU_NOMAL = 0,
 	CPU_CHARGE = 1
@@ -75,8 +75,8 @@ enum Effect {
 	ef_gun		= 6,
 	ef_gndhit2	= 7,
 	ef_reco2	= 8,
-	effects		= 9,//“Ç‚İ‚Ş
-	ef_smoke3	= 9,//“Ç‚İ‚Ü‚È‚¢
+	effects		= 9,//èª­ã¿è¾¼ã‚€
+	ef_smoke3	= 9,//èª­ã¿è¾¼ã¾ãªã„
 	efs_user	= 10
 };
 
@@ -94,91 +94,91 @@ struct EffectS {
 	VECTOR effnor = { VGet(0, 0, 0) };				/**/
 };
 struct vehicle {
-	std::string name;						/*–¼‘O*/
-	int countryc;							/*‘*/
-	MV1ModelHandle model;							/*ƒ‚ƒfƒ‹*/
-	MV1ModelHandle colmodel;						/*ƒRƒŠƒWƒ‡ƒ“*/
-	MV1ModelHandle inmodel;						/*“à‘•*/
-	float spdflont[4] = { 0.0f };					/*‘Oi*/
-	float spdback[4] = { 0.0f };					/*Œã‘Ş*/
-	float vehicle_RD = 0.0f;					/*ù‰ñ‘¬“x*/
-	float armer[4] = { 0 };						/*‘•b*/
-	bool gun_lim_LR = 0;						/*–C“ƒŒÀ’èù‰ñ‚Ì—L–³*/
-	float gun_lim_[4] = { 0.f };					/*–C“ƒù‰ñ§ŒÀ*/
-	float gun_RD = 0.0f;						/*–C“ƒù‰ñ‘¬“x*/
-	int reloadtime[gunc]{ 0 };					/*ƒŠƒ[ƒhƒ^ƒCƒ€*/
-	float ammosize = 0.0f;						/*–CŒûŒa*/
-	float gun_speed[3] = { 0.0f };					/*’e‘¬*/
-	float pene[3] = { 0.0f };					/*ŠÑ’Ê*/
-	int ammotype[3] = { 0 };					/*’eí*/
-	std::vector<VECTOR> loc;					/*ƒtƒŒ[ƒ€‚ÌŒ³À•W*/
-	VECTOR coloc[4] = { VGet(0,0,0) };				/*box2D—pƒtƒŒ[ƒ€*/
+	std::string name;						/*åå‰*/
+	int countryc;							/*å›½*/
+	MV1ModelHandle model;							/*ãƒ¢ãƒ‡ãƒ«*/
+	MV1ModelHandle colmodel;						/*ã‚³ãƒªã‚¸ãƒ§ãƒ³*/
+	MV1ModelHandle inmodel;						/*å†…è£…*/
+	float spdflont[4] = { 0.0f };					/*å‰é€²*/
+	float spdback[4] = { 0.0f };					/*å¾Œé€€*/
+	float vehicle_RD = 0.0f;					/*æ—‹å›é€Ÿåº¦*/
+	float armer[4] = { 0 };						/*è£…ç”²*/
+	bool gun_lim_LR = 0;						/*ç ²å¡”é™å®šæ—‹å›ã®æœ‰ç„¡*/
+	float gun_lim_[4] = { 0.f };					/*ç ²å¡”æ—‹å›åˆ¶é™*/
+	float gun_RD = 0.0f;						/*ç ²å¡”æ—‹å›é€Ÿåº¦*/
+	int reloadtime[gunc]{ 0 };					/*ãƒªãƒ­ãƒ¼ãƒ‰ã‚¿ã‚¤ãƒ */
+	float ammosize = 0.0f;						/*ç ²å£å¾„*/
+	float gun_speed[3] = { 0.0f };					/*å¼¾é€Ÿ*/
+	float pene[3] = { 0.0f };					/*è²«é€š*/
+	int ammotype[3] = { 0 };					/*å¼¾ç¨®*/
+	std::vector<VECTOR> loc;					/*ãƒ•ãƒ¬ãƒ¼ãƒ ã®å…ƒåº§æ¨™*/
+	VECTOR coloc[4] = { VGet(0,0,0) };				/*box2Dç”¨ãƒ•ãƒ¬ãƒ¼ãƒ */
 	int frames{ 0 };
 	int colmeshes{ 0 };
 	int meshes{ 0 };
 };
 static_assert(std::is_move_constructible_v<vehicle>);
 struct players {
-	/*î•ñ*/
-	int use{ 0 };							/*g—pÔ—¼*/
+	/*æƒ…å ±*/
+	int use{ 0 };							/*ä½¿ç”¨è»Šä¸¡*/
 	vehicle* ptr;							/*vehicle*/
-	MV1ModelHandle obj;							/*ƒ‚ƒfƒ‹*/
-	MV1ModelHandle colobj;						/*ƒRƒŠƒWƒ‡ƒ“*/
-	MV1ModelHandle hitpic[3];							/*’e­ƒ‚ƒfƒ‹*/
-	char type{ 0 };							/*“G–¡•û¯•Ê*/
+	MV1ModelHandle obj;							/*ãƒ¢ãƒ‡ãƒ«*/
+	MV1ModelHandle colobj;						/*ã‚³ãƒªã‚¸ãƒ§ãƒ³*/
+	MV1ModelHandle hitpic[3];							/*å¼¾ç—•ãƒ¢ãƒ‡ãƒ«*/
+	char type{ 0 };							/*æ•µå‘³æ–¹è­˜åˆ¥*/
 	int se[50]{ 0 };						/*SE*/
 	/**/
-	int move{ 0 };							/*ƒL[‘€ì*/
-	VECTOR pos{ VGet(0, 0, 0) };					/*À•W*/
-	MATRIX ps_m;							/*Ô‘Ìs—ñ*/
-	MATRIX ps_t;							/*–C“ƒs—ñ*/
-	//std::vector<MATRIX> ps_all;					/*s—ñ*/
-	float yace{ 0.f };						/*‰Á‘¬“x*/
-	float speed{ 0.f }, speedrec{ 0.f }, flont{ 0.f }, back{ 0.f };	/*‘¬“xŠÖ˜A*/
-	VECTOR vec{ VGet(0, 0, 0) };					/*ˆÚ“®ƒxƒNƒgƒ‹*/
-	float xnor{ 0.f }, znor{ 0.f }, znorrec{ 0.f };			/*–@üŠp“x*/
-	VECTOR nor{ VGet(0, 0, 0) };					/*–@ü*/
-	float yrad{ 0.f };						/*Šp“x*/
-	float yadd{ 0.f };						/*Šp‘¬“x*/
-	int recoall{ 0 };						/*’e‚«Šp“x*/
-	int firerad{ 0 };						/*”½“®Šp“x*/
-	float recorad{ 0.f };						/*’e‚«”½“®*/
-	/*cpuŠÖ˜A*/
-	int atkf{ -1 };							/*cpu‚ÌƒwƒCƒg*/
-	int aim{ 0 };							/*ƒwƒCƒg‚Ì•ÏXƒJƒEƒ“ƒg*/
+	int move{ 0 };							/*ã‚­ãƒ¼æ“ä½œ*/
+	VECTOR pos{ VGet(0, 0, 0) };					/*åº§æ¨™*/
+	MATRIX ps_m;							/*è»Šä½“è¡Œåˆ—*/
+	MATRIX ps_t;							/*ç ²å¡”è¡Œåˆ—*/
+	//std::vector<MATRIX> ps_all;					/*è¡Œåˆ—*/
+	float yace{ 0.f };						/*åŠ é€Ÿåº¦*/
+	float speed{ 0.f }, speedrec{ 0.f }, flont{ 0.f }, back{ 0.f };	/*é€Ÿåº¦é–¢é€£*/
+	VECTOR vec{ VGet(0, 0, 0) };					/*ç§»å‹•ãƒ™ã‚¯ãƒˆãƒ«*/
+	float xnor{ 0.f }, znor{ 0.f }, znorrec{ 0.f };			/*æ³•ç·šè§’åº¦*/
+	VECTOR nor{ VGet(0, 0, 0) };					/*æ³•ç·š*/
+	float yrad{ 0.f };						/*è§’åº¦*/
+	float yadd{ 0.f };						/*è§’é€Ÿåº¦*/
+	int recoall{ 0 };						/*å¼¾ãè§’åº¦*/
+	int firerad{ 0 };						/*åå‹•è§’åº¦*/
+	float recorad{ 0.f };						/*å¼¾ãåå‹•*/
+	/*cpué–¢é€£*/
+	int atkf{ -1 };							/*cpuã®ãƒ˜ã‚¤ãƒˆ*/
+	int aim{ 0 };							/*ãƒ˜ã‚¤ãƒˆã®å¤‰æ›´ã‚«ã‚¦ãƒ³ãƒˆ*/
 	int wayselect{ 0 }, waynow{ 0 };				/**/
-	VECTOR waypos[waypc]{ VGet(0, 0, 0) };				/*ƒEƒFƒCƒ|ƒCƒ“ƒg*/
-	int wayspd[waypc]{ 0 };						/*‘¬“xw’è*/
-	int state{ 0 };							/*ƒXƒe[ƒ^ƒX*/
+	VECTOR waypos[waypc]{ VGet(0, 0, 0) };				/*ã‚¦ã‚§ã‚¤ãƒã‚¤ãƒ³ãƒˆ*/
+	int wayspd[waypc]{ 0 };						/*é€Ÿåº¦æŒ‡å®š*/
+	int state{ 0 };							/*ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹*/
 	/**/
-	std::vector<ammos> Ammo;					/*Šm•Û‚·‚é’e(array‚Å‚à‚¢‚¢H)*/
-	std::vector<float> Springs;					/*ƒXƒvƒŠƒ“ƒO*/
-	std::vector<short> HP;						/*ƒ‰ƒCƒt*/
-	std::vector<pair> hitssort;					/*“–‚½‚Á‚½‡”Ô*/
+	std::vector<ammos> Ammo;					/*ç¢ºä¿ã™ã‚‹å¼¾(arrayã§ã‚‚ã„ã„ï¼Ÿ)*/
+	std::vector<float> Springs;					/*ã‚¹ãƒ—ãƒªãƒ³ã‚°*/
+	std::vector<short> HP;						/*ãƒ©ã‚¤ãƒ•*/
+	std::vector<pair> hitssort;					/*å½“ãŸã£ãŸé †ç•ª*/
 	/**/
-	int gear{ 0 };							/*•Ï‘¬*/
-	unsigned int gearu{ 0 };					/*ƒL[*/
-	unsigned int geard{ 0 };					/*ƒL[*/
-	VECTOR inertia{ VGet(0, 0, 0) };				/*Šµ«*/
-	float wheelrad[3]{ 0.f };					/*—š‘Ñ‚Ìù‰ñ*/
-	VECTOR gunrad{ 0.f };						/*–CŠp“x*/
-	float fired{ 0.f };						/*’“‘Ş*/
-	/*’eŠÖ˜A*/
-	int ammotype{ 0 };						/*’eí*/
-	int loadcnt[gunc]{ 0 };						/*‘•‚Ä‚ñƒJƒEƒ“ƒ^[*/
-	int useammo[gunc]{ 0 };						/*g—p’e*/
-	bool recoadd{ false };						/*’e‚«ƒtƒ‰ƒO*/
-	bool hitadd{ false };						/*–½’†ƒtƒ‰ƒO*/
-	VECTOR iconpos{ VGet(0, 0, 0) };				/*UI—p*/
+	int gear{ 0 };							/*å¤‰é€Ÿ*/
+	unsigned int gearu{ 0 };					/*ã‚­ãƒ¼*/
+	unsigned int geard{ 0 };					/*ã‚­ãƒ¼*/
+	VECTOR inertia{ VGet(0, 0, 0) };				/*æ…£æ€§*/
+	float wheelrad[3]{ 0.f };					/*å±¥å¸¯ã®æ—‹å›*/
+	VECTOR gunrad{ 0.f };						/*ç ²è§’åº¦*/
+	float fired{ 0.f };						/*é§é€€*/
+	/*å¼¾é–¢é€£*/
+	int ammotype{ 0 };						/*å¼¾ç¨®*/
+	int loadcnt[gunc]{ 0 };						/*è£…ã¦ã‚“ã‚«ã‚¦ãƒ³ã‚¿ãƒ¼*/
+	int useammo[gunc]{ 0 };						/*ä½¿ç”¨å¼¾*/
+	bool recoadd{ false };						/*å¼¾ããƒ•ãƒ©ã‚°*/
+	bool hitadd{ false };						/*å‘½ä¸­ãƒ•ãƒ©ã‚°*/
+	VECTOR iconpos{ VGet(0, 0, 0) };				/*UIç”¨*/
 	EffectS effcs[efs_user];					/*effect*/
-	int usepic[3];							/*g—pƒtƒŒ[ƒ€*/
-	int hitbuf;							/*g—p’e­*/
+	int usepic[3];							/*ä½¿ç”¨ãƒ•ãƒ¬ãƒ¼ãƒ */
+	int hitbuf;							/*ä½¿ç”¨å¼¾ç—•*/
 	/*box2d*/
 	b2Body* body;							/**/
-	b2FixtureDef fixtureDef;					/*“®“Iƒ{ƒfƒBƒtƒBƒNƒXƒ`ƒƒ‚ğ’è‹`‚µ‚Ü‚·B*/
-	b2PolygonShape dynamicBox;					/*ƒ_ƒCƒiƒ~ƒbƒNƒ{ƒfƒB‚É•Ê‚Ìƒ{ƒbƒNƒXƒVƒFƒCƒv‚ğ’è‹`‚µ‚Ü‚·B*/
+	b2FixtureDef fixtureDef;					/*å‹•çš„ãƒœãƒ‡ã‚£ãƒ•ã‚£ã‚¯ã‚¹ãƒãƒ£ã‚’å®šç¾©ã—ã¾ã™ã€‚*/
+	b2PolygonShape dynamicBox;					/*ãƒ€ã‚¤ãƒŠãƒŸãƒƒã‚¯ãƒœãƒ‡ã‚£ã«åˆ¥ã®ãƒœãƒƒã‚¯ã‚¹ã‚·ã‚§ã‚¤ãƒ—ã‚’å®šç¾©ã—ã¾ã™ã€‚*/
 	b2Fixture *playerfix;						/**/
-	b2BodyDef bodyDef;						/*ƒ_ƒCƒiƒ~ƒbƒNƒ{ƒfƒB‚ğ’è‹`‚µ‚Ü‚·B‚»‚ÌˆÊ’u‚ğİ’è‚µAƒ{ƒfƒBƒtƒ@ƒNƒgƒŠ‚ğŒÄ‚Ño‚µ‚Ü‚·B*/
+	b2BodyDef bodyDef;						/*ãƒ€ã‚¤ãƒŠãƒŸãƒƒã‚¯ãƒœãƒ‡ã‚£ã‚’å®šç¾©ã—ã¾ã™ã€‚ãã®ä½ç½®ã‚’è¨­å®šã—ã€ãƒœãƒ‡ã‚£ãƒ•ã‚¡ã‚¯ãƒˆãƒªã‚’å‘¼ã³å‡ºã—ã¾ã™ã€‚*/
 };
 struct switches {
 	bool flug{ false };
@@ -188,28 +188,28 @@ struct switches {
 class Myclass {
 private:
 	/*setting*/
-	bool usegrab{ false };							/*l‚Ì•¨—‰‰Z‚ÌƒIƒtAƒIƒ“Aˆêl‚¾‚¯ƒIƒ“*/
-	unsigned char ANTI{ 1 };						/*ƒAƒ“ƒ`ƒGƒCƒŠƒAƒX”{—¦*/
-	bool YSync{ true };							/*‚’¼“¯Šú*/
+	bool usegrab{ false };							/*äººã®ç‰©ç†æ¼”ç®—ã®ã‚ªãƒ•ã€ã‚ªãƒ³ã€ä¸€äººã ã‘ã‚ªãƒ³*/
+	unsigned char ANTI{ 1 };						/*ã‚¢ãƒ³ãƒã‚¨ã‚¤ãƒªã‚¢ã‚¹å€ç‡*/
+	bool YSync{ true };							/*å‚ç›´åŒæœŸ*/
 	float f_rate{ 60.f };							/*fps*/
-	bool windowmode{ false };						/*ƒEƒBƒ“ƒhƒEor‘S‰æ–Ê*/
-	float drawdist{ 100.0f };						/*–Ø‚Ì•`‰æ‹——£*/
+	bool windowmode{ false };						/*ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦orå…¨ç”»é¢*/
+	float drawdist{ 100.0f };						/*æœ¨ã®æç”»è·é›¢*/
 	int gndx = 8;
 	/**/
-	std::vector<vehicle> vecs;						/*Ôçpî•ñ*/
-	VECTOR view, view_r;							/*’Êí‹“_‚ÌŠp“xA‹——£*/
-	std::vector<int> fonts;							/*ƒtƒHƒ“ƒg*/
-	int se_[13];								/*Œø‰Ê‰¹*/
-	int ui_reload[4] = { 0 };						/*UI—p*/
-	EffekseerEffectHandle effHndle[effects];						/*ƒGƒtƒFƒNƒgƒŠƒ\[ƒX*/
+	std::vector<vehicle> vecs;						/*è»Šè¼›æƒ…å ±*/
+	VECTOR view, view_r;							/*é€šå¸¸è¦–ç‚¹ã®è§’åº¦ã€è·é›¢*/
+	std::vector<int> fonts;							/*ãƒ•ã‚©ãƒ³ãƒˆ*/
+	int se_[13];								/*åŠ¹æœéŸ³*/
+	int ui_reload[4] = { 0 };						/*UIç”¨*/
+	EffekseerEffectHandle effHndle[effects];						/*ã‚¨ãƒ•ã‚§ã‚¯ãƒˆãƒªã‚½ãƒ¼ã‚¹*/
 public:
 	Myclass();
 	bool get_usegrab(void) { return usegrab; }
 	int get_gndx(void) { return gndx; }
 	float get_drawdist(void) { return drawdist; }
 	float get_f_rate(void) { return f_rate; }
-	void write_option(void);						//–¢À‘•
-	//bool set_fonts(int arg_num, ...);					//(•K—v‚ÈƒtƒHƒ“ƒg”,ƒTƒCƒY1,ƒTƒCƒY2, ...)
+	void write_option(void);						//æœªå®Ÿè£…
+	//bool set_fonts(int arg_num, ...);					//(å¿…è¦ãªãƒ•ã‚©ãƒ³ãƒˆæ•°,ã‚µã‚¤ã‚º1,ã‚µã‚¤ã‚º2, ...)
 	template<typename ...Args>
 	void set_fonts(Args&& ...args)
 	{
@@ -223,7 +223,7 @@ public:
 	}
 
 	bool set_veh(void);
-	int window_choosev(void);						//Ô—¼‘I‘ğ
+	int window_choosev(void);						//è»Šä¸¡é¸æŠ
 	void set_viewrad(VECTOR vv);
 	void set_view_r(void);
 	void Screen_Flip(LONGLONG waits);
@@ -231,7 +231,7 @@ public:
 	void set_se_vol(unsigned char size);
 	void play_sound(int p1);
 	int* get_ui2(void) { return ui_reload; }
-	int get_font(int p1) { return fonts[p1]; }				//ƒtƒHƒ“ƒgƒnƒ“ƒhƒ‹æ‚èo‚µ
+	int get_font(int p1) { return fonts[p1]; }				//ãƒ•ã‚©ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ«å–ã‚Šå‡ºã—
 	VECTOR get_view_r(void) { return view_r; }
 	VECTOR get_view_pos(void) { return VScale(VGet(sin(view_r.y) * cos(view_r.x), sin(view_r.x), cos(view_r.y) * cos(view_r.x)), 15.0f * view_r.z); }
 	EffekseerEffectHandle& get_effHandle(int p1) noexcept { return effHndle[p1]; }
@@ -254,17 +254,17 @@ private:
 		int voices[voice]{ 0 };
 		int vsound[voice]{ 0 };
 	};
-	int human{ 0 };								/*æˆõl”*/
-	bool usegrab{ false };							/*l‚Ì•¨—‰‰Z‚ÌƒIƒtAƒIƒ“Aˆêl‚¾‚¯ƒIƒ“*/
+	int human{ 0 };								/*ä¹—å“¡äººæ•°*/
+	bool usegrab{ false };							/*äººã®ç‰©ç†æ¼”ç®—ã®ã‚ªãƒ•ã€ã‚ªãƒ³ã€ä¸€äººã ã‘ã‚ªãƒ³*/
 	float f_rate{ 60.f };							/*fps*/
 
-	MV1ModelHandle inmodel_handle;						//’†ƒ‚ƒfƒ‹
-	bool in_f{ false };							//’†•`‰æƒXƒCƒbƒ`
-	int inflames;								//inmodel‚ÌƒtƒŒ[ƒ€”
+	MV1ModelHandle inmodel_handle;						//ä¸­ãƒ¢ãƒ‡ãƒ«
+	bool in_f{ false };							//ä¸­æç”»ã‚¹ã‚¤ãƒƒãƒ
+	int inflames;								//inmodelã®ãƒ•ãƒ¬ãƒ¼ãƒ æ•°
 	std::vector<humans> hum;						/**/
-	std::vector<VECTOR> locin;						/*inmodel‚ÌƒtƒŒ[ƒ€*/
-	std::vector<VECTOR> pos_old;						/*inmodel‚Ì‘O‰ñ‚ÌƒtƒŒ[ƒ€*/
-	bool first;								//‰‰ñƒtƒ‰ƒO
+	std::vector<VECTOR> locin;						/*inmodelã®ãƒ•ãƒ¬ãƒ¼ãƒ */
+	std::vector<VECTOR> pos_old;						/*inmodelã®å‰å›ã®ãƒ•ãƒ¬ãƒ¼ãƒ */
+	bool first;								//åˆå›ãƒ•ãƒ©ã‚°
 public:
 	HUMANS(bool useg, float frates);
 	void set_humans(const MV1ModelHandle& inmod);
@@ -284,7 +284,7 @@ private:
 	int groundx;
 	float drawdist;
 	/**/
-	int treec = 750;							/*–Ø‚Ì”*/
+	int treec = 750;							/*æœ¨ã®æ•°*/
 	struct trees {
 		MV1ModelHandle mnear;							/**/
 		MV1ModelHandle mfar;							/**/
@@ -296,22 +296,22 @@ private:
 		std::vector<VECTOR> rad;
 		std::vector<bool> hit;
 	}tree;
-	int looktree = 0;							/*tree•`‰æ”*/
-	int shadow_seminear;							/*shadow’†‹——£*/
-	int shadow_near;							/*shadow‹ß‹——£*/
-	int shadow_far;								/*shadowƒ}ƒbƒv—p*/
-	MV1ModelHandle m_model, minmap;							/*mapƒ‚ƒfƒ‹*/
-	int texp,texo, texn, texm,texl;						/*mapƒeƒNƒXƒ`ƒƒ*/
-	MV1ModelHandle sky_model;								/*skyƒ‚ƒfƒ‹*/
+	int looktree = 0;							/*treeæç”»æ•°*/
+	int shadow_seminear;							/*shadowä¸­è·é›¢*/
+	int shadow_near;							/*shadowè¿‘è·é›¢*/
+	int shadow_far;								/*shadowãƒãƒƒãƒ—ç”¨*/
+	MV1ModelHandle m_model, minmap;							/*mapãƒ¢ãƒ‡ãƒ«*/
+	int texp,texo, texn, texm,texl;						/*mapãƒ†ã‚¯ã‚¹ãƒãƒ£*/
+	MV1ModelHandle sky_model;								/*skyãƒ¢ãƒ‡ãƒ«*/
 	int sky_sun;								/*sunpic*/
-	VECTOR lightvec;							/*light•ûŒü*/
+	VECTOR lightvec;							/*lightæ–¹å‘*/
 	/*grass*/
-	int grasss = 50000;							/*grass‚Ì”*/
+	int grasss = 50000;							/*grassã®æ•°*/
 	std::vector<VERTEX3D> grassver;
 	std::vector<DWORD> grassind;
 	int VerBuf, IndexBuf;							/**/
-	MV1ModelHandle grass;							/*grassƒ‚ƒfƒ‹*/
-	int graph;/*‰æ‘œƒnƒ“ƒhƒ‹*/
+	MV1ModelHandle grass;							/*grassãƒ¢ãƒ‡ãƒ«*/
+	int graph;/*ç”»åƒãƒãƒ³ãƒ‰ãƒ«*/
 	int IndexNum, VerNum;							/**/
 	int GgHandle;								/**/
 	int vnum, pnum;								/**/
@@ -343,38 +343,38 @@ public:
 class UIS {
 private:
 	/**/
-	int ui_reload[4] = { 0 };						/*’eUI*/
-	std::vector<int> UI_body;						/*’eUI*/
-	std::vector<int> UI_turret;						/*’eUI*/
-	struct country { int ui_sight[8] = { 0 }; };/*‰ü‘P*/
-	std::vector<country> UI_main;						/*‘•ÊUI*/
-	int countries = 1;							/*‘”*/
-	float gearf = 0.f;							/*•Ï‘¬*/
-	float recs = 0.f;							/*’µ’e•\Œ»—p*/
+	int ui_reload[4] = { 0 };						/*å¼¾UI*/
+	std::vector<int> UI_body;						/*å¼¾UI*/
+	std::vector<int> UI_turret;						/*å¼¾UI*/
+	struct country { int ui_sight[8] = { 0 }; };/*æ”¹å–„*/
+	std::vector<country> UI_main;						/*å›½åˆ¥UI*/
+	int countries = 1;							/*å›½æ•°*/
+	float gearf = 0.f;							/*å¤‰é€Ÿ*/
+	float recs = 0.f;							/*è·³å¼¾è¡¨ç¾ç”¨*/
 	players *pplayer;							/*playerdata*/
 	/*debug*/
 	float deb[60][6 + 1]{ 0.f };
-	LONGLONG waypoint{ 0 };							/*ŠÔæ“¾*/
+	LONGLONG waypoint{ 0 };							/*æ™‚é–“å–å¾—*/
 	float waydeb[6]{ 0 };
 	int seldeb{ 0 };
 public:
 	UIS();
-	void draw_load(void);								/*ƒ[ƒh‰æ–Ê*/
-	void set_state(players* play);							/*g—p‚·‚éƒ|ƒCƒ“ƒ^‚Ìw’è*/
-	void set_reco(void);								/*”½ËƒXƒCƒbƒ`*/
-	void draw_sight(float posx, float posy, float ratio, float dist, int font);	/*Æ€UI*/
-	void draw_ui(int selfammo,float y_v);							/*ƒƒCƒ“UI*/
+	void draw_load(void);								/*ãƒ­ãƒ¼ãƒ‰ç”»é¢*/
+	void set_state(players* play);							/*ä½¿ç”¨ã™ã‚‹ãƒã‚¤ãƒ³ã‚¿ã®æŒ‡å®š*/
+	void set_reco(void);								/*åå°„ã‚¹ã‚¤ãƒƒãƒ*/
+	void draw_sight(float posx, float posy, float ratio, float dist, int font);	/*ç…§æº–UI*/
+	void draw_ui(int selfammo,float y_v);							/*ãƒ¡ã‚¤ãƒ³UI*/
 	void put_way(void);
 	void end_way(void);
 	void debug(float fps, float time);
 };
 /**/
-void setcv(float neard, float fard, VECTOR cam, VECTOR view, VECTOR up, float fov);//ƒJƒƒ‰î•ñw’è
-void getdist(VECTOR *startpos, VECTOR vector, float *dist, float speed, float fps);//startpos‚É‘ª‹—î•ñ‚ğo—Í
+void setcv(float neard, float fard, VECTOR cam, VECTOR view, VECTOR up, float fov);//ã‚«ãƒ¡ãƒ©æƒ…å ±æŒ‡å®š
+void getdist(VECTOR *startpos, VECTOR vector, float *dist, float speed, float fps);//startposã«æ¸¬è·æƒ…å ±ã‚’å‡ºåŠ›
 //effect
 void set_effect(EffectS *efh,VECTOR pos,VECTOR nor);
 void set_pos_effect(EffectS *efh, const EffekseerEffectHandle& handle);
-//play_class—\’è
+//play_classäºˆå®š
 void set_normal(float* xnor, float* znor, int maphandle, VECTOR position);
 bool get_reco(players* play, players* tgt, int i,int guns);
 void set_gunrad(players *play, float rat_r);

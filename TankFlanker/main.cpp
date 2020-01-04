@@ -1,4 +1,4 @@
-#include "define.h"
+ï»¿#include "define.h"
 #include <memory>
 size_t count_impl(const TCHAR* pattern) {
 	WIN32_FIND_DATA win32fdt;
@@ -25,31 +25,31 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 	VECTOR tempvec[2];
 	MATRIX mtemp;
 	bool btmp;
-	//int lookplayerc;							/*‹”F‚µ‚Ä‚¢‚éplayerl”*/
-	bool keyget[19]{ false };						/*ƒL[—p*/
+	//int lookplayerc;							/*è¦–èªã—ã¦ã„ã‚‹playeräººæ•°*/
+	bool keyget[19]{ false };						/*ã‚­ãƒ¼ç”¨*/
 	std::string tempname;
-	//•Ï”------------------------------------------------------------------//
-	bool out{ false };							/*I—¹ƒtƒ‰ƒO*/
-	std::vector<pair> pssort;						/*playerƒ\[ƒg*/
+	//å¤‰æ•°------------------------------------------------------------------//
+	bool out{ false };							/*çµ‚äº†ãƒ•ãƒ©ã‚°*/
+	std::vector<pair> pssort;						/*playerã‚½ãƒ¼ãƒˆ*/
 	std::vector<players> player;						/*player*/
-	VECTOR aims;								/*Æ€ŠíÀ•W*/
-	float aimm;								/*Æ€‹——£*/
+	VECTOR aims;								/*ç…§æº–å™¨åº§æ¨™*/
+	float aimm;								/*ç…§æº–è·é›¢*/
 	float fps;								/*fps*/
-	int selfammo;								/*UI—p*/
-	switches aim, map;							/*‹“_•ÏX*/
-	float ratio, rat_r, aim_r;						/*Æ€‹“_@”{—¦AÀ”{—¦A‹——£*/
-	size_t waysel, choose = -1;						/*wŠö‹“_@wŠöÔ—¼Aƒ}ƒEƒX‘I‘ğ*/
-	std::uint8_t way = 0; //ƒ}ƒEƒXƒgƒŠƒK[
-	LONGLONG old_time, waits;						/*ŠÔæ“¾*/
-	VECTOR campos, viewpos, uppos;						/*ƒJƒƒ‰*/
-	MV1_COLL_RESULT_POLY HitPoly;						/*‚ ‚½‚è”»’è*/
+	int selfammo;								/*UIç”¨*/
+	switches aim, map;							/*è¦–ç‚¹å¤‰æ›´*/
+	float ratio, rat_r, aim_r;						/*ç…§æº–è¦–ç‚¹ã€€å€ç‡ã€å®Ÿå€ç‡ã€è·é›¢*/
+	size_t waysel, choose = -1;						/*æŒ‡æ®è¦–ç‚¹ã€€æŒ‡æ®è»Šä¸¡ã€ãƒã‚¦ã‚¹é¸æŠ*/
+	std::uint8_t way = 0; //ãƒã‚¦ã‚¹ãƒˆãƒªã‚¬ãƒ¼
+	LONGLONG old_time, waits;						/*æ™‚é–“å–å¾—*/
+	VECTOR campos, viewpos, uppos;						/*ã‚«ãƒ¡ãƒ©*/
+	MV1_COLL_RESULT_POLY HitPoly;						/*ã‚ãŸã‚Šåˆ¤å®š*/
 	float cpu_move;
 	char mstr[64];								/*tank*/
 	int mdata;								/*tank*/
 	//init------------------------------------------------------------------//
 	Myclass	parts;
-	HUMANS	humanparts(parts.get_usegrab(), parts.get_f_rate());		/*Ô“àŠÖŒW*/
-	MAPS	mapparts(parts.get_gndx(), parts.get_drawdist());		/*’nŒ`AƒXƒe[ƒWŠÖŒW*/
+	HUMANS	humanparts(parts.get_usegrab(), parts.get_f_rate());		/*è»Šå†…é–¢ä¿‚*/
+	MAPS	mapparts(parts.get_gndx(), parts.get_drawdist());		/*åœ°å½¢ã€ã‚¹ãƒ†ãƒ¼ã‚¸é–¢ä¿‚*/
 	auto uiparts = std::make_unique<UIS>();
 	float f_rates = parts.get_f_rate();
 	//load------------------------------------------------------------------//
@@ -58,19 +58,19 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		//hit-------------------------------------------------------------------//
 		const auto hit_mod = MV1ModelHandle::Load("data/hit/hit.mv1");
 		//screen----------------------------------------------------------------//
-		int minimap = MakeScreen(dispx, dispy, FALSE);				/*ƒ~ƒjƒ}ƒbƒv*/
-		int skyscreen = MakeScreen(dispx, dispy, FALSE);			/*‹ó*/
-		int mainscreen = MakeScreen(dispx, dispy, FALSE);			/*‰“Œi*/
-		int HighBrightScreen = MakeScreen(dispx, dispy, FALSE);			/*ƒGƒtƒFƒNƒg*/
-		int GaussScreen = MakeScreen(dispx / EXTEND, dispy / EXTEND, FALSE);	/*ƒGƒtƒFƒNƒg*/
+		int minimap = MakeScreen(dispx, dispy, FALSE);				/*ãƒŸãƒ‹ãƒãƒƒãƒ—*/
+		int skyscreen = MakeScreen(dispx, dispy, FALSE);			/*ç©º*/
+		int mainscreen = MakeScreen(dispx, dispy, FALSE);			/*é æ™¯*/
+		int HighBrightScreen = MakeScreen(dispx, dispy, FALSE);			/*ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ*/
+		int GaussScreen = MakeScreen(dispx / EXTEND, dispy / EXTEND, FALSE);	/*ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ*/
 	SetUseASyncLoadFlag(FALSE);
 	uiparts->draw_load();//
 	if (parts.set_veh() != true) { return -1; }
-	/*•¨—ŠJn*/
-	auto world = std::make_unique<b2World>(b2Vec2(0.0f, 0.0f));					// „‘Ì‚ğ•Û‚¨‚æ‚ÑƒVƒ~ƒ…ƒŒ[ƒg‚·‚éƒ[ƒ‹ƒhƒIƒuƒWƒFƒNƒg‚ğ\’z
-	//‚±‚êˆÈ~ŒJ‚è•Ô‚µƒ[ƒh------------------------------------------------//
+	/*ç‰©ç†é–‹å§‹*/
+	auto world = std::make_unique<b2World>(b2Vec2(0.0f, 0.0f));					// å‰›ä½“ã‚’ä¿æŒãŠã‚ˆã³ã‚·ãƒŸãƒ¥ãƒ¬ãƒ¼ãƒˆã™ã‚‹ãƒ¯ãƒ¼ãƒ«ãƒ‰ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’æ§‹ç¯‰
+	//ã“ã‚Œä»¥é™ç¹°ã‚Šè¿”ã—ãƒ­ãƒ¼ãƒ‰------------------------------------------------//
 	do {
-		k = parts.window_choosev(); if (k == -1) { return 0; }		/*playerw’è*/
+		k = parts.window_choosev(); if (k == -1) { return 0; }		/*playeræŒ‡å®š*/
 
 		mdata = FileRead_open("stage/data_0/main.txt", FALSE);
 		FileRead_gets(mstr, 64, mdata);
@@ -83,7 +83,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 
 		player.resize(playerc);
 		pssort.resize(playerc);
-		//İ’è
+		//è¨­å®š
 		for (size_t p_cnt = 0; p_cnt < teamc; ++p_cnt) {
 			tempname = "stage/data_0/team/" + std::to_string(p_cnt) + ".txt";
 			mdata = FileRead_open(tempname.c_str(), FALSE);
@@ -113,7 +113,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 				player[p_cnt].wayspd[i] = 2;
 			}
 		}
-		/*vehs‚©‚çˆø‚«Œp‚¬*/
+		/*vehsã‹ã‚‰å¼•ãç¶™ã*/
 		for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 			player[p_cnt].ptr = parts.get_vehicle(player[p_cnt].use);
 		}
@@ -156,13 +156,13 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		if (mapparts.set_map_ready() != true) { break; }
 		//players
 		for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
-			//F’²
+			//è‰²èª¿
 			for (i = 0; i < MV1GetMaterialNum(player[p_cnt].obj.get()); ++i) {
 				MV1SetMaterialSpcColor(player[p_cnt].obj.get(), i, GetColorF(0.85f, 0.82f, 0.78f, 0.5f));
 				MV1SetMaterialSpcPower(player[p_cnt].obj.get(), i, 5.0f);
 			}
 			MV1SetMaterialDrawAlphaTestAll(player[p_cnt].obj.get(), TRUE, DX_CMP_GREATER, 128);
-			//ƒŠƒZƒbƒg
+			//ãƒªã‚»ãƒƒãƒˆ
 			player[p_cnt].hitbuf = 0;
 			player[p_cnt].gear = 0;
 			//cpu
@@ -180,17 +180,17 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 
 			//HP
 			player[p_cnt].HP.resize(player[p_cnt].ptr->colmeshes);
-			/*3456‚Í‘•b•”•ª‚È‚Ì‚Å‹l‚ß‚Ş*/
+			/*3456ã¯è£…ç”²éƒ¨åˆ†ãªã®ã§è©°ã‚è¾¼ã‚€*/
 			player[p_cnt].HP[0] = 1;								//life
 			for (i = 4; i < player[p_cnt].ptr->colmeshes; ++i) { player[p_cnt].HP[i] = 100; }	//spaceARMER
 			//wheel
 			player[p_cnt].Springs.resize(player[p_cnt].ptr->frames);
-			//0‰Šú‰»‚¢‚é
+			//0åˆæœŸåŒ–ã„ã‚‹
 		//
 			MV1SetMatrix(player[p_cnt].colobj.get(), MGetTranslate(VGet(0, 0, 0)));
-			//‘•‚Ä‚ñ
+			//è£…ã¦ã‚“
 			player[p_cnt].loadcnt[0] = 1;
-			//ypos”½‰f
+			//yposåæ˜ 
 			HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, VAdd(player[p_cnt].pos, VGet(0.0f, (float)map_x, 0.0f)), VAdd(player[p_cnt].pos, VGet(0.0f, -(float)map_x, 0.0f)));
 			if (HitPoly.HitFlag) { player[p_cnt].pos.y = HitPoly.HitPosition.y; }
 			for (i = 0; i < waypc; ++i) {
@@ -199,7 +199,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			}
 			//
 		}
-		//•¨—set
+		//ç‰©ç†set
 		for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 			player[p_cnt].dynamicBox.SetAsBox(
 				(player[p_cnt].ptr->coloc[0].x - player[p_cnt].ptr->coloc[2].x) / 2,
@@ -211,29 +211,29 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 				0.f
 			);
 			player[p_cnt].fixtureDef.shape = &(player[p_cnt].dynamicBox);
-			player[p_cnt].fixtureDef.density = 1.0f;								// ƒ{ƒbƒNƒX–§“x‚ğƒ[ƒˆÈŠO‚Éİ’è‚·‚é‚ÆA“®“I‚É‚È‚è‚Ü‚·B
-			player[p_cnt].fixtureDef.friction = 0.3f;								// ƒfƒtƒHƒ‹ƒg‚Ì–€C‚ğƒI[ƒo[ƒ‰ƒCƒh‚µ‚Ü‚·B
+			player[p_cnt].fixtureDef.density = 1.0f;								// ãƒœãƒƒã‚¯ã‚¹å¯†åº¦ã‚’ã‚¼ãƒ­ä»¥å¤–ã«è¨­å®šã™ã‚‹ã¨ã€å‹•çš„ã«ãªã‚Šã¾ã™ã€‚
+			player[p_cnt].fixtureDef.friction = 0.3f;								// ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®æ‘©æ“¦ã‚’ã‚ªãƒ¼ãƒãƒ¼ãƒ©ã‚¤ãƒ‰ã—ã¾ã™ã€‚
 			player[p_cnt].bodyDef.type = b2_dynamicBody;
 			player[p_cnt].bodyDef.position.Set(player[p_cnt].pos.x, player[p_cnt].pos.z);
 			player[p_cnt].bodyDef.angle = -player[p_cnt].yrad;
 			player[p_cnt].body = world->CreateBody(&(player[p_cnt].bodyDef));
-			player[p_cnt].playerfix = player[p_cnt].body->CreateFixture(&(player[p_cnt].fixtureDef));		// ƒVƒFƒCƒv‚ğƒ{ƒfƒB‚É’Ç‰Á‚µ‚Ü‚·B
+			player[p_cnt].playerfix = player[p_cnt].body->CreateFixture(&(player[p_cnt].fixtureDef));		// ã‚·ã‚§ã‚¤ãƒ—ã‚’ãƒœãƒ‡ã‚£ã«è¿½åŠ ã—ã¾ã™ã€‚
 		}
-		/*‰¹—Ê’²®*/
+		/*éŸ³é‡èª¿æ•´*/
 		humanparts.set_humanvc_vol(255);
 		parts.set_se_vol(128);
 		for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 			for (i = 1; i < 27; ++i) { ChangeVolumeSoundMem(128, player[p_cnt].se[i]); }
 			for (i = 29; i < 31; ++i) { ChangeVolumeSoundMem(128, player[p_cnt].se[i]); }
 		}
-		/*ƒƒCƒ“ƒ‹[ƒv*/
+		/*ãƒ¡ã‚¤ãƒ³ãƒ«ãƒ¼ãƒ—*/
 		aim.flug = false;
 		map.flug = false;
 		selfammo = 0;
-		ratio = 1.0f;			/*Æ€‹“_@”{—¦*/
-		rat_r = ratio;			/*Æ€‹“_@À”{—¦*/
-		aim_r = 100.0f;			/*Æ€‹“_@‹——£*/
-		waysel = 1;			/*wŠö‹“_@wŠöÔ—¼*/
+		ratio = 1.0f;			/*ç…§æº–è¦–ç‚¹ã€€å€ç‡*/
+		rat_r = ratio;			/*ç…§æº–è¦–ç‚¹ã€€å®Ÿå€ç‡*/
+		aim_r = 100.0f;			/*ç…§æº–è¦–ç‚¹ã€€è·é›¢*/
+		waysel = 1;			/*æŒ‡æ®è¦–ç‚¹ã€€æŒ‡æ®è»Šä¸¡*/
 //		std::thread ;
 		parts.set_viewrad(VGet(0.f, player[0].yrad, 1.f));
 		SetCursorPos(x_r(960), y_r(540));
@@ -259,8 +259,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			uiparts->put_way();//debug
 			if (GetActiveFlag() == TRUE) {
 				SetMouseDispFlag(FALSE);
-				if (CheckHitKey(KEY_INPUT_ESCAPE) != 0) { out = true; break; }											/*I—¹*/
-				if (CheckHitKey(KEY_INPUT_P) != 0) { break; }													/*ƒŠƒXƒ^[ƒg*/
+				if (CheckHitKey(KEY_INPUT_ESCAPE) != 0) { out = true; break; }											/*çµ‚äº†*/
+				if (CheckHitKey(KEY_INPUT_P) != 0) { break; }													/*ãƒªã‚¹ã‚¿ãƒ¼ãƒˆ*/
 				keyget[0] = (GetMouseInput() & MOUSE_INPUT_LEFT) != 0;
 				if (player[0].HP[0] > 0) {
 					keyget[1] = CheckHitKey(KEY_INPUT_RSHIFT) != 0;
@@ -285,12 +285,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 				else { for (i = 1; i < 19; ++i) { keyget[i] = false; } }
 
 				if (keyget[1]) { ++map.cnt; if (map.cnt == 1) { map.flug ^= 1; SetCursorPos(x_r(960), y_r(540)); } }
-				else { map.cnt = 0; }			/*wŠö*/
+				else { map.cnt = 0; }			/*æŒ‡æ®*/
 				if (keyget[2]) { ++aim.cnt; if (aim.cnt == 1) { aim.flug ^= 1; if (aim.flug) { ratio = 3.0f; } map.flug = false; } }
-				else { aim.cnt = 0; }	/*Æ€*/
+				else { aim.cnt = 0; }	/*ç…§æº–*/
 				if (player[0].HP[0] == 0) { aim.flug = false; map.flug = false; }
 				if (keyget[7]) { ++selfammo; if (selfammo == 1) { ++player[0].ammotype; player[0].ammotype %= 3; player[0].loadcnt[0] = 1; } }
-				else { if (player[0].loadcnt[0] == 0) { selfammo = 0; } }											/*’eí•ÏX*/
+				else { if (player[0].loadcnt[0] == 0) { selfammo = 0; } }											/*å¼¾ç¨®å¤‰æ›´*/
 				if (map.flug) {
 					GetMousePoint(&mousex, &mousey); SetMouseDispFlag(TRUE);
 					choose = (std::numeric_limits<size_t>::max)();
@@ -313,7 +313,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 							}
 						}
 					}
-				}/*‹ŠEŒ©‰ñ‚µ*/
+				}/*è¦–ç•Œè¦‹å›ã—*/
 				else {
 					if (aim.flug) {
 						SetMousePoint(x_r(960), y_r(540)); GetMouseWheelRotVol();
@@ -324,20 +324,20 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 					}
 					else { parts.set_view_r(); ratio = 1.0f; }
 				}
-				differential(rat_r, ratio, 0.1f);														/*”{—¦A‘ª‹—*/
+				differential(rat_r, ratio, 0.1f);														/*å€ç‡ã€æ¸¬è·*/
 			}
 			else {
 				SetMouseDispFlag(TRUE);
 			}
 			if (true) {
-				/*‘€ìAÀ•WŒn*/
+				/*æ“ä½œã€åº§æ¨™ç³»*/
 				uiparts->end_way();//debug0//0
 				for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 					if (!map.flug) { player[p_cnt].wayselect = 0; }
 					if (player[p_cnt].HP[0] > 0) {
 						player[p_cnt].move = 0;
 						if (p_cnt == 0) {
-							/*‘€ì*/
+							/*æ“ä½œ*/
 							if (keyget[9]) { player[p_cnt].move |= KEY_GOFLONT; }
 							if (keyget[10]) { player[p_cnt].move |= KEY_GOBACK_; }
 							if (keyget[11]) { player[p_cnt].move |= KEY_GOLEFT_; }
@@ -348,12 +348,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 							if (keyget[16]) { player[p_cnt].move |= KEY_TURNDWN; }
 							if (keyget[17]) { player[p_cnt].move |= KEY_SHOTCAN; }
 							if (keyget[18]) { player[p_cnt].move |= KEY_SHOTGAN; }
-							/*•Ï‘¬*/
+							/*å¤‰é€Ÿ*/
 							if (set_shift(&player[p_cnt])) { parts.play_sound(0); }
 						}
 						else {
-							//*CPU‘€ì
-							//*ˆÚ“®
+							//*CPUæ“ä½œ
+							//*ç§»å‹•
 							if (VSize(VSub(player[p_cnt].pos, player[p_cnt].waypos[player[p_cnt].waynow])) >= 10.0) {
 								player[p_cnt].move |= KEY_GOFLONT;
 								tempvec[0] = VNorm(VSub(player[p_cnt].waypos[player[p_cnt].waynow], player[p_cnt].pos));
@@ -365,7 +365,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 							/*
 							for (i = player[p_cnt].waynow; i < waypc; i++) { if (VSize(VSub(player[p_cnt].pos, player[p_cnt].waypos[i])) < VSize(VSub(player[p_cnt].pos, player[p_cnt].waypos[player[p_cnt].waynow]))) { player[p_cnt].waynow = i; break; } }
 							*/
-							//*í“¬
+							//*æˆ¦é—˜
 							if (player[p_cnt].atkf == -1) {
 								for (tgt_p = 0; tgt_p < playerc; ++tgt_p) {
 									if (player[p_cnt].type != player[tgt_p].type) {
@@ -378,20 +378,20 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 										}
 									}
 								}
-								player[p_cnt].gear = player[p_cnt].wayspd[player[p_cnt].waynow];											//*•Ï‘¬
+								player[p_cnt].gear = player[p_cnt].wayspd[player[p_cnt].waynow];											//*å¤‰é€Ÿ
 							}
 							else {
-								player[p_cnt].gear = 1;																	//*•Ï‘¬
-								tempvec[1] = MV1GetFramePosition(player[p_cnt].obj.get(), bone_gun1);												//*Œ³‚ÌƒxƒNƒgƒ‹
-								tempvec[0] = VNorm(VSub(MV1GetFramePosition(player[player[p_cnt].atkf].obj.get(), bone_gun1), tempvec[1]));							//*Œü‚­ƒxƒNƒgƒ‹
+								player[p_cnt].gear = 1;																	//*å¤‰é€Ÿ
+								tempvec[1] = MV1GetFramePosition(player[p_cnt].obj.get(), bone_gun1);												//*å…ƒã®ãƒ™ã‚¯ãƒˆãƒ«
+								tempvec[0] = VNorm(VSub(MV1GetFramePosition(player[player[p_cnt].atkf].obj.get(), bone_gun1), tempvec[1]));							//*å‘ããƒ™ã‚¯ãƒˆãƒ«
 								tmpf = VSize(VSub(MV1GetFramePosition(player[player[p_cnt].atkf].obj.get(), bone_gun1), tempvec[1]));
 								getdist(&tempvec[1], VNorm(VSub(MV1GetFramePosition(player[p_cnt].obj.get(), bone_gun2), tempvec[1])), &tmpf, player[p_cnt].ptr->gun_speed[player[p_cnt].ammotype], f_rates);
 
 								tempvec[1] = VNorm(VSub(tempvec[1], MV1GetFramePosition(player[p_cnt].obj.get(), bone_gun1)));
-								cpu_move = tempvec[1].y * sqrtf(powf(tempvec[0].x, 2) + powf(tempvec[0].z, 2)) - sqrtf(powf(tempvec[1].x, 2) + powf(tempvec[1].z, 2)) * tempvec[0].y;	//*–C
+								cpu_move = tempvec[1].y * sqrtf(powf(tempvec[0].x, 2) + powf(tempvec[0].z, 2)) - sqrtf(powf(tempvec[1].x, 2) + powf(tempvec[1].z, 2)) * tempvec[0].y;	//*ç ²
 								if (cpu_move <= 0) { player[p_cnt].move |= KEY_TURNUP_; }
 								if (cpu_move > 0) { player[p_cnt].move |= KEY_TURNDWN; }
-								cpu_move = tempvec[1].z * tempvec[0].x - tempvec[1].x * tempvec[0].z;											//*Ô‘Ì
+								cpu_move = tempvec[1].z * tempvec[0].x - tempvec[1].x * tempvec[0].z;											//*è»Šä½“
 								if (cpu_move < 0) { player[p_cnt].move |= KEY_TURNLFT; }
 								if (cpu_move > 0) { player[p_cnt].move |= KEY_TURNRIT; }
 								if (cpu_move < 0) { player[p_cnt].move |= KEY_GOLEFT_; }
@@ -401,7 +401,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 									if (!HitPoly.HitFlag) {
 										if (player[p_cnt].loadcnt[0] == 0) {
 											if ((player[p_cnt].move & KEY_GOFLONT) != 0) { player[p_cnt].move -= KEY_GOFLONT; }
-											player[p_cnt].gear = 0;															//*•Ï‘¬
+											player[p_cnt].gear = 0;															//*å¤‰é€Ÿ
 											if (player[p_cnt].speed < 5.f / 3.6f / f_rates) {
 												player[p_cnt].move |= KEY_SHOTCAN;
 												player[p_cnt].aim++;
@@ -412,7 +412,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 								}
 								if (player[player[p_cnt].atkf].HP[0] == 0 || player[p_cnt].aim > 5) { player[p_cnt].aim = player[p_cnt].atkf; player[p_cnt].atkf = -1; }
 							}
-							//‚Ô‚Â‚©‚è–h~
+							//ã¶ã¤ã‹ã‚Šé˜²æ­¢
 							for (tgt_p = 0; tgt_p < playerc; ++tgt_p) {
 								if (p_cnt != tgt_p) {
 									if (VSize(VSub(player[tgt_p].pos, player[p_cnt].pos)) <= 10.0 && player[tgt_p].HP[0] > 0) {
@@ -441,18 +441,18 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 									}
 								}
 							}
-							//*CPU‘€ìexit
+							//*CPUæ“ä½œexit
 						}
 					}
 					else { player[p_cnt].move = KEY_TURNUP_; }
 				}
 				//0.2ms~5ms
 				uiparts->end_way();//debug1//0
-				/*‹¤’Ê“®ì*/
+				/*å…±é€šå‹•ä½œ*/
 				for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 					if (p_cnt == 0) {
 						tmpf = 1.f;
-						if (keyget[8]) { tmpf = 3.f; }//¶CTRL‚ğ‰Ÿ‚·‚Æ¸–§ƒGƒCƒ€
+						if (keyget[8]) { tmpf = 3.f; }//å·¦CTRLã‚’æŠ¼ã™ã¨ç²¾å¯†ã‚¨ã‚¤ãƒ 
 						set_gunrad(&player[0], rat_r*tmpf);
 					}
 					else {
@@ -535,17 +535,17 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 					player[p_cnt].body->SetAngularVelocity(player[p_cnt].yadd);
 				}//0.1ms
 				//0.0ms
-				/*•¨—‰‰Z*/
-				world->Step(1.0f / f_rates, 1, 1);						// ƒVƒ~ƒ…ƒŒ[ƒVƒ‡ƒ“‚Ì’PˆêƒXƒeƒbƒv‚ğÀs‚·‚é‚æ‚¤‚É¢ŠE‚Éw¦‚µ‚Ü‚·B ˆê”Ê‚ÉAƒ^ƒCƒ€ƒXƒeƒbƒv‚Æ”½•œ‚ğŒÅ’è‚µ‚Ä‚¨‚­‚Ì‚ªÅ‘P‚Å‚·B
+				/*ç‰©ç†æ¼”ç®—*/
+				world->Step(1.0f / f_rates, 1, 1);						// ã‚·ãƒŸãƒ¥ãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³ã®å˜ä¸€ã‚¹ãƒ†ãƒƒãƒ—ã‚’å®Ÿè¡Œã™ã‚‹ã‚ˆã†ã«ä¸–ç•Œã«æŒ‡ç¤ºã—ã¾ã™ã€‚ ä¸€èˆ¬ã«ã€ã‚¿ã‚¤ãƒ ã‚¹ãƒ†ãƒƒãƒ—ã¨åå¾©ã‚’å›ºå®šã—ã¦ãŠãã®ãŒæœ€å–„ã§ã™ã€‚
 				for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 					player[p_cnt].pos.x = player[p_cnt].body->GetPosition().x;
 					player[p_cnt].pos.z = player[p_cnt].body->GetPosition().y;
 					player[p_cnt].yrad = -player[p_cnt].body->GetAngle();
 				}//0ms
 				//0.0ms
-				/*–CŒ‚‚»‚Ì‘¼*/
+				/*ç ²æ’ƒãã®ä»–*/
 				for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
-					//’nŒ`”»’è
+					//åœ°å½¢åˆ¤å®š
 					HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, VAdd(player[p_cnt].pos, VGet(0.0f, 2.0f, 0.0f)), VAdd(player[p_cnt].pos, VGet(0.0f, -0.05f, 0.0f)));//0.3ms
 					if (HitPoly.HitFlag) {
 						player[p_cnt].pos.y = HitPoly.HitPosition.y;
@@ -564,19 +564,19 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 					else {
 						player[p_cnt].pos.y += player[p_cnt].yace; player[p_cnt].yace += M_GR / 2.0f / fps / fps;
 					}
-					//’nŒ`”»’è‘S‘Ì=3.8ms
-					//ƒTƒEƒ“ƒh
+					//åœ°å½¢åˆ¤å®šå…¨ä½“=3.8ms
+					//ã‚µã‚¦ãƒ³ãƒ‰
 					if (abs(player[p_cnt].speed) >= player[p_cnt].ptr->spdflont[0]) { ChangeVolumeSoundMem(64, player[p_cnt].se[0]); }
 					else { ChangeVolumeSoundMem((int)(64.f*abs(player[p_cnt].speed) / player[p_cnt].ptr->spdflont[0]), player[p_cnt].se[0]); }//0.1ms
 					for (i = 27; i < 29; ++i) { ChangeVolumeSoundMem((int)(32.f + 32.f*abs(player[p_cnt].speed / player[p_cnt].ptr->spdflont[3])), player[p_cnt].se[i]); }//0.1ms
 					for (i = 0; i < 31; ++i) { if (CheckSoundMem(player[p_cnt].se[i]) == 1) { Set3DPositionSoundMem(player[p_cnt].pos, player[p_cnt].se[i]); } }//1.5ms
-					//ƒTƒEƒ“ƒh‘S‘Ì=1.7ms
-					//tree”»’è
+					//ã‚µã‚¦ãƒ³ãƒ‰å…¨ä½“=1.7ms
+					//treeåˆ¤å®š
 					mapparts.set_hitplayer(player[p_cnt].pos);
 					//0.1ms
-					/*Ô‘Ìs—ñ*/
+					/*è»Šä½“è¡Œåˆ—*/
 					player[p_cnt].ps_m = MMult(MMult(MMult(MMult(MGetRotAxis(VGet(cos(player[p_cnt].gunrad.x), 0, -sin(player[p_cnt].gunrad.x)), sin(deg2rad(player[p_cnt].firerad)) * deg2rad(5)), MGetRotAxis(VGet(cos(player[p_cnt].recorad), 0, -sin(player[p_cnt].recorad)), sin(deg2rad(player[p_cnt].recoall)) * deg2rad(5))), MGetRotX(atan(player[p_cnt].inertia.x))), MMult(MGetRotY(player[p_cnt].yrad), MGetRotVec2(VGet(0, 1.f, 0), player[p_cnt].nor))), MGetTranslate(player[p_cnt].pos));//MMult(MGetRotX(player[p_cnt].xnor), MGetRotZ(player[p_cnt].znor))
-					/*–C“ƒs—ñ*/
+					/*ç ²å¡”è¡Œåˆ—*/
 					player[p_cnt].ps_t = MMult(MGetRotY(player[p_cnt].gunrad.x), MGetTranslate(player[p_cnt].ptr->loc[bone_trt]));
 					//all
 					MV1SetMatrix(player[p_cnt].colobj.get(), player[p_cnt].ps_m);
@@ -671,7 +671,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 						}
 						else {
 							++player[p_cnt].loadcnt[guns];
-							if (player[p_cnt].loadcnt[guns] >= player[p_cnt].ptr->reloadtime[guns]) { player[p_cnt].loadcnt[guns] = 0; if (p_cnt == 0 && guns == 0) { parts.play_sound(8 + GetRand(4)); } }//‘•‚Ä‚ñŠ®—¹
+							if (player[p_cnt].loadcnt[guns] >= player[p_cnt].ptr->reloadtime[guns]) { player[p_cnt].loadcnt[guns] = 0; if (p_cnt == 0 && guns == 0) { parts.play_sound(8 + GetRand(4)); } }//è£…ã¦ã‚“å®Œäº†
 						}
 						for (i = k; i < ammoc + k; ++i) {
 							if (player[p_cnt].Ammo[i].flug != 0) {
@@ -701,7 +701,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 								player[p_cnt].Ammo[i].pene -= 1.0f / fps;
 								player[p_cnt].Ammo[i].speed -= 5.f / fps;
 								player[p_cnt].Ammo[i].cnt++;
-								if (player[p_cnt].Ammo[i].cnt > (fps*3.f) || player[p_cnt].Ammo[i].speed <= 0.f) { player[p_cnt].Ammo[i].flug = 0; }//3•b‚ÅÁ‚¦‚é
+								if (player[p_cnt].Ammo[i].cnt > (fps*3.f) || player[p_cnt].Ammo[i].speed <= 0.f) { player[p_cnt].Ammo[i].flug = 0; }//3ç§’ã§æ¶ˆãˆã‚‹
 							}
 						}
 					}
@@ -719,7 +719,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 					}
 				}
 				//5.3ms
-				/*“QXV*/
+				/*è½æ›´æ–°*/
 				mapparts.set_map_track();
 				//0ms
 				uiparts->end_way();//debug2//0
@@ -744,7 +744,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 				//0.6ms
 			}
 			//uiparts->end_way();//debug5//0
-			/*‹“_*/
+			/*è¦–ç‚¹*/
 			if (aim.flug) {
 				campos = MV1GetFramePosition(player[0].obj.get(), bone_gun1);
 				viewpos = MV1GetFramePosition(player[0].obj.get(), bone_gun2);
@@ -791,7 +791,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 					}
 				}
 				for (size_t p_cnt = 0; p_cnt < teamc; ++p_cnt) {
-					//ƒXƒe[ƒ^ƒX
+					//ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
 					if (p_cnt == waysel) {
 						k = GetColor(255, 255, 0);
 						if (player[p_cnt].HP[0] == 0) { k = GetColor(200, 200, 0); }
@@ -803,7 +803,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 					}
 					DrawBox(x_r(132), y_r(162 + p_cnt * 24), x_r(324), y_r(180 + p_cnt * 24), k, TRUE);
 					DrawFormatStringToHandle(x_r(132), y_r(162 + p_cnt * 24), GetColor(255, 255, 255), parts.get_font(0), " %s", player[p_cnt].ptr->name.c_str());
-					//iŒR
+					//é€²è»
 					for (k = 0; k < player[p_cnt].wayselect; k++) { DrawBox(x_r(348 + k * 12), y_r(162 + p_cnt * 24), x_r(356 + k * 12), y_r(180 + p_cnt * 24), GetColor(50, 50, 255), TRUE); }
 				}
 				for (size_t p_cnt = teamc; p_cnt < playerc; ++p_cnt) {
@@ -936,7 +936,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 					SetUseShadowMap(0, -1);
 					SetUseShadowMap(1, -1);
 					SetUseShadowMap(2, -1);
-					//ƒJƒbƒR“à2~4ms
+					//ã‚«ãƒƒã‚³å†…2~4ms
 				}
 				else {
 					humanparts.draw_humanall();
@@ -947,13 +947,13 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			SetDrawScreen(DX_SCREEN_BACK);
 			ClearDrawScreen();
 			if (map.flug) {
-				/*wŠö*/
+				/*æŒ‡æ®*/
 				DrawGraph(0, 0, minimap, FALSE);
 			}
 			else {
-				/*’Êí*/
+				/*é€šå¸¸*/
 				DrawGraph(0, 0, mainscreen, FALSE);
-				/*ƒuƒ‹[ƒ€*/
+				/*ãƒ–ãƒ«ãƒ¼ãƒ */
 				GraphFilterBlt(mainscreen, HighBrightScreen, DX_GRAPH_FILTER_BRIGHT_CLIP, DX_CMP_LESS, 210, TRUE, GetColor(0, 0, 0), 255);
 				GraphFilterBlt(HighBrightScreen, GaussScreen, DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
 				GraphFilter(GaussScreen, DX_GRAPH_FILTER_GAUSS, 16, 1000);
@@ -963,7 +963,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 				DrawExtendGraph(0, 0, dispx, dispy, GaussScreen, FALSE);
 				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 				/*UI*/
-				if (aim.flug) { uiparts->draw_sight(aims.x, aims.y, rat_r, aimm, parts.get_font(0)); }/*Æ€Ší*/
+				if (aim.flug) { uiparts->draw_sight(aims.x, aims.y, rat_r, aimm, parts.get_font(0)); }/*ç…§æº–å™¨*/
 				else {
 					for (auto& tt : pssort) {
 						if (tt.second == (float)map_x) { continue; }
@@ -976,7 +976,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 							}
 						}
 					}
-				}/*ƒAƒCƒRƒ“*/
+				}/*ã‚¢ã‚¤ã‚³ãƒ³*/
 				uiparts->draw_ui(selfammo, parts.get_view_r().y);/*main*/
 			}
 			/*debug*/
@@ -989,7 +989,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		mapparts.delete_map();
 		humanparts.delete_human();
 		for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
-			/*ƒGƒtƒFƒNƒg*/
+			/*ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ*/
 			for (auto&& e : player[p_cnt].effcs) e.efhandle.Dispose();
 			/*Box2D*/
 			delete player[p_cnt].playerfix->GetUserData();
@@ -1008,6 +1008,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		pssort.clear();
 		player.clear();
 	} while (!out);
-	/*I—¹*/
+	/*çµ‚äº†*/
 	return 0;
 }
