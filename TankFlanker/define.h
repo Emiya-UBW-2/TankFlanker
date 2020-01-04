@@ -324,10 +324,8 @@ private:
 	VECTOR lightvec;							/*light•ûŒü*/
 	/*grass*/
 	int grasss = 50000;							/*grass‚Ì”*/
-	//std::vector<VERTEX3D> grassver;
-	//std::vector<DWORD> grassind;
-	VERTEX3D* grassver;							/**/
-	DWORD* grassind;							/**/
+	std::vector<VERTEX3D> grassver;
+	std::vector<DWORD> grassind;
 	int VerBuf, IndexBuf;							/**/
 	MV1Handle grass;							/*grassƒ‚ƒfƒ‹*/
 	int graph;/*‰æ‘œƒnƒ“ƒhƒ‹*/

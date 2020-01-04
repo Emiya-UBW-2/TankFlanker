@@ -511,10 +511,8 @@ bool MAPS::set_map_ready() {
 		IndexNum = RefMesh.PolygonNum * 3 * grasss;			/*インデックスの数を取得*/
 		VerNum = RefMesh.VertexNum * grasss;				/*頂点の数を取得*/
 
-		grassver = new VERTEX3D[VerNum];
-		grassind = new DWORD[IndexNum];
-		//grassver.resize(VerNum);					/*頂点データとインデックスデータを格納するメモリ領域の確保*/
-		//grassind.resize(IndexNum);					/*頂点データとインデックスデータを格納するメモリ領域の確保*/
+		grassver.resize(VerNum);					/*頂点データとインデックスデータを格納するメモリ領域の確保*/
+		grassind.resize(IndexNum);					/*頂点データとインデックスデータを格納するメモリ領域の確保*/
 
 		for (i = 0; i < grasss; ++i) {
 			tmpvect = VGet((float)(-5000 + GetRand(10000)) / 10.0f, 0.0f, (float)(-5000 + GetRand(10000)) / 10.0f);
@@ -559,8 +557,8 @@ bool MAPS::set_map_ready() {
 		}
 		VerBuf = CreateVertexBuffer(VerNum, DX_VERTEX_TYPE_NORMAL_3D);
 		IndexBuf = CreateIndexBuffer(IndexNum, DX_INDEX_TYPE_32BIT);
-		SetVertexBufferData(0, grassver, VerNum, VerBuf);
-		SetIndexBufferData(0, grassind, IndexNum, IndexBuf);
+		SetVertexBufferData(0, grassver.data(), VerNum, VerBuf);
+		SetIndexBufferData(0, grassind.data(), IndexNum, IndexBuf);
 		MV1SetTextureGraphHandle(m_model.get(), 0, texp, FALSE);
 		/*tree,shadow*/
 	ShadowMap_DrawSetup(shadow_far);
@@ -700,12 +698,8 @@ void MAPS::delete_map(void) {
 	tree.rad.clear();
 	tree.hit.clear();
 
-	if (grassver != NULL) { delete[] grassver; grassver = NULL; }
-	if (grassind != NULL) { delete[] grassind; grassind = NULL; }
-	/*
 	grassver.clear();
 	grassind.clear();
-	*/
 }
 //
 UIS::UIS() {
