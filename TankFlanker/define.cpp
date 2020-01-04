@@ -81,9 +81,9 @@ Myclass::Myclass() {
 	}
 	SetUseASyncLoadFlag(TRUE);
 		for (auto& v : vecs) {
-			v.model = MV1Handle::LoadModel("data/tanks/" + v.name + "/model.mv1");
-			v.colmodel = MV1Handle::LoadModel("data/tanks/" + v.name + "/col.mv1");
-			v.inmodel = MV1Handle::LoadModel("data/tanks/" + v.name + "/in/model.mv1");
+			v.model = MV1ModelHandle::Load("data/tanks/" + v.name + "/model.mv1");
+			v.colmodel = MV1ModelHandle::Load("data/tanks/" + v.name + "/col.mv1");
+			v.inmodel = MV1ModelHandle::Load("data/tanks/" + v.name + "/in/model.mv1");
 		}
 		for (size_t j = 0; j < std::size(se_); ++j) {
 			const auto filename = (j < 1) ? "data/audio/se/engine/shift.wav"s
@@ -252,12 +252,12 @@ HUMANS::HUMANS(bool useg,float frates){
 	usegrab = useg;
 	f_rate = frates;
 }
-void HUMANS::set_humans(const MV1Handle& inmod) {
+void HUMANS::set_humans(const MV1ModelHandle& inmod) {
 	using namespace std::literals;
 	int i, j;
 	//load
 	SetUseASyncLoadFlag(FALSE);
-	inmodel_handle = inmod.DuplicateModel();
+	inmodel_handle = inmod.Duplicate();
 	inflames = MV1GetFrameNum(inmodel_handle.get());
 	if (inflames - bone_in_turret >= 1) { human = inflames - bone_in_turret; } else { human = 1; }/*乗員*/
 	pos_old.resize(inflames);
@@ -265,7 +265,7 @@ void HUMANS::set_humans(const MV1Handle& inmod) {
 	for (i = 0; i < human; ++i) {
 		if (usegrab) { MV1SetLoadModelUsePhysicsMode(DX_LOADMODEL_PHYSICS_REALTIME); }
 		else { MV1SetLoadModelUsePhysicsMode(DX_LOADMODEL_PHYSICS_LOADCALC); }
-		hum[i].obj = MV1Handle::LoadModel("data/chara/結月ゆかり/model.mv1");
+		hum[i].obj = MV1ModelHandle::Load("data/chara/結月ゆかり/model.mv1");
 	}
 	//
 	for (i = 0; i < human; ++i) {
@@ -450,14 +450,14 @@ void MAPS::set_map_readyb(int set){
 	lightvec = VGet(0.5f, -0.5f, 0.5f);
 	SetUseASyncLoadFlag(TRUE);
 		if (set == 0) { tempname = "map"; }
-		tree.mnear = MV1Handle::LoadModel((set) ? "data/tree/model.mv1" : "data/map/tree/model.mv1");			/*近木*/
-		tree.mfar = MV1Handle::LoadModel((set) ? "data/tree/model2.mv1" : "data/map/tree/model2.mv1");			/*遠木*/
+		tree.mnear = MV1ModelHandle::Load((set) ? "data/tree/model.mv1" : "data/map/tree/model.mv1");			/*近木*/
+		tree.mfar = MV1ModelHandle::Load((set) ? "data/tree/model2.mv1" : "data/map/tree/model2.mv1");			/*遠木*/
 		texl = LoadGraph((set) ? "data/SandDesert_04_00344_FWD.png" : "data/map/SandDesert_04_00344_FWD.png");				/*nor*/
 		texm = LoadGraph((set) ? "data/SandDesert_04_00344_NM.png" : "data/map/SandDesert_04_00344_NM.png");				/*nor*/
-		m_model = MV1Handle::LoadModel((set) ? "data/map.mv1" : "data/map/map.mv1");			/*map*/
-		sky_model = MV1Handle::LoadModel((set) ? "data/sky/model_sky.mv1" : "data/map/sky/model_sky.mv1");			/*sky*/
+		m_model = MV1ModelHandle::Load((set) ? "data/map.mv1" : "data/map/map.mv1");			/*map*/
+		sky_model = MV1ModelHandle::Load((set) ? "data/sky/model_sky.mv1" : "data/map/sky/model_sky.mv1");			/*sky*/
 		graph = LoadGraph((set) ? "data/grass/grass.png" : "data/map/grass/grass.png");				/*grass*/
-		grass = MV1Handle::LoadModel((set) ? "data/grass/grass.mqo" : "data/map/grass/grass.mqo");			/*grass*/
+		grass = MV1ModelHandle::Load((set) ? "data/grass/grass.mqo" : "data/map/grass/grass.mqo");			/*grass*/
 		GgHandle = LoadGraph((set) ? "data/grass/gg.png" : "data/map/grass/gg.png");			/*地面草*/
 	SetUseASyncLoadFlag(FALSE);
 	return;
@@ -477,8 +477,8 @@ bool MAPS::set_map_ready() {
 
 	SetUseASyncLoadFlag(TRUE);
 		for (j = 0; j < treec; ++j) {
-			tree.nears[j] = tree.mnear.DuplicateModel();
-			tree.fars[j] = tree.mfar.DuplicateModel();
+			tree.nears[j] = tree.mnear.Duplicate();
+			tree.fars[j] = tree.mfar.Duplicate();
 			tree.hit.push_back(true);//
 		}
 	SetUseASyncLoadFlag(FALSE);

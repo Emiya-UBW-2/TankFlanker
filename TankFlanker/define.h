@@ -29,7 +29,7 @@
 #include<algorithm>
 #include <vector>
 #include <cstring>
-#include "MV1Handle.hpp"
+#include "MV1ModelHandle.hpp"
 #include "EffekseerEffectHandle.hpp"
 #include <string_view>
 #include <cstdint>
@@ -94,9 +94,9 @@ struct EffectS {
 struct vehicle {
 	std::string name;						/*名前*/
 	int countryc;							/*国*/
-	MV1Handle model;							/*モデル*/
-	MV1Handle colmodel;						/*コリジョン*/
-	MV1Handle inmodel;						/*内装*/
+	MV1ModelHandle model;							/*モデル*/
+	MV1ModelHandle colmodel;						/*コリジョン*/
+	MV1ModelHandle inmodel;						/*内装*/
 	float spdflont[4] = { 0.0f };					/*前進*/
 	float spdback[4] = { 0.0f };					/*後退*/
 	float vehicle_RD = 0.0f;					/*旋回速度*/
@@ -120,9 +120,9 @@ struct players {
 	/*情報*/
 	int use{ 0 };							/*使用車両*/
 	vehicle* ptr;							/*vehicle*/
-	MV1Handle obj;							/*モデル*/
-	MV1Handle colobj;						/*コリジョン*/
-	MV1Handle hitpic[3];							/*弾痕モデル*/
+	MV1ModelHandle obj;							/*モデル*/
+	MV1ModelHandle colobj;						/*コリジョン*/
+	MV1ModelHandle hitpic[3];							/*弾痕モデル*/
 	char type{ 0 };							/*敵味方識別*/
 	int se[50]{ 0 };						/*SE*/
 	/**/
@@ -183,28 +183,6 @@ struct switches {
 	int cnt{ 0 };
 };
 /*CLASS*/
-/*
-class MV1Handle {
-private:
-	int handle_;
-	constexpr MV1Handle(int h) noexcept : handle_(h) {}
-public:
-	constexpr MV1Handle() noexcept : handle_(-1) {}
-	MV1Handle(const MV1Handle&) = delete;
-	MV1Handle(MV1Handle&&) = default;
-	MV1Handle& operator=(const MV1Handle&) = delete;
-	MV1Handle& operator=(MV1Handle&&) = default;
-	~MV1Handle() noexcept {
-		if (-1 != this->handle_) { MV1DeleteModel(this->handle_); }
-	}
-	void Dispose() noexcept {
-		if (-1 != this->handle_) { MV1DeleteModel(this->handle_); this->handle_ = -1; }
-	}
-	int get() const noexcept { return handle_; }
-	MV1Handle DuplicateModel() const noexcept { return DxLib::MV1DuplicateModel(this->handle_); }
-	static MV1Handle LoadModel(std::basic_string_view<TCHAR> FileName) noexcept { return DxLib::MV1LoadModelWithStrLen(FileName.data(), FileName.length()); }
-};
-//*/
 class Myclass {
 private:
 	/*setting*/
@@ -261,7 +239,7 @@ public:
 class HUMANS {
 private:
 	struct humans {
-		MV1Handle obj;
+		MV1ModelHandle obj;
 		int neck{ 0 };
 		VECTOR nvec{ VGet(0,0,0) };
 		int amine[animes]{ 0 };
@@ -278,7 +256,7 @@ private:
 	bool usegrab{ false };							/*人の物理演算のオフ、オン、一人だけオン*/
 	float f_rate{ 60.f };							/*fps*/
 
-	MV1Handle inmodel_handle;						//中モデル
+	MV1ModelHandle inmodel_handle;						//中モデル
 	bool in_f{ false };							//中描画スイッチ
 	int inflames;								//inmodelのフレーム数
 	std::vector<humans> hum;						/**/
@@ -287,7 +265,7 @@ private:
 	bool first;								//初回フラグ
 public:
 	HUMANS(bool useg, float frates);
-	void set_humans(const MV1Handle& inmod);
+	void set_humans(const MV1ModelHandle& inmod);
 	void set_humanvc_vol(unsigned char size);
 	void set_humanmove(const players& player, VECTOR rad, float fps);
 	void draw_human(int p1);
@@ -306,10 +284,10 @@ private:
 	/**/
 	int treec = 750;							/*木の数*/
 	struct trees {
-		MV1Handle mnear;							/**/
-		MV1Handle mfar;							/**/
-		std::vector<MV1Handle> nears;							/**/
-		std::vector<MV1Handle> fars;							/**/
+		MV1ModelHandle mnear;							/**/
+		MV1ModelHandle mfar;							/**/
+		std::vector<MV1ModelHandle> nears;							/**/
+		std::vector<MV1ModelHandle> fars;							/**/
 
 		std::vector<pair> treesort;
 		std::vector<VECTOR> pos;
@@ -320,9 +298,9 @@ private:
 	int shadow_seminear;							/*shadow中距離*/
 	int shadow_near;							/*shadow近距離*/
 	int shadow_far;								/*shadowマップ用*/
-	MV1Handle m_model, minmap;							/*mapモデル*/
+	MV1ModelHandle m_model, minmap;							/*mapモデル*/
 	int texp,texo, texn, texm,texl;						/*mapテクスチャ*/
-	MV1Handle sky_model;								/*skyモデル*/
+	MV1ModelHandle sky_model;								/*skyモデル*/
 	int sky_sun;								/*sunpic*/
 	VECTOR lightvec;							/*light方向*/
 	/*grass*/
@@ -330,7 +308,7 @@ private:
 	std::vector<VERTEX3D> grassver;
 	std::vector<DWORD> grassind;
 	int VerBuf, IndexBuf;							/**/
-	MV1Handle grass;							/*grassモデル*/
+	MV1ModelHandle grass;							/*grassモデル*/
 	int graph;/*画像ハンドル*/
 	int IndexNum, VerNum;							/**/
 	int GgHandle;								/**/
@@ -350,8 +328,8 @@ public:
 	void set_map_track(void);
 	void draw_map_sky(void);
 	void delete_map(void);
-	MV1Handle& get_map_handle() & noexcept { return m_model; }
-	const MV1Handle& get_map_handle() const & noexcept { return m_model; }
+	MV1ModelHandle& get_map_handle() & noexcept { return m_model; }
+	const MV1ModelHandle& get_map_handle() const & noexcept { return m_model; }
 	int get_minmap() { return texp; }
 	int get_map_shadow_far() { return shadow_far; }
 	int get_map_shadow_near() { return shadow_near; }

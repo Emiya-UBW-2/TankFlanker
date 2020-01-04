@@ -43,7 +43,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 	parts.set_fonts(18);
 	SetUseASyncLoadFlag(TRUE);
 		//hit-------------------------------------------------------------------//
-		const auto hit_mod = MV1Handle::LoadModel("data/hit/hit.mv1");
+		const auto hit_mod = MV1ModelHandle::Load("data/hit/hit.mv1");
 		//screen----------------------------------------------------------------//
 		int minimap = MakeScreen(dispx, dispy, FALSE);				/*ミニマップ*/
 		int skyscreen = MakeScreen(dispx, dispy, FALSE);			/*空*/
@@ -123,9 +123,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			/*players*/
 			SetCreate3DSoundFlag(TRUE);
 			for (p_cnt = 0; p_cnt < playerc; ++p_cnt) {
-				player[p_cnt].obj = player[p_cnt].ptr->model.DuplicateModel();
-				player[p_cnt].colobj = player[p_cnt].ptr->colmodel.DuplicateModel();
-				for (i = 0; i < 3; i++) { player[p_cnt].hitpic[i] = hit_mod.DuplicateModel(); }
+				player[p_cnt].obj = player[p_cnt].ptr->model.Duplicate();
+				player[p_cnt].colobj = player[p_cnt].ptr->colmodel.Duplicate();
+				for (i = 0; i < 3; i++) { player[p_cnt].hitpic[i] = hit_mod.Duplicate(); }
 				player[p_cnt].se[0] = LoadSoundMem("data/audio/se/engine/0.wav");
 				player[p_cnt].se[1] = LoadSoundMem("data/audio/se/fire/gun.wav");
 				for (i = 2; i < 10; ++i) {
