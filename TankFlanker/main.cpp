@@ -155,6 +155,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		/*map*/
 		if (mapparts.set_map_ready() != true) { break; }
 		//players
+		const auto c_ffff96 = GetColor(255, 255, 150);
+		const auto c_ffc896 = GetColor(255, 200, 150);
 		for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 			//色調
 			for (i = 0; i < MV1GetMaterialNum(player[p_cnt].obj.get()); ++i) {
@@ -174,8 +176,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			//ammo
 			player[p_cnt].Ammo.resize(ammoc*gunc);
 			for (size_t i = 0; i < ammoc * gunc; ++i) {
-				if (player[p_cnt].type == TEAM) { player[p_cnt].Ammo[i].color = GetColor(255, 255, 150); }
-				else { player[p_cnt].Ammo[i].color = GetColor(255, 200, 150); }
+				player[p_cnt].Ammo[i].color = (player[p_cnt].type == TEAM) ? c_ffff96 : c_ffc896;
 			}
 
 			//HP
@@ -251,6 +252,17 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			for (i = 27; i < 29; ++i) { Set3DRadiusSoundMem(200.0f, player[p_cnt].se[i]); }
 			for (i = 29; i < 31; ++i) { Set3DRadiusSoundMem(300.0f, player[p_cnt].se[i]); }
 		}
+		const auto c_000000 = GetColor(0, 0, 0);
+		const auto c_00ff00 = GetColor(0, 255, 0);
+		const auto c_ff0000 = GetColor(255, 0, 0);
+		const auto c_008000 = GetColor(0, 128, 0);
+		const auto c_800000 = GetColor(128, 0, 0);
+		const auto c_ffff00 = GetColor(255, 255, 0);
+		const auto c_c8c800 = GetColor(200, 200, 0);
+		const auto c_c0ff00 = GetColor(192, 255, 0);
+		const auto c_808080 = GetColor(128, 128, 128);
+		const auto c_ffffff = GetColor(255, 255, 255);
+		const auto c_3232ff = GetColor(50, 50, 255);
 		while (ProcessMessage() == 0) {
 			/*fps*/
 			waits = GetNowHiPerformanceCount();
@@ -774,43 +786,33 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 				ClearDrawScreen();
 				DrawExtendGraph(x_r(420), y_r(0), x_r(1500), y_r(1080), mapparts.get_minmap(), FALSE);
 				for (size_t p_cnt = 0; p_cnt < teamc; ++p_cnt) {
-					i = GetColor(0, 255, 0);
-					if (player[p_cnt].HP[0] == 0) { i = GetColor(0, 128, 0); }
-					DrawCircle(x_(player[p_cnt].pos.x), y_(player[p_cnt].pos.z), 5, i, 1);
+					DrawCircle(x_(player[p_cnt].pos.x), y_(player[p_cnt].pos.z), 5, (player[p_cnt].HP[0] == 0) ? c_00ff00 : c_008000, 1);
 				}
 				for (size_t p_cnt = teamc; p_cnt < playerc; ++p_cnt) {
-					i = GetColor(255, 0, 0);
-					if (player[p_cnt].HP[0] == 0) { i = GetColor(128, 0, 0); }
-					DrawCircle(x_(player[p_cnt].pos.x), y_(player[p_cnt].pos.z), 5, i, 1);
+					DrawCircle(x_(player[p_cnt].pos.x), y_(player[p_cnt].pos.z), 5, (player[p_cnt].HP[0] == 0) ? c_ff0000 : c_800000, 1);
 				}
 				//teamc + enemyc
 				for (size_t p_cnt = 1; p_cnt < teamc; ++p_cnt) {
-					DrawLine(x_(player[p_cnt].pos.x), y_(player[p_cnt].pos.z), x_(player[p_cnt].waypos[player[p_cnt].waynow].x), y_(player[p_cnt].waypos[player[p_cnt].waynow].z), GetColor(255, 0, 0), 3);
+					DrawLine(x_(player[p_cnt].pos.x), y_(player[p_cnt].pos.z), x_(player[p_cnt].waypos[player[p_cnt].waynow].x), y_(player[p_cnt].waypos[player[p_cnt].waynow].z), c_ff0000, 3);
 					for (j = player[p_cnt].waynow; j < waypc - 1; ++j) {
 						DrawLine(x_(player[p_cnt].waypos[j].x), y_(player[p_cnt].waypos[j].z), x_(player[p_cnt].waypos[j + 1].x), y_(player[p_cnt].waypos[j + 1].z), GetColor(255, 64 * j, 0), 3);
 					}
 				}
 				for (size_t p_cnt = 0; p_cnt < teamc; ++p_cnt) {
 					//ステータス
-					if (p_cnt == waysel) {
-						k = GetColor(255, 255, 0);
-						if (player[p_cnt].HP[0] == 0) { k = GetColor(200, 200, 0); }
-					}
-					else if (p_cnt == choose) { k = GetColor(192, 255, 0); }
-					else {
-						k = GetColor(0, 255, 0);
-						if (player[p_cnt].HP[0] == 0) { k = GetColor(128, 128, 128); }
-					}
-					DrawBox(x_r(132), y_r(162 + p_cnt * 24), x_r(324), y_r(180 + p_cnt * 24), k, TRUE);
-					DrawFormatStringToHandle(x_r(132), y_r(162 + p_cnt * 24), GetColor(255, 255, 255), parts.get_font(0), " %s", player[p_cnt].ptr->name.c_str());
+					const auto c = (p_cnt == waysel)
+						? (player[p_cnt].HP[0] == 0) ? c_c8c800 : c_ffff00
+						: (p_cnt == choose)
+							? c_c0ff00
+							: (player[p_cnt].HP[0] == 0) ? c_808080 : c_00ff00;
+					DrawBox(x_r(132), y_r(162 + p_cnt * 24), x_r(324), y_r(180 + p_cnt * 24), c, TRUE);
+					DrawFormatStringToHandle(x_r(132), y_r(162 + p_cnt * 24), c_ffffff, parts.get_font(0), " %s", player[p_cnt].ptr->name.c_str());
 					//進軍
-					for (k = 0; k < player[p_cnt].wayselect; k++) { DrawBox(x_r(348 + k * 12), y_r(162 + p_cnt * 24), x_r(356 + k * 12), y_r(180 + p_cnt * 24), GetColor(50, 50, 255), TRUE); }
+					for (k = 0; k < player[p_cnt].wayselect; k++) { DrawBox(x_r(348 + k * 12), y_r(162 + p_cnt * 24), x_r(356 + k * 12), y_r(180 + p_cnt * 24), c_3232ff, TRUE); }
 				}
 				for (size_t p_cnt = teamc; p_cnt < playerc; ++p_cnt) {
-					k = GetColor(255, 0, 0);
-					if (player[p_cnt].HP[0] == 0) { k = GetColor(128, 128, 128); }
-					DrawBox(x_r(1500), y_r(162 + (p_cnt - teamc) * 24), x_r(1692), y_r(180 + (p_cnt - teamc) * 24), k, TRUE);
-					DrawFormatStringToHandle(x_r(1500), y_r(162 + (p_cnt - teamc) * 24), GetColor(255, 255, 255), parts.get_font(0), " %s", player[p_cnt].ptr->name.c_str());
+					DrawBox(x_r(1500), y_r(162 + (p_cnt - teamc) * 24), x_r(1692), y_r(180 + (p_cnt - teamc) * 24), (player[p_cnt].HP[0] == 0) ? c_808080 : c_ff0000, TRUE);
+					DrawFormatStringToHandle(x_r(1500), y_r(162 + (p_cnt - teamc) * 24), c_ffffff, parts.get_font(0), " %s", player[p_cnt].ptr->name.c_str());
 				}
 			}
 			//0.1ms
@@ -913,7 +915,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 								if (tmpf >= 1.f) { tmpf = 1.f; }
 								SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(255.f*tmpf));
 
-								DrawCapsule3D(player[p_cnt].Ammo[i].pos, player[p_cnt].Ammo[i].repos, player[p_cnt].ptr->ammosize*(VSize(VSub(player[p_cnt].Ammo[i].pos, campos)) / 65.f), 8, player[p_cnt].Ammo[i].color, GetColor(255, 255, 255), TRUE);
+								DrawCapsule3D(player[p_cnt].Ammo[i].pos, player[p_cnt].Ammo[i].repos, player[p_cnt].ptr->ammosize*(VSize(VSub(player[p_cnt].Ammo[i].pos, campos)) / 65.f), 8, player[p_cnt].Ammo[i].color, c_ffffff, TRUE);
 							}
 						}
 						for (size_t i = ammoc; i < ammoc * gunc; ++i) {
@@ -921,7 +923,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 								tmpf = 4.f*player[p_cnt].Ammo[i].speed / (player[p_cnt].ptr->gun_speed[player[p_cnt].ammotype] / fps);
 								if (tmpf >= 1.f) { tmpf = 1.f; }
 								SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(255.f*tmpf));
-								DrawCapsule3D(player[p_cnt].Ammo[i].pos, player[p_cnt].Ammo[i].repos, 0.0075f*(VSize(VSub(player[p_cnt].Ammo[i].pos, campos)) / 30.f), 8, player[p_cnt].Ammo[i].color, GetColor(255, 255, 255), TRUE);
+								DrawCapsule3D(player[p_cnt].Ammo[i].pos, player[p_cnt].Ammo[i].repos, 0.0075f*(VSize(VSub(player[p_cnt].Ammo[i].pos, campos)) / 30.f), 8, player[p_cnt].Ammo[i].color, c_ffffff, TRUE);
 							}
 						}
 					}
@@ -954,7 +956,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 				/*通常*/
 				DrawGraph(0, 0, mainscreen, FALSE);
 				/*ブルーム*/
-				GraphFilterBlt(mainscreen, HighBrightScreen, DX_GRAPH_FILTER_BRIGHT_CLIP, DX_CMP_LESS, 210, TRUE, GetColor(0, 0, 0), 255);
+				GraphFilterBlt(mainscreen, HighBrightScreen, DX_GRAPH_FILTER_BRIGHT_CLIP, DX_CMP_LESS, 210, TRUE, c_000000, 255);
 				GraphFilterBlt(HighBrightScreen, GaussScreen, DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
 				GraphFilter(GaussScreen, DX_GRAPH_FILTER_GAUSS, 16, 1000);
 				SetDrawMode(DX_DRAWMODE_BILINEAR);
@@ -970,9 +972,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 						const auto k = tt.first;
 						if (player[k].HP[0] != 0) {
 							if (player[k].iconpos.z > 0.0f && player[k].iconpos.z < 1.0f) {
-								if (player[k].type == TEAM) { j = GetColor(0, 255, 0); }
-								else { j = GetColor(255, 0, 0); }
-								DrawFormatStringToHandle((int)player[k].iconpos.x, (int)player[k].iconpos.y, j, parts.get_font(0), "[%d]\n%dm", k, (int)VSize(VSub(player[k].pos, player[0].pos)));
+								DrawFormatStringToHandle(
+									(int)player[k].iconpos.x, (int)player[k].iconpos.y, j, parts.get_font(0),
+									"[%d]\n%dm", (player[k].type == TEAM) ? c_ff0000 : c_00ff00, (int)VSize(VSub(player[k].pos, player[0].pos))
+								);
 							}
 						}
 					}
@@ -980,7 +983,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 				uiparts->draw_ui(selfammo, parts.get_view_r().y);/*main*/
 			}
 			/*debug*/
-			//DrawFormatStringToHandle(x_r(18), y_r(1062), GetColor(255, 255, 255), parts.get_font(0), "start-stop(%.2fms)", (float)stop_w / 1000.f);
+			//DrawFormatStringToHandle(x_r(18), y_r(1062), c_ffffff, parts.get_font(0), "start-stop(%.2fms)", (float)stop_w / 1000.f);
 			uiparts->debug(fps, (float)(GetNowHiPerformanceCount() - waits) / 1000.0f);
 
 			parts.Screen_Flip(waits);

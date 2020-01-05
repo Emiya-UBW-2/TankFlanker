@@ -108,6 +108,9 @@ bool Myclass::set_veh(void) {
 		for (size_t i = 0 ;std::size(v.coloc); ++i) { v.coloc[i] = MV1GetFramePosition(v.colmodel.get(), int(5 + i)); }
 	}
 	//エフェクト------------------------------------------------------------//
+	const auto c_00ff00 = GetColor(0, 255, 0);
+	const auto c_ffff00 = GetColor(255, 255, 0);
+	const auto c_ff0000 = GetColor(255, 0, 0);
 	for (int j = 0, k = 0; j < effects; ++j) {
 		size_t i = 0;
 		while (ProcessMessage() == 0) {
@@ -116,12 +119,12 @@ bool Myclass::set_veh(void) {
 
 			const auto waits = GetNowHiPerformanceCount();
 			SetDrawScreen(DX_SCREEN_BACK);
-			DrawFormatString(0, (18 * k), GetColor(0, 255, 0), "エフェクト読み込み中…%d/%d", j, effects);//
+			DrawFormatString(0, (18 * k), c_00ff00, "エフェクト読み込み中…%d/%d", j, effects);//
 			if (effHndle[j]) {
-				k++; DrawFormatString(0, (18 * k), GetColor(255, 255, 0), "エフェクト読み込み成功…%d", j);
+				k++; DrawFormatString(0, (18 * k), c_ffff00, "エフェクト読み込み成功…%d", j);
 			}
 			if (i > f_rate) {
-				k++; DrawFormatString(0, (18 * k), GetColor(255, 0, 0), "エフェクト読み込み失敗…%d", j);
+				k++; DrawFormatString(0, (18 * k), c_ff0000, "エフェクト読み込み失敗…%d", j);
 			}
 			Screen_Flip(waits);
 			if (effHndle[j]) { break; }
@@ -144,6 +147,12 @@ int Myclass::window_choosev(void) {
 	int mousex, mousey;
 	float real = 0.f, r = 5.f, unt = 0.f;
 	LONGLONG waits;
+	const auto c_00ff00 = GetColor(0, 255, 0);
+	const auto c_ffff00 = GetColor(255, 255, 0);
+	const auto c_ff0000 = GetColor(255, 0, 0);
+	const auto c_ffffff = GetColor(255, 255, 255);
+	const auto c_ffc800 = GetColor(255, 200, 0);
+	const auto c_ff6400 = GetColor(255, 100, 0);
 	while (ProcessMessage() == 0) {
 		waits = GetNowHiPerformanceCount();
 		if (CheckHitKey(KEY_INPUT_ESCAPE) != 0) { i = -1; break; }				//end
@@ -157,56 +166,57 @@ int Myclass::window_choosev(void) {
 				MV1SetRotationXYZ(vecs[k].model.get(), VGet(0, deg2rad((360 * k / vecs.size() + 30)), 0));
 				MV1DrawModel(vecs[k].model.get());
 			}
-			DrawFormatStringToHandle(x_r(960) - GetDrawFormatStringWidthToHandle(font72, "%s", vecs[i].name.c_str()) / 2, y_r(154), GetColor(0, 255, 0), font72, "%s", vecs[i].name.c_str());
-			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(850), y_r(850), GetColor(0, 255, 0), font18, "MAX SPD    : %5.2f km/h", vecs[i].spdflont[3] * 3.6f); }
-			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(850), y_r(870), GetColor(0, 255, 0), font18, "BACK SPD   : %5.2f km/h", vecs[i].spdback[3] * 3.6f); }
-			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(1140), y_r(810), GetColor(0, 255, 0), font18, "TURN SPEED : %5.2f deg/s", vecs[i].vehicle_RD * 180 / DX_PI_F); }
-			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(1120), y_r(580), GetColor(0, 255, 0), font18, "MAX ARMER  : %5.2f mm", vecs[i].armer[0]); }
-			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(650), y_r(410), GetColor(0, 255, 0), font18, "GUN RAD     : %5.2f°～%5.2f°", vecs[i].gun_lim_[2] * 180 / DX_PI_F, vecs[i].gun_lim_[3] * 180 / DX_PI_F); }
-			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(650), y_r(430), GetColor(0, 255, 0), font18, "GUN CALIBER : %05.1fmm", vecs[i].ammosize*1000.f); }
+			DrawFormatStringToHandle(x_r(960) - GetDrawFormatStringWidthToHandle(font72, "%s", vecs[i].name.c_str()) / 2, y_r(154), c_00ff00, font72, "%s", vecs[i].name.c_str());
+			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(850), y_r(850), c_00ff00, font18, "MAX SPD    : %5.2f km/h", vecs[i].spdflont[3] * 3.6f); }
+			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(850), y_r(870), c_00ff00, font18, "BACK SPD   : %5.2f km/h", vecs[i].spdback[3] * 3.6f); }
+			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(1140), y_r(810), c_00ff00, font18, "TURN SPEED : %5.2f deg/s", vecs[i].vehicle_RD * 180 / DX_PI_F); }
+			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(1120), y_r(580), c_00ff00, font18, "MAX ARMER  : %5.2f mm", vecs[i].armer[0]); }
+			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(650), y_r(410), c_00ff00, font18, "GUN RAD     : %5.2f°～%5.2f°", vecs[i].gun_lim_[2] * 180 / DX_PI_F, vecs[i].gun_lim_[3] * 180 / DX_PI_F); }
+			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(650), y_r(430), c_00ff00, font18, "GUN CALIBER : %05.1fmm", vecs[i].ammosize*1000.f); }
 			//
-			DrawFormatStringToHandle(x_r(0), y_r(18 * 1), GetColor(0, 255, 0), font18, "%s", "SETTING");
-			DrawFormatStringToHandle(x_r(0), y_r(18 * 2), GetColor(0, 255, 0), font18, " 人の物理演算         : %s", usegrab ? "TRUE" : "FALSE");
-			DrawFormatStringToHandle(x_r(0), y_r(18 * 3), GetColor(0, 255, 0), font18, " アンチエイリアス倍率 : x%d", ANTI);
-			DrawFormatStringToHandle(x_r(0), y_r(18 * 4), GetColor(0, 255, 0), font18, " 垂直同期             : %s", YSync ? "TRUE" : "FALSE");
-			DrawFormatStringToHandle(x_r(0), y_r(18 * 5), GetColor(0, 255, 0), font18, " ウィンドウor全画面   : %s", windowmode ? "TRUE" : "FALSE");
-			DrawFormatStringToHandle(x_r(0), y_r(18 * 6), GetColor(0, 255, 0), font18, " 木の描画距離         : %5.2f m", drawdist);
-			DrawFormatStringToHandle(x_r(0), y_r(18 * 7), GetColor(0, 255, 0), font18, " 地面のクォリティ     : x%d", gndx);
+			DrawFormatStringToHandle(x_r(0), y_r(18 * 1), c_00ff00, font18, "%s", "SETTING");
+			DrawFormatStringToHandle(x_r(0), y_r(18 * 2), c_00ff00, font18, " 人の物理演算         : %s", usegrab ? "TRUE" : "FALSE");
+			DrawFormatStringToHandle(x_r(0), y_r(18 * 3), c_00ff00, font18, " アンチエイリアス倍率 : x%d", ANTI);
+			DrawFormatStringToHandle(x_r(0), y_r(18 * 4), c_00ff00, font18, " 垂直同期             : %s", YSync ? "TRUE" : "FALSE");
+			DrawFormatStringToHandle(x_r(0), y_r(18 * 5), c_00ff00, font18, " ウィンドウor全画面   : %s", windowmode ? "TRUE" : "FALSE");
+			DrawFormatStringToHandle(x_r(0), y_r(18 * 6), c_00ff00, font18, " 木の描画距離         : %5.2f m", drawdist);
+			DrawFormatStringToHandle(x_r(0), y_r(18 * 7), c_00ff00, font18, " 地面のクォリティ     : x%d", gndx);
 			//
 			GetMousePoint(&mousex, &mousey);
 			if (inm(x_r(360), y_r(340), x_r(400), y_r(740))) {
-				m = GetColor(255, 255, 0);
-				if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0) { m = GetColor(255, 0, 0); ++x; if (x == 1) { l++; i++; if (i > vecs.size() - 1) { i = 0; } } } else { x = 0; }
+				m = c_ffff00;
+				if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0) { m = c_ff0000; ++x; if (x == 1) { l++; i++; if (i > vecs.size() - 1) { i = 0; } } } else { x = 0; }
 			}
-			else { m = GetColor(0, 255, 0); }
+			else { m = c_00ff00; }
 			DrawBox(x_r(360), y_r(340), x_r(400), y_r(740), m, FALSE);
-			DrawFormatStringToHandle(x_r(396) - GetDrawFormatStringWidthToHandle(font18, "%s", "<"), y_r(531), GetColor(255, 255, 255), font18, "%s", "<");
+			DrawFormatStringToHandle(x_r(396) - GetDrawFormatStringWidthToHandle(font18, "%s", "<"), y_r(531), c_ffffff, font18, "%s", "<");
 			//
 			if (inm(x_r(1520), y_r(340), x_r(1560), y_r(740))) {
-				m = GetColor(255, 255, 0);
-				if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0) { m = GetColor(255, 0, 0); ++y; if (y == 1) { l--;  i--; if (i < 0) { i = int(vecs.size() - 1); } } } else { y = 0; }
+				m = c_ffff00;
+				if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0) { m = c_ff0000; ++y; if (y == 1) { l--;  i--; if (i < 0) { i = int(vecs.size() - 1); } } } else { y = 0; }
 			}
-			else { m = GetColor(0, 255, 0); }
+			else { m = c_00ff00; }
 			DrawBox(x_r(1520), y_r(340), x_r(1560), y_r(740), m, FALSE);
-			DrawFormatStringToHandle(x_r(1524), y_r(531), GetColor(255, 255, 255), font18, "%s", ">");
+			DrawFormatStringToHandle(x_r(1524), y_r(531), c_ffffff, font18, "%s", ">");
 			//
 			if (inm(x_r(760), y_r(960), x_r(1160), y_r(996))) {
-				m = GetColor(255, 200, 0);
+				m = c_ffc800;
 				if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0) { break; }
 			}
-			else { m = GetColor(200, 100, 0); }
+			else { m = c_ff6400; }
 			DrawBox(x_r(760), y_r(960), x_r(1160), y_r(996), m, FALSE);
-			DrawFormatStringToHandle(x_r(960) - GetDrawFormatStringWidthToHandle(font18, "%s", "戦闘開始") / 2, y_r(969), GetColor(255, 255, 255), font18, "%s", "戦闘開始");
+			DrawFormatStringToHandle(x_r(960) - GetDrawFormatStringWidthToHandle(font18, "%s", "戦闘開始") / 2, y_r(969), c_ffffff, font18, "%s", "戦闘開始");
 		Screen_Flip(waits);
 	}
 	DeleteFontToHandle(font18);
 	DeleteFontToHandle(font72);
 	if (i != -1) {
+		const auto c_000000 = GetColor(0, 0, 0);
 		while (ProcessMessage() == 0 && unt <= 0.9f) {
 			waits = GetNowHiPerformanceCount();
 			SetDrawScreen(DX_SCREEN_BACK);
 			SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(255.f*unt));
-			DrawBox(0, 0, dispx, dispy, GetColor(0, 0, 0), TRUE);
+			DrawBox(0, 0, dispx, dispy, c_000000, TRUE);
 			differential(unt, 1.f, 0.05f);
 			Screen_Flip(waits);
 		}
@@ -739,46 +749,48 @@ UIS::UIS() {
 	SetUseASyncLoadFlag(FALSE);
 }
 void UIS::draw_load(void){
-	int i;
-	float pers;
 	int font18 = CreateFontToHandle(NULL, x_r(18), y_r(18 / 3), DX_FONTTYPE_ANTIALIASING);
 	SetUseASyncLoadFlag(TRUE);
 	int pad = LoadGraph("data/key.png");
 	SetUseASyncLoadFlag(FALSE);
-	int pp = GetASyncLoadNum();
-	LONGLONG waits;
+	const int pp = GetASyncLoadNum();
+	const auto c_00ff00 = GetColor(0, 255, 0);
+	const auto c_ff0000 = GetColor(255, 0, 0);
+	const auto c_ff6400 = GetColor(255, 100, 0);
+	const auto c_00c800 = GetColor(0, 200, 0);
+	const auto c_3264ff = GetColor( 50, 100, 255);
 	while (ProcessMessage() == 0 && GetASyncLoadNum() != 0) {
-		waits = GetNowHiPerformanceCount();
+		const auto waits = GetNowHiPerformanceCount();
 		SetDrawScreen(DX_SCREEN_BACK);
 		ClearDrawScreen();
 		//
-		pers = (float)(pp - GetASyncLoadNum()) / pp;
-		DrawBox(x_r(0), y_r(1080-6), x_r(1920.f*pers), y_r(1080-3), GetColor(0, 255, 0), TRUE);
-		DrawFormatStringToHandle(x_r(0), y_r(1080-24), GetColor(0, 255, 0), font18, "LOADING : %06.2f%%", pers * 100.f);
+		const float pers = (float)(pp - GetASyncLoadNum()) / pp;
+		DrawBox(x_r(0), y_r(1080-6), x_r(1920.f*pers), y_r(1080-3), c_00ff00, TRUE);
+		DrawFormatStringToHandle(x_r(0), y_r(1080-24), c_00ff00, font18, "LOADING : %06.2f%%", pers * 100.f);
 		//
 		DrawExtendGraph(x_r(552), y_r(401), x_r(1367), y_r(679), pad, TRUE);
-		i = 0;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255,   0,   0), font18, "%s : 前進", "W"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255,   0,   0), font18, "%s : 後退", "S"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255,   0,   0), font18, "%s : 左転", "A"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255,   0,   0), font18, "%s : 右転", "D"); i += 18;
-		//DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255,   0,   0), font18, "%s : シフトアップ", "R"); i += 18;
-		//DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255,   0,   0), font18, "%s : シフトダウン", "F"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255, 100,   0), font18, "%s : 砲昇", "↑"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255, 100,   0), font18, "%s : 砲降", "↓"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255, 100,   0), font18, "%s : 砲左", "←"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255, 100,   0), font18, "%s : 砲右", "→"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255, 100,   0), font18, "%s : 精密砲操作", "左CTRL"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255, 100,   0), font18, "%s : 照準", "左shift"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255, 100,   0), font18, "%s : レティクル上昇", "Z"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255, 100,   0), font18, "%s : レティクル下降", "X"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255, 100,   0), font18, "%s : ズームアウト", "C"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(255, 100,   0), font18, "%s : ズームイン", "V"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(  0, 200,   0), font18, "%s : 再装填", "Q"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor(  0, 200,   0), font18, "%s : 射撃", "space"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor( 50, 100, 255), font18, "%s : 指揮", "右shift"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor( 50, 100, 255), font18, "%s : 見回し/指揮", "マウス"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), GetColor( 50, 100, 255), font18, "%s : 終了", "ESC"); i += 18;
+		int i = 0;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff0000, font18, "%s : 前進", "W"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff0000, font18, "%s : 後退", "S"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff0000, font18, "%s : 左転", "A"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff0000, font18, "%s : 右転", "D"); i += 18;
+		//DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff0000, font18, "%s : シフトアップ", "R"); i += 18;
+		//DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff0000, font18, "%s : シフトダウン", "F"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff6400, font18, "%s : 砲昇", "↑"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff6400, font18, "%s : 砲降", "↓"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff6400, font18, "%s : 砲左", "←"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff6400, font18, "%s : 砲右", "→"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff6400, font18, "%s : 精密砲操作", "左CTRL"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff6400, font18, "%s : 照準", "左shift"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff6400, font18, "%s : レティクル上昇", "Z"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff6400, font18, "%s : レティクル下降", "X"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff6400, font18, "%s : ズームアウト", "C"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff6400, font18, "%s : ズームイン", "V"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_00c800, font18, "%s : 再装填", "Q"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_00c800, font18, "%s : 射撃", "space"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_3264ff, font18, "%s : 指揮", "右shift"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_3264ff, font18, "%s : 見回し/指揮", "マウス"); i += 18;
+		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_3264ff, font18, "%s : 終了", "ESC"); i += 18;
 		ScreenFlip();
 		while (GetNowHiPerformanceCount() - waits < 1000000.0f / 60.f) {}
 	}
@@ -887,19 +899,20 @@ void UIS::debug(float fps, float time) {
 		deb[0][i + 1] = waydeb[i];
 		for (j = 60 - 1; j >= 1; --j) { deb[j][i + 1] = deb[j - 1][i + 1]; }
 	}
-
+	const auto c_ffff00 = GetColor(255, 255, 0);
 	for (j = 0; j < 60 - 1; ++j) {
 		for (i = 0; i < 6; ++i) {
 			DrawLine(100 + j * 5, 100 + (int)(200.f - deb[j][i + 1] * 10.f), 100 + (j + 1) * 5, 100 + (int)(200.f - deb[j + 1][i + 1] * 10.f), GetColor(50, 50, 128+127*i/6));
 		}
-		DrawLine(100 + j * 5, 100 + (int)(200.f - deb[j][0] * 10.f), 100 + (j + 1) * 5, 100 + (int)(200.f - deb[j + 1][0] * 10.f), GetColor(255, 255, 0));
+		DrawLine(100 + j * 5, 100 + (int)(200.f - deb[j][0] * 10.f), 100 + (j + 1) * 5, 100 + (int)(200.f - deb[j + 1][0] * 10.f), c_ffff00);
 	}
+	const auto c_ffffff = GetColor(255, 255, 255);
 	DrawLine(100, 100 + 200-166, 100 + 60 * 5, 100 + 200 - 166, GetColor(0, 255, 0));
 	DrawBox(100, 100 + 0, 100 + 60 * 5, 100 + 200, GetColor(255, 0, 0), FALSE);
-	DrawFormatString(100, 100 + 0, GetColor(255, 255, 255), "%05.2ffps (%.2fms)", fps, time);
-	DrawFormatString(100, 100 + 18, GetColor(255, 255, 255), "%d(%.2fms)", 0, waydeb[0]);
+	DrawFormatString(100, 100 + 0, c_ffffff, "%05.2ffps (%.2fms)", fps, time);
+	DrawFormatString(100, 100 + 18, c_ffffff, "%d(%.2fms)", 0, waydeb[0]);
 	for (j = 1; j < 6; ++j) {
-		DrawFormatString(100, 100 + 18 + j * 18, GetColor(255, 255, 255), "%d(%.2fms)", j, waydeb[j] - waydeb[j - 1]);
+		DrawFormatString(100, 100 + 18 + j * 18, c_ffffff, "%d(%.2fms)", j, waydeb[j] - waydeb[j - 1]);
 	}
 }
 //
