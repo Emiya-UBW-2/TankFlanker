@@ -453,18 +453,35 @@ MAPS::MAPS(int map_size, float draw_dist){
 	texn = MakeScreen(groundx, groundx, FALSE);				/*実マップ*/
 	SetUseASyncLoadFlag(FALSE);
 }
-void MAPS::set_map_readyb(bool set){
+void MAPS::set_map_readyb(int set){
 	lightvec = VGet(0.5f, -0.5f, 0.5f);
 	SetUseASyncLoadFlag(TRUE);
-		tree.mnear = MV1ModelHandle::Load((set) ? "data/tree/model.mv1" : "data/map/tree/model.mv1");			/*近木*/
-		tree.mfar = MV1ModelHandle::Load((set) ? "data/tree/model2.mv1" : "data/map/tree/model2.mv1");			/*遠木*/
-		texl = LoadGraph((set) ? "data/SandDesert_04_00344_FWD.png" : "data/map/SandDesert_04_00344_FWD.png");				/*nor*/
-		texm = LoadGraph((set) ? "data/SandDesert_04_00344_NM.png" : "data/map/SandDesert_04_00344_NM.png");				/*nor*/
-		m_model = MV1ModelHandle::Load((set) ? "data/map.mv1" : "data/map/map.mv1");			/*map*/
-		sky_model = MV1ModelHandle::Load((set) ? "data/sky/model_sky.mv1" : "data/map/sky/model_sky.mv1");			/*sky*/
-		graph = LoadGraph((set) ? "data/grass/grass.png" : "data/map/grass/grass.png");				/*grass*/
-		grass = MV1ModelHandle::Load((set) ? "data/grass/grass.mqo" : "data/map/grass/grass.mqo");			/*grass*/
-		GgHandle = LoadGraph((set) ? "data/grass/gg.png" : "data/map/grass/gg.png");			/*地面草*/
+		//ここはsetの値によってマップを他のに変更したく存じます(名無)
+	std::string tempname, tempname2;
+		if (set == 0) {
+			tempname = "map";
+		}
+		else {
+			tempname = "map";
+		}
+		tempname2 = "data/" + tempname + "/tree/model.mv1";
+		tree.mnear = MV1ModelHandle::Load(tempname2.c_str());			/*近木*/
+		tempname2 = "data/" + tempname + "/tree/model2.mv1";
+		tree.mfar = MV1ModelHandle::Load(tempname2.c_str());			/*遠木*/
+		tempname2 = "data/" + tempname + "/SandDesert_04_00344_FWD.png";
+		texl = LoadGraph(tempname2.c_str());					/*nor*/
+		tempname2 = "data/" + tempname + "/SandDesert_04_00344_NM.png";
+		texm = LoadGraph(tempname2.c_str());					/*nor*/
+		tempname2 = "data/" + tempname + "/map.mv1";
+		m_model = MV1ModelHandle::Load(tempname2.c_str());			/*map*/
+		tempname2 = "data/" + tempname + "/sky/model_sky.mv1";
+		sky_model = MV1ModelHandle::Load(tempname2.c_str());			/*sky*/
+		tempname2 = "data/" + tempname + "/grass/grass.png";
+		graph = LoadGraph(tempname2.c_str());					/*grass*/
+		tempname2 = "data/" + tempname + "/grass/grass.mqo";
+		grass = MV1ModelHandle::Load(tempname2.c_str());			/*grass*/
+		tempname2 = "data/" + tempname + "/grass/gg.png";
+		GgHandle = LoadGraph(tempname2.c_str());				/*地面草*/
 	SetUseASyncLoadFlag(FALSE);
 	return;
 }

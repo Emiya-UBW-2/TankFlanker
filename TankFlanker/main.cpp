@@ -74,7 +74,11 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 
 		mdata = FileRead_open("stage/data_0/main.txt", FALSE);
 		FileRead_gets(mstr, 64, mdata);
-		const bool mapc = bool(std::stoul(getright(mstr)));
+
+
+		const int mapc = std::stof(getright(mstr));
+
+//		const bool mapc = bool(std::stoul(getright(mstr)));
 		FileRead_close(mdata);
 
 		const size_t teamc = count_team();

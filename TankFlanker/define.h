@@ -323,7 +323,7 @@ private:
 	float rat;								/**/
 public:
 	MAPS(int map_size,float draw_dist);
-	void set_map_readyb(bool set);
+	void set_map_readyb(int set);
 	bool set_map_ready(void);
 	void set_camerapos(VECTOR pos, VECTOR vec, VECTOR up, float ratio);
 	void set_map_shadow_near(float vier_r);
