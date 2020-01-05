@@ -131,23 +131,19 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 				player[p_cnt].obj = player[p_cnt].ptr->model.Duplicate();
 				player[p_cnt].colobj = player[p_cnt].ptr->colmodel.Duplicate();
 				for (i = 0; i < 3; i++) { player[p_cnt].hitpic[i] = hit_mod.Duplicate(); }
-				player[p_cnt].se[0] = LoadSoundMem("data/audio/se/engine/0.wav");
-				player[p_cnt].se[1] = LoadSoundMem("data/audio/se/fire/gun.wav");
+				player[p_cnt].se[0] = SoundHandle::Load("data/audio/se/engine/0.wav");
+				player[p_cnt].se[1] = SoundHandle::Load("data/audio/se/fire/gun.wav");
 				for (i = 2; i < 10; ++i) {
-					tempname = "data/audio/se/fire/" + std::to_string(i - 2) + ".wav";
-					player[p_cnt].se[i] = LoadSoundMem(tempname.c_str());
+					player[p_cnt].se[i] = SoundHandle::Load("data/audio/se/fire/" + std::to_string(i - 2) + ".wav");
 				}
 				for (i = 10; i < 27; ++i) {
-					tempname = "data/audio/se/ricochet/" + std::to_string(i - 10) + ".wav";
-					player[p_cnt].se[i] = LoadSoundMem(tempname.c_str());
+					player[p_cnt].se[i] = SoundHandle::Load("data/audio/se/ricochet/" + std::to_string(i - 10) + ".wav");
 				}
 				for (i = 27; i < 29; ++i) {
-					tempname = "data/audio/se/engine/o" + std::to_string(i - 27) + ".wav";
-					player[p_cnt].se[i] = LoadSoundMem(tempname.c_str());
+					player[p_cnt].se[i] = SoundHandle::Load("data/audio/se/engine/o" + std::to_string(i - 27) + ".wav");
 				}
 				for (i = 29; i < 31; ++i) {
-					tempname = "data/audio/se/battle/hit_enemy/" + std::to_string(i - 29) + ".wav";
-					player[p_cnt].se[i] = LoadSoundMem(tempname.c_str());
+					player[p_cnt].se[i] = SoundHandle::Load("data/audio/se/battle/hit_enemy/" + std::to_string(i - 29) + ".wav");
 				}
 		}
 		SetCreate3DSoundFlag(FALSE);
@@ -228,8 +224,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		humanparts.set_humanvc_vol(255);
 		parts.set_se_vol(128);
 		for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
-			for (i = 1; i < 27; ++i) { ChangeVolumeSoundMem(128, player[p_cnt].se[i]); }
-			for (i = 29; i < 31; ++i) { ChangeVolumeSoundMem(128, player[p_cnt].se[i]); }
+			for (i = 1; i < 27; ++i) { ChangeVolumeSoundMem(128, player[p_cnt].se[i].get()); }
+			for (i = 29; i < 31; ++i) { ChangeVolumeSoundMem(128, player[p_cnt].se[i].get()); }
 		}
 		/*メインループ*/
 		aim.flug = false;
@@ -246,15 +242,15 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 			player[p_cnt].effcs[ef_smoke2].efhandle = parts.get_effHandle(ef_smoke2).Play3D();
 			player[p_cnt].effcs[ef_smoke3].efhandle = parts.get_effHandle(ef_smoke2).Play3D();
-			PlaySoundMem(player[p_cnt].se[0], DX_PLAYTYPE_LOOP, TRUE);
-			PlaySoundMem(player[p_cnt].se[27], DX_PLAYTYPE_LOOP, TRUE);
-			PlaySoundMem(player[p_cnt].se[28], DX_PLAYTYPE_LOOP, TRUE);
-			Set3DRadiusSoundMem(200.0f, player[p_cnt].se[0]);
-			Set3DRadiusSoundMem(200.0f, player[p_cnt].se[1]);
-			for (i = 2; i < 10; ++i) { Set3DRadiusSoundMem(300.0f, player[p_cnt].se[i]); }
-			for (i = 10; i < 27; ++i) { Set3DRadiusSoundMem(100.0f, player[p_cnt].se[i]); }
-			for (i = 27; i < 29; ++i) { Set3DRadiusSoundMem(200.0f, player[p_cnt].se[i]); }
-			for (i = 29; i < 31; ++i) { Set3DRadiusSoundMem(300.0f, player[p_cnt].se[i]); }
+			PlaySoundMem(player[p_cnt].se[0].get(), DX_PLAYTYPE_LOOP, TRUE);
+			PlaySoundMem(player[p_cnt].se[27].get(), DX_PLAYTYPE_LOOP, TRUE);
+			PlaySoundMem(player[p_cnt].se[28].get(), DX_PLAYTYPE_LOOP, TRUE);
+			Set3DRadiusSoundMem(200.0f, player[p_cnt].se[0].get());
+			Set3DRadiusSoundMem(200.0f, player[p_cnt].se[1].get());
+			for (i = 2; i < 10; ++i) { Set3DRadiusSoundMem(300.0f, player[p_cnt].se[i].get()); }
+			for (i = 10; i < 27; ++i) { Set3DRadiusSoundMem(100.0f, player[p_cnt].se[i].get()); }
+			for (i = 27; i < 29; ++i) { Set3DRadiusSoundMem(200.0f, player[p_cnt].se[i].get()); }
+			for (i = 29; i < 31; ++i) { Set3DRadiusSoundMem(300.0f, player[p_cnt].se[i].get()); }
 		}
 		const auto c_000000 = GetColor(0, 0, 0);
 		const auto c_00ff00 = GetColor(0, 255, 0);
@@ -582,10 +578,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 					}
 					//地形判定全体=3.8ms
 					//サウンド
-					if (abs(player[p_cnt].speed) >= player[p_cnt].ptr->spdflont[0]) { ChangeVolumeSoundMem(64, player[p_cnt].se[0]); }
-					else { ChangeVolumeSoundMem((int)(64.f*abs(player[p_cnt].speed) / player[p_cnt].ptr->spdflont[0]), player[p_cnt].se[0]); }//0.1ms
-					for (i = 27; i < 29; ++i) { ChangeVolumeSoundMem((int)(32.f + 32.f*abs(player[p_cnt].speed / player[p_cnt].ptr->spdflont[3])), player[p_cnt].se[i]); }//0.1ms
-					for (i = 0; i < 31; ++i) { if (CheckSoundMem(player[p_cnt].se[i]) == 1) { Set3DPositionSoundMem(player[p_cnt].pos, player[p_cnt].se[i]); } }//1.5ms
+					if (abs(player[p_cnt].speed) >= player[p_cnt].ptr->spdflont[0]) { ChangeVolumeSoundMem(64, player[p_cnt].se[0].get()); }
+					else { ChangeVolumeSoundMem((int)(64.f*abs(player[p_cnt].speed) / player[p_cnt].ptr->spdflont[0]), player[p_cnt].se[0].get()); }//0.1ms
+					for (i = 27; i < 29; ++i) { ChangeVolumeSoundMem((int)(32.f + 32.f*abs(player[p_cnt].speed / player[p_cnt].ptr->spdflont[3])), player[p_cnt].se[i].get()); }//0.1ms
+					for (i = 0; i < 31; ++i) { if (CheckSoundMem(player[p_cnt].se[i].get()) == 1) { Set3DPositionSoundMem(player[p_cnt].pos, player[p_cnt].se[i].get()); } }//1.5ms
 					//サウンド全体=1.7ms
 					//tree判定
 					mapparts.set_hitplayer(player[p_cnt].pos);
@@ -677,11 +673,11 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 									player[p_cnt].fired = 0.5f;
 									player[p_cnt].firerad = 0;
 									if (p_cnt == 0) { humanparts.start_humananime(2); parts.play_sound(1 + GetRand(6)); }
-									PlaySoundMem(player[p_cnt].se[2 + GetRand(7)], DX_PLAYTYPE_BACK, TRUE);
+									PlaySoundMem(player[p_cnt].se[2 + GetRand(7)].get(), DX_PLAYTYPE_BACK, TRUE);
 								}
 								else {
 									set_effect(&(player[p_cnt].effcs[ef_gun]), MV1GetFramePosition(player[p_cnt].obj.get(), bone_gun_), VGet(0, 0, 0));
-									PlaySoundMem(player[p_cnt].se[1], DX_PLAYTYPE_BACK, TRUE);
+									PlaySoundMem(player[p_cnt].se[1].get(), DX_PLAYTYPE_BACK, TRUE);
 								}
 							}
 						}
@@ -1005,7 +1001,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			/**/
 			player[p_cnt].obj.Dispose();
 			player[p_cnt].colobj.Dispose();
-			for (i = 0; i < 50; ++i) { DeleteSoundMem(player[p_cnt].se[i]); }
+			for (i = 0; i < 50; ++i) { player[p_cnt].se[i].Dispose(); }
 			for (i = 0; i < 3; i++) { player[p_cnt].hitpic[i].Dispose(); }
 			player[p_cnt].Ammo.clear();
 			player[p_cnt].Springs.clear();

@@ -1,5 +1,6 @@
 ﻿#include "define.h"
 #include <string_view>
+#include <array>
 //
 Myclass::Myclass() {
 	using namespace std::literals;
@@ -88,7 +89,7 @@ Myclass::Myclass() {
 			const auto filename = (j < 1) ? "data/audio/se/engine/shift.wav"s
 				: (j < 8) ? "data/audio/se/eject/" + std::to_string(j - 1) + ".wav"
 				: "data/audio/se/load/" + std::to_string(j - 8) + ".wav";
-			se_[j] = LoadSoundMem(filename.c_str());
+			se_[j] = SoundHandle::Load(filename);
 		}
 		for (size_t j = 0; j < std::size(ui_reload); ++j) {
 			ui_reload[j] = LoadGraph(("data/ui/ammo_" + std::to_string(j) + ".bmp").c_str());
@@ -250,10 +251,10 @@ Myclass::~Myclass() {
 	DxLib_End();
 }
 void Myclass::set_se_vol(unsigned char size) {
-	for (auto&& s : se_) { ChangeVolumeSoundMem(size, s); }
+	for (auto&& s : se_) { ChangeVolumeSoundMem(size, s.get()); }
 }
 void Myclass::play_sound(int p1) {
-	PlaySoundMem(se_[p1], DX_PLAYTYPE_BACK, TRUE);
+	PlaySoundMem(se_[p1].get(), DX_PLAYTYPE_BACK, TRUE);
 }
 //
 HUMANS::HUMANS(bool useg,float frates){
@@ -292,7 +293,7 @@ void HUMANS::set_humans(const MV1ModelHandle& inmod) {
 	for (i = 0; i < voice; ++i) {
 		hum[0].voices[i] = MV1AttachAnim(hum[0].obj.get(), animes + i, -1, TRUE);
 		hum[0].voicealltime[i] = MV1GetAttachAnimTotalTime(hum[0].obj.get(), hum[0].voices[i]);
-		hum[0].vsound[i] = LoadSoundMem(("data/chara/結月ゆかり/" + std::to_string(i) + ".wav").c_str());
+		hum[0].vsound[i] = SoundHandle::Load("data/chara/結月ゆかり/" + std::to_string(i) + ".wav");
 	}
 	//
 	MV1SetMatrix(inmodel_handle.get(), MGetTranslate(VGet(0, 0, 0)));
@@ -310,7 +311,7 @@ void HUMANS::set_humans(const MV1ModelHandle& inmod) {
 	return;
 }
 void HUMANS::set_humanvc_vol(unsigned char size) {
-	for (auto&& v : hum[0].vsound) { ChangeVolumeSoundMem(size, v); }
+	for (auto&& v : hum[0].vsound) { ChangeVolumeSoundMem(size, v.get()); }
 }
 void HUMANS::set_humanmove(const players& player, VECTOR rad, float fps) {
 	float tmpft, tmpfy;
@@ -392,7 +393,7 @@ void HUMANS::set_humanmove(const players& player, VECTOR rad, float fps) {
 				//voice
 				if (hum[i].vflug != -1) {
 					if (hum[i].voicetime < hum[i].voicealltime[hum[i].vflug]) {
-						if (hum[i].voicetime == 0.0f) { PlaySoundMem(hum[i].vsound[hum[i].vflug], DX_PLAYTYPE_BACK, TRUE); }
+						if (hum[i].voicetime == 0.0f) { PlaySoundMem(hum[i].vsound[hum[i].vflug].get(), DX_PLAYTYPE_BACK, TRUE); }
 						MV1SetAttachAnimTime(hum[i].obj.get(), hum[i].voices[hum[i].vflug], hum[i].voicetime); hum[i].voicetime += 60.0f / divi / f_rate;//
 					}
 					else {
@@ -424,8 +425,6 @@ void HUMANS::draw_humanall() {
 }
 void HUMANS::delete_human(void) {
 	inmodel_handle.Dispose();
-	for (auto& h : hum) { h.obj.Dispose(); }
-	for (auto& v : hum[0].vsound) { DeleteSoundMem(v); }
 	hum.clear();
 	locin.clear();
 	pos_old.clear();
@@ -453,35 +452,21 @@ MAPS::MAPS(int map_size, float draw_dist){
 	texn = MakeScreen(groundx, groundx, FALSE);				/*実マップ*/
 	SetUseASyncLoadFlag(FALSE);
 }
-void MAPS::set_map_readyb(int set){
+void MAPS::set_map_readyb(size_t set){
+	using namespace std::literals;
 	lightvec = VGet(0.5f, -0.5f, 0.5f);
+	//ここはsetの値によってマップを他のに変更したく存じます(名無)
+	std::array<const char*, 2> mapper{ "map", "map" };// TODO: 書き換える
 	SetUseASyncLoadFlag(TRUE);
-		//ここはsetの値によってマップを他のに変更したく存じます(名無)
-	std::string tempname, tempname2;
-		if (set == 0) {
-			tempname = "map";
-		}
-		else {
-			tempname = "map";
-		}
-		tempname2 = "data/" + tempname + "/tree/model.mv1";
-		tree.mnear = MV1ModelHandle::Load(tempname2.c_str());			/*近木*/
-		tempname2 = "data/" + tempname + "/tree/model2.mv1";
-		tree.mfar = MV1ModelHandle::Load(tempname2.c_str());			/*遠木*/
-		tempname2 = "data/" + tempname + "/SandDesert_04_00344_FWD.png";
-		texl = LoadGraph(tempname2.c_str());					/*nor*/
-		tempname2 = "data/" + tempname + "/SandDesert_04_00344_NM.png";
-		texm = LoadGraph(tempname2.c_str());					/*nor*/
-		tempname2 = "data/" + tempname + "/map.mv1";
-		m_model = MV1ModelHandle::Load(tempname2.c_str());			/*map*/
-		tempname2 = "data/" + tempname + "/sky/model_sky.mv1";
-		sky_model = MV1ModelHandle::Load(tempname2.c_str());			/*sky*/
-		tempname2 = "data/" + tempname + "/grass/grass.png";
-		graph = LoadGraph(tempname2.c_str());					/*grass*/
-		tempname2 = "data/" + tempname + "/grass/grass.mqo";
-		grass = MV1ModelHandle::Load(tempname2.c_str());			/*grass*/
-		tempname2 = "data/" + tempname + "/grass/gg.png";
-		GgHandle = LoadGraph(tempname2.c_str());				/*地面草*/
+		tree.mnear = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/tree/model.mv1");			/*近木*/
+		tree.mfar = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/tree/model2.mv1");			/*遠木*/
+		texl = LoadGraph(("data/"s + mapper.at(set) + "/SandDesert_04_00344_FWD.png").c_str());					/*nor*/
+		texm = LoadGraph(("data/"s + mapper.at(set) + "/SandDesert_04_00344_NM.png").c_str());					/*nor*/
+		m_model = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/map.mv1");			/*map*/
+		sky_model = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/sky/model_sky.mv1");			/*sky*/
+		graph = LoadGraph(("data/"s + mapper.at(set) + "/grass/grass.png").c_str());					/*grass*/
+		grass = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/grass/grass.mqo");			/*grass*/
+		GgHandle = LoadGraph(("data/"s + mapper.at(set) + "/grass/gg.png").c_str());				/*地面草*/
 	SetUseASyncLoadFlag(FALSE);
 	return;
 }

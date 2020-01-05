@@ -11,12 +11,14 @@
 #include "Box2D/Box2D.h"
 #include "useful.h"
 #include <thread>
+#include <array>
 
 #include<algorithm>
 #include <vector>
 #include <cstring>
 #include "MV1ModelHandle.hpp"
 #include "EffekseerEffectHandle.hpp"
+#include "SoundHandle.hpp"
 #include <string_view>
 #include <cstdint>
 #include <optional>
@@ -128,7 +130,7 @@ struct players {
 	MV1ModelHandle colobj;						/*コリジョン*/
 	MV1ModelHandle hitpic[3];							/*弾痕モデル*/
 	char type{ 0 };							/*敵味方識別*/
-	int se[50]{ 0 };						/*SE*/
+	std::array<SoundHandle, 50> se;						/*SE*/
 	/**/
 	int move{ 0 };							/*キー操作*/
 	VECTOR pos{ VGet(0, 0, 0) };					/*座標*/
@@ -201,7 +203,7 @@ private:
 	std::vector<vehicle> vecs;						/*車輛情報*/
 	VECTOR view, view_r;							/*通常視点の角度、距離*/
 	std::vector<int> fonts;							/*フォント*/
-	int se_[13];								/*効果音*/
+	std::array<SoundHandle, 13> se_;								/*効果音*/
 	int ui_reload[4] = { 0 };						/*UI用*/
 	EffekseerEffectHandle effHndle[effects];						/*エフェクトリソース*/
 public:
@@ -254,7 +256,7 @@ private:
 		float voicetime{ 0.f };
 		float voicealltime[voice]{ 0 };
 		int voices[voice]{ 0 };
-		int vsound[voice]{ 0 };
+		std::array<SoundHandle, voice> vsound;
 	};
 	int human{ 0 };								/*乗員人数*/
 	bool usegrab{ false };							/*人の物理演算のオフ、オン、一人だけオン*/
@@ -323,7 +325,7 @@ private:
 	float rat;								/**/
 public:
 	MAPS(int map_size,float draw_dist);
-	void set_map_readyb(int set);
+	void set_map_readyb(size_t set);
 	bool set_map_ready(void);
 	void set_camerapos(VECTOR pos, VECTOR vec, VECTOR up, float ratio);
 	void set_map_shadow_near(float vier_r);
