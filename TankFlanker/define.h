@@ -1,18 +1,4 @@
 ﻿#pragma once
-#define dispx		(GetSystemMetrics(SM_CXSCREEN)/1)			/*描画X*/
-#define dispy		(GetSystemMetrics(SM_CYSCREEN)/1)			/*描画Y*/
-#define M_GR		-9.8f							/*重力加速度*/
-#define waypc		4							/*移動確保数*/
-#define ammoc		16							/*砲弾確保数*/
-#define animes		4							/*人アニメーション*/
-#define voice		1							/*ボイス*/
-#define map_x		1000							/*マップサイズX*/
-#define map_y		1000							/*マップサイズY*/
-#define TEAM		1							/*味方ID*/
-#define ENEMY		2							/*敵ID*/
-#define EXTEND		4							/*ブルーム用*/
-#define gunc		2							/*銃、砲の数*/
-#define divi		2							/*人の物理処理*/
 
 #ifndef INCLUDED_define_h_
 #define INCLUDED_define_h_
@@ -33,7 +19,23 @@
 #include "EffekseerEffectHandle.hpp"
 #include <string_view>
 #include <cstdint>
+#include <optional>
+
 using std::size_t;
+inline const int dispx = GetSystemMetrics(SM_CXSCREEN);			/*描画X*/
+inline const int dispy = GetSystemMetrics(SM_CYSCREEN);			/*描画Y*/
+constexpr float M_GR = -9.8f;							/*重力加速度*/
+#define waypc		4							/*移動確保数*/
+constexpr size_t ammoc = 16;						/*砲弾確保数*/
+#define animes		4							/*人アニメーション*/
+#define voice		1							/*ボイス*/
+#define map_x		1000							/*マップサイズX*/
+#define map_y		1000							/*マップサイズY*/
+#define TEAM		1							/*味方ID*/
+#define ENEMY		2							/*敵ID*/
+#define EXTEND		4							/*ブルーム用*/
+constexpr size_t gunc = 2;							/*銃、砲の数*/
+#define divi		2							/*人の物理処理*/
 
 /*構造体*/
 enum cpu {
@@ -144,7 +146,7 @@ struct players {
 	int firerad{ 0 };						/*反動角度*/
 	float recorad{ 0.f };						/*弾き反動*/
 	/*cpu関連*/
-	int atkf{ -1 };							/*cpuのヘイト*/
+	std::optional<size_t> atkf;							/*cpuのヘイト*/
 	int aim{ 0 };							/*ヘイトの変更カウント*/
 	int wayselect{ 0 }, waynow{ 0 };				/**/
 	VECTOR waypos[waypc]{ VGet(0, 0, 0) };				/*ウェイポイント*/
@@ -166,7 +168,7 @@ struct players {
 	/*弾関連*/
 	int ammotype{ 0 };						/*弾種*/
 	int loadcnt[gunc]{ 0 };						/*装てんカウンター*/
-	int useammo[gunc]{ 0 };						/*使用弾*/
+	size_t useammo[gunc]{};						/*使用弾*/
 	bool recoadd{ false };						/*弾きフラグ*/
 	bool hitadd{ false };						/*命中フラグ*/
 	VECTOR iconpos{ VGet(0, 0, 0) };				/*UI用*/
@@ -376,7 +378,7 @@ void set_effect(EffectS *efh,VECTOR pos,VECTOR nor);
 void set_pos_effect(EffectS *efh, const EffekseerEffectHandle& handle);
 //play_class予定
 void set_normal(float* xnor, float* znor, int maphandle, VECTOR position);
-bool get_reco(players* play, players* tgt, int i,int guns);
+bool get_reco(players* play, players* tgt, size_t i,size_t guns);
 void set_gunrad(players *play, float rat_r);
 bool set_shift(players *play);
 //

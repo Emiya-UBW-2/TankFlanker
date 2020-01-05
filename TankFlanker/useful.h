@@ -19,7 +19,7 @@
 #ifndef INCLUDED_useful_h_
 #define INCLUDED_useful_h_
 
-typedef std::pair<int, float> pair;
+typedef std::pair<size_t, float> pair;
 
 std::string getright(char* p1);
 

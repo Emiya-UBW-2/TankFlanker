@@ -19,7 +19,7 @@ size_t count_enemy() {
 /*main*/
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd) {
 	//temp------------------------------------------------------------------//
-	int i, j, k, tgt_p, guns;
+	int i, j, k, tgt_p;
 	int mousex, mousey;							/*mouse*/
 	float tmpf, tempfx, tempfy,turn_bias;
 	VECTOR tempvec[2];
@@ -38,7 +38,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 	int selfammo;								/*UI用*/
 	switches aim, map;							/*視点変更*/
 	float ratio, rat_r, aim_r;						/*照準視点　倍率、実倍率、距離*/
-	size_t waysel, choose = -1;						/*指揮視点　指揮車両、マウス選択*/
+	size_t waysel, choose = (std::numeric_limits<size_t>::max)();						/*指揮視点　指揮車両、マウス選択*/
 	std::uint8_t way = 0; //マウストリガー
 	LONGLONG old_time, waits;						/*時間取得*/
 	VECTOR campos, viewpos, uppos;						/*カメラ*/
@@ -166,14 +166,14 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			player[p_cnt].hitbuf = 0;
 			player[p_cnt].gear = 0;
 			//cpu
-			player[p_cnt].atkf = -1;
+			player[p_cnt].atkf = std::nullopt;
 			player[p_cnt].aim = -2;
 			//hit
 			for (i = 0; i < player[p_cnt].ptr->colmeshes; ++i) { MV1SetupCollInfo(player[p_cnt].colobj.get(), -1, 5, 5, 5); }
 			player[p_cnt].hitssort.resize(player[p_cnt].ptr->colmeshes);
 			//ammo
 			player[p_cnt].Ammo.resize(ammoc*gunc);
-			for (i = 0; i < ammoc * gunc; ++i) {
+			for (size_t i = 0; i < ammoc * gunc; ++i) {
 				if (player[p_cnt].type == TEAM) { player[p_cnt].Ammo[i].color = GetColor(255, 255, 150); }
 				else { player[p_cnt].Ammo[i].color = GetColor(255, 200, 150); }
 			}
@@ -301,7 +301,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 						if (player[waysel].wayselect <= waypc - 1) {
 							if (inm(x_r(420), y_r(0), x_r(1500), y_r(1080))) {
 								if (keyget[0]) {
-									way = (std::min)(way + 1, 2);
+									way = std::min<std::uint8_t>(way + 1, 2);
 									if (way == 1) {
 										if (player[waysel].wayselect == 0) { player[waysel].waynow = 0; }
 										player[waysel].waypos[player[waysel].wayselect] = VGet(_2x(mousex), 0, _2y(mousey));
@@ -366,8 +366,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 							for (i = player[p_cnt].waynow; i < waypc; i++) { if (VSize(VSub(player[p_cnt].pos, player[p_cnt].waypos[i])) < VSize(VSub(player[p_cnt].pos, player[p_cnt].waypos[player[p_cnt].waynow]))) { player[p_cnt].waynow = i; break; } }
 							*/
 							//*戦闘
-							if (player[p_cnt].atkf == -1) {
-								for (tgt_p = 0; tgt_p < playerc; ++tgt_p) {
+							if (!player[p_cnt].atkf) {
+								for (size_t tgt_p = 0; tgt_p < playerc; ++tgt_p) {
 									if (player[p_cnt].type != player[tgt_p].type) {
 										if (VSize(VSub(player[tgt_p].pos, player[p_cnt].pos)) <= 500.0f && player[tgt_p].HP[0] > 0) {
 											if (player[p_cnt].aim != player[p_cnt].atkf) {
@@ -383,8 +383,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 							else {
 								player[p_cnt].gear = 1;																	//*変速
 								tempvec[1] = MV1GetFramePosition(player[p_cnt].obj.get(), bone_gun1);												//*元のベクトル
-								tempvec[0] = VNorm(VSub(MV1GetFramePosition(player[player[p_cnt].atkf].obj.get(), bone_gun1), tempvec[1]));							//*向くベクトル
-								tmpf = VSize(VSub(MV1GetFramePosition(player[player[p_cnt].atkf].obj.get(), bone_gun1), tempvec[1]));
+								tempvec[0] = VNorm(VSub(MV1GetFramePosition(player[player[p_cnt].atkf.value()].obj.get(), bone_gun1), tempvec[1]));							//*向くベクトル
+								tmpf = VSize(VSub(MV1GetFramePosition(player[player[p_cnt].atkf.value()].obj.get(), bone_gun1), tempvec[1]));
 								getdist(&tempvec[1], VNorm(VSub(MV1GetFramePosition(player[p_cnt].obj.get(), bone_gun2), tempvec[1])), &tmpf, player[p_cnt].ptr->gun_speed[player[p_cnt].ammotype], f_rates);
 
 								tempvec[1] = VNorm(VSub(tempvec[1], MV1GetFramePosition(player[p_cnt].obj.get(), bone_gun1)));
@@ -397,7 +397,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 								if (cpu_move < 0) { player[p_cnt].move |= KEY_GOLEFT_; }
 								if (cpu_move > 0) { player[p_cnt].move |= KEY_GORIGHT; }
 								if (VSize(VCross(tempvec[1], tempvec[0])) < sin(deg2rad(1))) {
-									HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, MV1GetFramePosition(player[p_cnt].obj.get(), bone_gun1), MV1GetFramePosition(player[player[p_cnt].atkf].obj.get(), bone_gun1));
+									HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, MV1GetFramePosition(player[p_cnt].obj.get(), bone_gun1), MV1GetFramePosition(player[player[p_cnt].atkf.value()].obj.get(), bone_gun1));
 									if (!HitPoly.HitFlag) {
 										if (player[p_cnt].loadcnt[0] == 0) {
 											if ((player[p_cnt].move & KEY_GOFLONT) != 0) { player[p_cnt].move -= KEY_GOFLONT; }
@@ -410,7 +410,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 										if (GetRand(100) <= 2) { player[p_cnt].move |= KEY_SHOTGAN; }
 									}
 								}
-								if (player[player[p_cnt].atkf].HP[0] == 0 || player[p_cnt].aim > 5) { player[p_cnt].aim = player[p_cnt].atkf; player[p_cnt].atkf = -1; }
+								if (player[player[p_cnt].atkf.value()].HP[0] == 0 || player[p_cnt].aim > 5) { player[p_cnt].aim = player[p_cnt].atkf.value(); player[p_cnt].atkf = std::nullopt; }
 							}
 							//ぶつかり防止
 							for (tgt_p = 0; tgt_p < playerc; ++tgt_p) {
@@ -635,11 +635,11 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 						if (player[p_cnt].firerad < 180) { if (player[p_cnt].firerad <= 90) { player[p_cnt].firerad += 900 / (int)fps; } else { player[p_cnt].firerad += 180 / (int)fps; } }
 						else { player[p_cnt].firerad = 180; }
 					}
-					for (guns = 0; guns < gunc; ++guns) {
-						k = guns * ammoc;
+					for (size_t guns = 0; guns < gunc; ++guns) {
+						size_t k = guns * ammoc;
 						if (player[p_cnt].loadcnt[guns] == 0) {
 							if ((player[p_cnt].move & (KEY_SHOTCAN << guns)) != 0) {
-								j = player[p_cnt].useammo[guns] + k;
+								const auto j = player[p_cnt].useammo[guns] + k;
 								player[p_cnt].Ammo[j].flug = 1;
 								player[p_cnt].Ammo[j].speed = player[p_cnt].ptr->gun_speed[player[p_cnt].ammotype] / fps;
 								player[p_cnt].Ammo[j].pene = player[p_cnt].ptr->pene[player[p_cnt].ammotype];
@@ -654,7 +654,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 								player[p_cnt].Ammo[j].repos = player[p_cnt].Ammo[j].pos;
 								player[p_cnt].Ammo[j].cnt = 0;
 								//					       
-								++player[p_cnt].useammo[guns]; player[p_cnt].useammo[guns] &= ammoc - 1;
+								player[p_cnt].useammo[guns] = (std::min)(player[p_cnt].useammo[guns] + 1, ammoc - 1);
 								++player[p_cnt].loadcnt[guns];
 								if (guns == 0) {
 									set_effect(&(player[p_cnt].effcs[ef_fire]), MV1GetFramePosition(player[p_cnt].obj.get(), bone_gun2), VSub(MV1GetFramePosition(player[p_cnt].obj.get(), bone_gun2), MV1GetFramePosition(player[p_cnt].obj.get(), bone_gun1)));
@@ -673,7 +673,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 							++player[p_cnt].loadcnt[guns];
 							if (player[p_cnt].loadcnt[guns] >= player[p_cnt].ptr->reloadtime[guns]) { player[p_cnt].loadcnt[guns] = 0; if (p_cnt == 0 && guns == 0) { parts.play_sound(8 + GetRand(4)); } }//装てん完了
 						}
-						for (i = k; i < ammoc + k; ++i) {
+						for (size_t i = k; i < ammoc + k; ++i) {
 							if (player[p_cnt].Ammo[i].flug != 0) {
 								player[p_cnt].Ammo[i].repos = player[p_cnt].Ammo[i].pos;
 								player[p_cnt].Ammo[i].pos = VAdd(player[p_cnt].Ammo[i].pos, VScale(player[p_cnt].Ammo[i].vec, player[p_cnt].Ammo[i].speed));
@@ -857,7 +857,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 					for (auto& tt : pssort) {
 						if (tt.second == (float)map_x) { continue; }
 						if (tt.second < (15.0f * parts.get_view_r().z + 20.0f)) { break; }
-						k = tt.first;
+						const auto k = tt.first;
 						MV1DrawMesh(player[k].obj.get(), 0);
 						for (i = 1; i < player[k].ptr->meshes; ++i) {
 							if (player[k].HP[i + 4] > 0) { MV1DrawMesh(player[k].obj.get(), i); }
@@ -868,7 +868,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 					humanparts.draw_human(0);
 					for (auto& tt : pssort) {
 						if (tt.second > (15.0f * parts.get_view_r().z + 20.0f)) { continue; }
-						k = tt.first;
+						const auto k = tt.first;
 						MV1DrawMesh(player[k].obj.get(), 0);
 						for (i = 1; i < player[k].ptr->meshes; ++i) {
 							if (player[k].HP[i + 4] > 0) { MV1DrawMesh(player[k].obj.get(), i); }
@@ -883,7 +883,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 					humanparts.draw_human(0);
 					for (auto& tt : pssort) {
 						if (tt.second == (float)map_x) { continue; }
-						k = tt.first;
+						const auto k = tt.first;
 						if (k != 0 || (k == 0 && !aim.flug)) {
 
 							MV1DrawMesh(player[k].obj.get(), 0);
@@ -907,7 +907,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 					SetUseLighting(FALSE);
 					SetFogEnable(FALSE);
 					for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
-						for (i = 0; i < ammoc; ++i) {
+						for (size_t i = 0; i < ammoc; ++i) {
 							if (player[p_cnt].Ammo[i].flug != 0) {
 								tmpf = 4.f*player[p_cnt].Ammo[i].speed / (player[p_cnt].ptr->gun_speed[player[p_cnt].ammotype] / fps);
 								if (tmpf >= 1.f) { tmpf = 1.f; }
@@ -916,7 +916,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 								DrawCapsule3D(player[p_cnt].Ammo[i].pos, player[p_cnt].Ammo[i].repos, player[p_cnt].ptr->ammosize*(VSize(VSub(player[p_cnt].Ammo[i].pos, campos)) / 65.f), 8, player[p_cnt].Ammo[i].color, GetColor(255, 255, 255), TRUE);
 							}
 						}
-						for (i = ammoc; i < ammoc * gunc; ++i) {
+						for (size_t i = ammoc; i < ammoc * gunc; ++i) {
 							if (player[p_cnt].Ammo[i].flug != 0) {
 								tmpf = 4.f*player[p_cnt].Ammo[i].speed / (player[p_cnt].ptr->gun_speed[player[p_cnt].ammotype] / fps);
 								if (tmpf >= 1.f) { tmpf = 1.f; }
@@ -967,7 +967,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 				else {
 					for (auto& tt : pssort) {
 						if (tt.second == (float)map_x) { continue; }
-						k = tt.first;
+						const auto k = tt.first;
 						if (player[k].HP[0] != 0) {
 							if (player[k].iconpos.z > 0.0f && player[k].iconpos.z < 1.0f) {
 								if (player[k].type == TEAM) { j = GetColor(0, 255, 0); }

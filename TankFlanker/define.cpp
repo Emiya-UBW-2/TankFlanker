@@ -108,8 +108,7 @@ bool Myclass::set_veh(void) {
 		for (size_t i = 0 ;std::size(v.coloc); ++i) { v.coloc[i] = MV1GetFramePosition(v.colmodel.get(), int(5 + i)); }
 	}
 	//エフェクト------------------------------------------------------------//
-	int k = 0;
-	for (int j = 0; j < effects; ++j) {
+	for (int j = 0, k = 0; j < effects; ++j) {
 		size_t i = 0;
 		while (ProcessMessage() == 0) {
 			effHndle[j] = EffekseerEffectHandle::load("data/effect/" + std::to_string(j) + ".efk");
@@ -140,7 +139,7 @@ int Myclass::window_choosev(void) {
 	SetMouseDispFlag(TRUE);
 	int font18 = CreateFontToHandle(NULL, x_r(18), y_r(18 / 3), DX_FONTTYPE_ANTIALIASING);
 	int font72 = CreateFontToHandle(NULL, x_r(72), y_r(72 / 3), DX_FONTTYPE_ANTIALIASING);
-	int i = 0, k, l = 0, x = 0, y = 0;
+	int i = 0, l = 0, x = 0, y = 0;
 	unsigned int m;
 	int mousex, mousey;
 	float real = 0.f, r = 5.f, unt = 0.f;
@@ -153,7 +152,7 @@ int Myclass::window_choosev(void) {
 			differential(real, deg2rad(360 * l / vecs.size()), 0.05f);
 			setcv(1.0f, 100.0f, VGet(-sin(real)*(10.f + r), 1, -cos(real)*(10.f + r)), VGet(-sin(real)*r, 2, -cos(real)*r), VGet(0, 1.0f, 0), 45.0f);
 			SetLightDirection(VSub(VGet(-sin(real)*r, 2, -cos(real)*r), VGet(-sin(real)*(10.f + r), 4, -cos(real)*(10.f + r))));
-			for (k = 0; k < vecs.size(); k++) {
+			for (size_t k = 0; k < vecs.size(); k++) {
 				MV1SetPosition(vecs[k].model.get(), VGet(-sin(deg2rad(360 * k / vecs.size()))*r, 0, -cos(deg2rad(360 * k / vecs.size()))*r));
 				MV1SetRotationXYZ(vecs[k].model.get(), VGet(0, deg2rad((360 * k / vecs.size() + 30)), 0));
 				MV1DrawModel(vecs[k].model.get());
@@ -633,7 +632,6 @@ void MAPS::set_hitplayer(VECTOR pos) {
 	}
 }
 void MAPS::draw_trees() {
-	int k;
 	float per;
 	VECTOR vect;
 	looktree = 0;
@@ -651,7 +649,7 @@ void MAPS::draw_trees() {
 
 	for (auto& tt : tree.treesort) {
 		if (tt.second == (float)map_x) { continue; }
-		k = tt.first;
+		const auto k = tt.first;
 		if (tt.second < drawdist + 200) {
 			if (tt.second < 20) { per = -0.5f + tt.second / 20.0f; }
 			else { per = 1.0f; }
@@ -956,12 +954,12 @@ void set_normal(float* xnor, float* znor, int maphandle, VECTOR position) {
 	else { temp[1] = -9999.0f; }
 	if (temp[0] != -9999.0 && temp[1] != -9999.0) { differential(*znor, atan2(temp[0] - temp[1], 1.0f), 0.05f); }/*Z*/
 }
-bool get_reco(players* play, players* tgt, int i, int gun_s) {
-	int colmesh, hitnear, k, f = 0;
+bool get_reco(players* play, players* tgt, size_t i, size_t gun_s) {
+	int colmesh, k, f = 0;
 	MV1_COLL_RESULT_POLY HitPoly;
 	float tmpf[2];
+	std::optional<size_t> hitnear;
 	//主砲
-	hitnear = -1;
 	if (gun_s == 0) {
 		//空間装甲、モジュール
 		for (colmesh = 0; colmesh < tgt->ptr->colmeshes; ++colmesh) {
@@ -977,7 +975,7 @@ bool get_reco(players* play, players* tgt, int i, int gun_s) {
 		if (f == 0) { return false; }
 		std::sort(tgt->hitssort.begin(), tgt->hitssort.end(), [](const pair& x, const pair& y) {return x.second < y.second; });
 		for (auto& tt : tgt->hitssort) {
-			k = tt.first;
+			const auto k = tt.first;
 			if (k >= 4) {
 				if (tgt->HP[k] > 0) {
 					//空間装甲 //モジュール
@@ -995,13 +993,13 @@ bool get_reco(players* play, players* tgt, int i, int gun_s) {
 			}
 			if (tt.second == 9999.f) { break; }
 		}
-		if (hitnear != -1) {
+		if (hitnear) {
 			HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos);
 			MV1SetFrameUserLocalMatrix(tgt->colobj.get(), 9 + 0 + 3 * tgt->hitbuf, MMult(MGetTranslate(HitPoly.HitPosition), MInverse(tgt->ps_m)));
 			MV1SetFrameUserLocalMatrix(tgt->colobj.get(), 9 + 1 + 3 * tgt->hitbuf, MMult(MGetTranslate(VAdd(HitPoly.Normal, HitPoly.HitPosition)), MInverse(tgt->ps_m)));
 			MV1SetFrameUserLocalMatrix(tgt->colobj.get(), 9 + 2 + 3 * tgt->hitbuf, MMult(MGetTranslate(VAdd(VCross(HitPoly.Normal, play->Ammo[i].vec), HitPoly.HitPosition)), MInverse(tgt->ps_m)));
 			set_effect(&(play->effcs[ef_reco]), HitPoly.HitPosition, HitPoly.Normal);
-			if (play->Ammo[i].pene > tgt->ptr->armer[hitnear] * (1.0f / abs(VDot(VNorm(play->Ammo[i].vec), HitPoly.Normal)))) {
+			if (play->Ammo[i].pene > tgt->ptr->armer[hitnear.value()] * (1.0f / abs(VDot(VNorm(play->Ammo[i].vec), HitPoly.Normal)))) {
 				if (tgt->HP[0] != 0) {
 					PlaySoundMem(tgt->se[29 + GetRand(1)], DX_PLAYTYPE_BACK, TRUE);
 					set_effect(&(play->effcs[ef_bomb]), MV1GetFramePosition(tgt->obj.get(), bone_engine), VGet(0, 0, 0));
@@ -1037,7 +1035,7 @@ bool get_reco(players* play, players* tgt, int i, int gun_s) {
 			HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos);
 			if (HitPoly.HitFlag) { tmpf[1] = VSize(VSub(HitPoly.HitPosition, play->Ammo[i].repos)); if (tmpf[1] <= tmpf[0]) { tmpf[0] = tmpf[1]; hitnear = colmesh; } }
 		}
-		if (hitnear != -1) {
+		if (hitnear) {
 			HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos);
 			set_effect(&(play->effcs[ef_reco2]), HitPoly.HitPosition, HitPoly.Normal);
 			PlaySoundMem(tgt->se[10 + GetRand(16)], DX_PLAYTYPE_BACK, TRUE);
@@ -1045,8 +1043,7 @@ bool get_reco(players* play, players* tgt, int i, int gun_s) {
 			play->Ammo[i].pos = VAdd(HitPoly.HitPosition, VScale(play->Ammo[i].vec, 0.01f));
 		}
 	}
-	if (hitnear != -1) { return true; }
-	return false;
+	return hitnear.has_value();
 }
 void set_gunrad(players *play, float rat_r){
 	for (int i = 0; i < 4; ++i) {
