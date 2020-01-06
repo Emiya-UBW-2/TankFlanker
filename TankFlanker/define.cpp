@@ -209,7 +209,6 @@ int Myclass::window_choosev(void) {
 			}
 			else { m = c_ff6400; }
 			DrawBox(x_r(760), y_r(960), x_r(1160), y_r(996), m, FALSE);
-			using namespace std::literals;
 			font18.DrawString(x_r(960) - font18.GetDrawWidth("戦闘開始") / 2, y_r(969), "戦闘開始", c_ffffff);
 		Screen_Flip(waits);
 	}
