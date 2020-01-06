@@ -158,7 +158,7 @@ int Myclass::window_choosev(void) {
 		if (CheckHitKey(KEY_INPUT_ESCAPE) != 0) { i = -1; break; }				//end
 		SetDrawScreen(DX_SCREEN_BACK);
 		ClearDrawScreen();
-			differential(real, deg2rad(360 * l / vecs.size()), 0.05f);
+			differential(real, deg2rad(360 * l / (int)vecs.size()), 0.05f);
 			setcv(1.0f, 100.0f, VGet(-sin(real)*(10.f + r), 1, -cos(real)*(10.f + r)), VGet(-sin(real)*r, 2, -cos(real)*r), VGet(0, 1.0f, 0), 45.0f);
 			SetLightDirection(VSub(VGet(-sin(real)*r, 2, -cos(real)*r), VGet(-sin(real)*(10.f + r), 4, -cos(real)*(10.f + r))));
 			for (size_t k = 0; k < vecs.size(); k++) {
