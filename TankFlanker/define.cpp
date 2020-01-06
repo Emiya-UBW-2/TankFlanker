@@ -91,7 +91,7 @@ Myclass::Myclass() {
 			se_[j] = SoundHandle::Load(filename);
 		}
 		for (size_t j = 0; j < std::size(ui_reload); ++j) {
-			ui_reload[j] = LoadGraph(("data/ui/ammo_" + std::to_string(j) + ".bmp").c_str());
+			ui_reload[j] = GraphHandle::Load("data/ui/ammo_" + std::to_string(j) + ".bmp");
 		}		/*弾0,弾1,弾2,空弾*/
 	SetUseASyncLoadFlag(FALSE);
 }
@@ -443,10 +443,10 @@ MAPS::MAPS(int map_size, float draw_dist){
 	shadow_far = MakeShadowMap(8192, 8192);					/*マップ用*/
 	//map-------------------------------------------------------------------//
 	SetUseASyncLoadFlag(TRUE);
-	sky_sun = LoadGraph("data/sun.png");					/*太陽*/
-	texo = LoadGraph("data/nm.png");					/*轍*/
-	texp = MakeScreen(groundx, groundx, FALSE);				/*ノーマルマップ*/
-	texn = MakeScreen(groundx, groundx, FALSE);				/*実マップ*/
+	sky_sun = GraphHandle::Load("data/sun.png");					/*太陽*/
+	texo = GraphHandle::Load("data/nm.png");					/*轍*/
+	texp = GraphHandle::Make(groundx, groundx, FALSE);				/*ノーマルマップ*/
+	texn = GraphHandle::Make(groundx, groundx, FALSE);				/*実マップ*/
 	SetUseASyncLoadFlag(FALSE);
 }
 void MAPS::set_map_readyb(size_t set){
@@ -457,13 +457,13 @@ void MAPS::set_map_readyb(size_t set){
 	SetUseASyncLoadFlag(TRUE);
 		tree.mnear = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/tree/model.mv1");			/*近木*/
 		tree.mfar = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/tree/model2.mv1");			/*遠木*/
-		texl = LoadGraph(("data/"s + mapper.at(set) + "/SandDesert_04_00344_FWD.png").c_str());					/*nor*/
-		texm = LoadGraph(("data/"s + mapper.at(set) + "/SandDesert_04_00344_NM.png").c_str());					/*nor*/
+		texl = GraphHandle::Load("data/"s + mapper.at(set) + "/SandDesert_04_00344_FWD.png");					/*nor*/
+		texm = GraphHandle::Load("data/"s + mapper.at(set) + "/SandDesert_04_00344_NM.png");					/*nor*/
 		m_model = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/map.mv1");			/*map*/
 		sky_model = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/sky/model_sky.mv1");			/*sky*/
-		graph = LoadGraph(("data/"s + mapper.at(set) + "/grass/grass.png").c_str());					/*grass*/
+		graph = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/grass.png");					/*grass*/
 		grass = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/grass/grass.mqo");			/*grass*/
-		GgHandle = LoadGraph(("data/"s + mapper.at(set) + "/grass/gg.png").c_str());				/*地面草*/
+		GgHandle = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/gg.png");				/*地面草*/
 	SetUseASyncLoadFlag(FALSE);
 	return;
 }
@@ -496,15 +496,15 @@ bool MAPS::set_map_ready() {
 
 	constexpr uint8_t rate = 96;
 
-	SetDrawScreen(texp);
+	SetDrawScreen(texp.get());
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-		for (uint8_t x = 0; x < rate; x++) { for (uint8_t y = 0; y < rate; y++) { DrawExtendGraph(groundx * x / rate, groundx * y / rate, groundx* (x + 1) / rate, groundx * (y + 1) / rate, texl, FALSE); } }
-	MV1SetTextureGraphHandle(m_model.get(), 0, texp, FALSE);
-	SetDrawScreen(texn);
+		for (uint8_t x = 0; x < rate; x++) { for (uint8_t y = 0; y < rate; y++) { DrawExtendGraph(groundx * x / rate, groundx * y / rate, groundx* (x + 1) / rate, groundx * (y + 1) / rate, texl.get(), FALSE); } }
+	MV1SetTextureGraphHandle(m_model.get(), 0, texp.get(), FALSE);
+	SetDrawScreen(texn.get());
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 		DrawBox(0, 0, groundx, groundx, GetColor(121, 121, 255), TRUE);
-		for (uint8_t x = 0; x < 32; x++) { for (uint8_t y = 0; y < 32; y++) { DrawExtendGraph(groundx * x / rate, groundx * y / rate, groundx* (x + 1) / rate, groundx * (y + 1) / rate, texm, TRUE); } }
-	MV1SetTextureGraphHandle(m_model.get(), 1, texn, FALSE);
+		for (uint8_t x = 0; x < 32; x++) { for (uint8_t y = 0; y < 32; y++) { DrawExtendGraph(groundx * x / rate, groundx * y / rate, groundx* (x + 1) / rate, groundx * (y + 1) / rate, texm.get(), TRUE); } }
+	MV1SetTextureGraphHandle(m_model.get(), 1, texn.get(), FALSE);
 		/*grass*/
 		vnum = 0;
 		pnum = 0;
@@ -519,9 +519,9 @@ bool MAPS::set_map_ready() {
 		for (int i = 0; i < grasss; ++i) {
 			const auto tmpvect = VGet((float)(-5000 + GetRand(10000)) / 10.0f, 0.0f, (float)(-5000 + GetRand(10000)) / 10.0f);
 			//
-			SetDrawScreen(texp);
+			SetDrawScreen(texp.get());
 			SetDrawBlendMode(DX_BLENDMODE_ALPHA, 64);
-			DrawRotaGraph( (int)(groundx * (0.5f + tmpvect.x / (float)map_x)), (int)(groundx * (0.5f - tmpvect.z / (float)map_y)), 8.f*groundx / 1024 / 128.0f, 0, GgHandle, TRUE );
+			DrawRotaGraph( (int)(groundx * (0.5f + tmpvect.x / (float)map_x)), (int)(groundx * (0.5f - tmpvect.z / (float)map_y)), 8.f*groundx / 1024 / 128.0f, 0, GgHandle.get(), TRUE );
 
 			const auto HitPoly = MV1CollCheck_Line(m_model.get(), 0, VAdd(tmpvect, VGet(0.0f, (float)map_x, 0.0f)), VAdd(tmpvect, VGet(0.0f, -(float)map_x, 0.0f)));
 			if (HitPoly.HitFlag) {
@@ -562,7 +562,7 @@ bool MAPS::set_map_ready() {
 		IndexBuf = CreateIndexBuffer(IndexNum, DX_INDEX_TYPE_32BIT);
 		SetVertexBufferData(0, grassver.data(), VerNum, VerBuf);
 		SetIndexBufferData(0, grassind.data(), IndexNum, IndexBuf);
-		MV1SetTextureGraphHandle(m_model.get(), 0, texp, FALSE);
+		MV1SetTextureGraphHandle(m_model.get(), 0, texp.get(), FALSE);
 		/*tree,shadow*/
 	ShadowMap_DrawSetup(shadow_far);
 		for (size_t i = 0; i < treec; ++i) {
@@ -592,11 +592,11 @@ void MAPS::set_map_shadow_near(float vier_r){
 	SetShadowMapDrawArea(shadow_seminear, VSub(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist * 2)), VAdd(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist * 2)));
 }
 void MAPS::draw_map_track(const players& player) {
-	SetDrawScreen(texn);
+	SetDrawScreen(texn.get());
 	for (int i = bone_wheel; i < player.ptr->frames - 4; i += 2) {
 		if (player.Springs[i] >= -0.15f) {
 			VECTOR tempvec = MV1GetFramePosition(player.obj.get(), i);
-			DrawRotaGraph((int)(groundx * (0.5f + tempvec.x / (float)map_x)), (int)(groundx * (0.5f - tempvec.z / (float)map_y)), 1.f*groundx / 1024 / 195.0f, player.yrad, texo, TRUE);
+			DrawRotaGraph((int)(groundx * (0.5f + tempvec.x / (float)map_x)), (int)(groundx * (0.5f - tempvec.z / (float)map_y)), 1.f*groundx / 1024 / 195.0f, player.yrad, texo.get(), TRUE);
 		}
 	}
 }
@@ -604,7 +604,7 @@ void MAPS::draw_map_model() {
 	MV1DrawModel(m_model.get());
 }
 void MAPS::set_map_track() {
-	MV1SetTextureGraphHandle(m_model.get(), 1, texn, FALSE);
+	MV1SetTextureGraphHandle(m_model.get(), 1, texn.get(), FALSE);
 }
 void MAPS::draw_map_sky(void){
 	ClearDrawScreen();
@@ -614,7 +614,7 @@ void MAPS::draw_map_sky(void){
 
 	MV1SetPosition(sky_model.get(), camera);
 	MV1DrawModel(sky_model.get());
-	DrawBillboard3D(VAdd(camera, VScale(VNorm(lightvec), -80.0f)), 0.5f, 0.5f, 10.0f, 0.0f, sky_sun, TRUE);
+	DrawBillboard3D(VAdd(camera, VScale(VNorm(lightvec), -80.0f)), 0.5f, 0.5f, 10.0f, 0.0f, sky_sun.get(), TRUE);
 
 	SetFogEnable(TRUE);
 	SetUseLighting(TRUE);
@@ -672,7 +672,7 @@ void MAPS::draw_trees() {
 	}
 }
 void MAPS::draw_grass(void) {
-	DrawPolygonIndexed3D_UseVertexBuffer(VerBuf, IndexBuf, graph, TRUE);
+	DrawPolygonIndexed3D_UseVertexBuffer(VerBuf, IndexBuf, graph.get(), TRUE);
 }
 void MAPS::delete_map(void) {
 	m_model.Dispose();
@@ -684,10 +684,10 @@ void MAPS::delete_map(void) {
 		tree.fars[j].Dispose();
 	}
 	tree.treesort.clear();
-	DeleteGraph(graph);
+	graph.Dispose();
 	grass.Dispose();
-	DeleteGraph(texl);
-	DeleteGraph(texm);
+	texl.Dispose();
+	texm.Dispose();
 	tree.nears.clear();
 	tree.fars.clear();
 	tree.pos.clear();
@@ -707,16 +707,16 @@ UIS::UIS() {
 	UI_main.resize(countries);/*改善*/
 	SetUseASyncLoadFlag(TRUE);
 		for (size_t j = 0; j < std::size(ui_reload); ++j) {
-			ui_reload[j] = LoadGraph(("data/ui/ammo_" + std::to_string(j) + ".bmp").c_str());
+			ui_reload[j] = GraphHandle::Load("data/ui/ammo_" + std::to_string(j) + ".bmp");
 		}/*弾0,弾1,弾2,空弾*/
 		const auto hFind = FindFirstFile("data/ui/body/*.png", &win32fdt);
 		if (hFind != INVALID_HANDLE_VALUE) {
 			do {
 				if (win32fdt.cFileName[0] == 'B') {
-					UI_body.emplace_back(LoadGraph(("data/ui/body/"s + win32fdt.cFileName).c_str()));
+					UI_body.emplace_back(GraphHandle::Load(("data/ui/body/"s + win32fdt.cFileName).c_str()));
 				}
 				if (win32fdt.cFileName[0] == 'T') {
-					UI_turret.emplace_back(LoadGraph(("data/ui/body/"s + win32fdt.cFileName).c_str()));
+					UI_turret.emplace_back(GraphHandle::Load(("data/ui/body/"s + win32fdt.cFileName).c_str()));
 				}
 			} while (FindNextFile(hFind, &win32fdt));
 		}//else{ return false; }
@@ -724,7 +724,7 @@ UIS::UIS() {
 		for (size_t j = 0; j < countries; ++j) {
 			// TODO: Germanの部分は可変になる
 			for (size_t i = 0; i < 8; ++i) {
-				UI_main[j].ui_sight[i] = LoadGraph(("data/ui/German/" + std::to_string(i) + ".png").c_str());
+				UI_main[j].ui_sight[i] = GraphHandle::Load("data/ui/German/" + std::to_string(i) + ".png");
 			}
 		}
 	SetUseASyncLoadFlag(FALSE);
@@ -732,7 +732,7 @@ UIS::UIS() {
 void UIS::draw_load(void){
 	int font18 = CreateFontToHandle(NULL, x_r(18), y_r(18 / 3), DX_FONTTYPE_ANTIALIASING);
 	SetUseASyncLoadFlag(TRUE);
-	int pad = LoadGraph("data/key.png");
+	auto pad = GraphHandle::Load("data/key.png");
 	SetUseASyncLoadFlag(FALSE);
 	const int pp = GetASyncLoadNum();
 	const auto c_00ff00 = GetColor(0, 255, 0);
@@ -749,7 +749,7 @@ void UIS::draw_load(void){
 		DrawBox(x_r(0), y_r(1080-6), x_r(1920.f*pers), y_r(1080-3), c_00ff00, TRUE);
 		DrawFormatStringToHandle(x_r(0), y_r(1080-24), c_00ff00, font18, "LOADING : %06.2f%%", pers * 100.f);
 		//
-		DrawExtendGraph(x_r(552), y_r(401), x_r(1367), y_r(679), pad, TRUE);
+		DrawExtendGraph(x_r(552), y_r(401), x_r(1367), y_r(679), pad.get(), TRUE);
 		int i = 0;
 		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff0000, font18, "%s : 前進", "W"); i += 18;
 		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff0000, font18, "%s : 後退", "S"); i += 18;
@@ -775,7 +775,6 @@ void UIS::draw_load(void){
 		ScreenFlip();
 		while (GetNowHiPerformanceCount() - waits < 1000000.0f / 60.f) {}
 	}
-	DeleteGraph(pad);
 	DeleteFontToHandle(font18);
 
 	SetDrawScreen(DX_SCREEN_BACK);
@@ -789,10 +788,10 @@ void UIS::set_reco(void) {
 	recs = 1.f;
 }
 void UIS::draw_sight(float posx, float posy, float ratio, float dist, int font) {
-	DrawRotaGraph(x_r(960), y_r(540), (float)y_r(2), deg2rad(-dist / 20), UI_main[pplayer->ptr->countryc].ui_sight[1], TRUE);
-	DrawRotaGraph((int)posx, (int)posy, (float)y_r(2) * ratio / 4.0f, 0, UI_main[pplayer->ptr->countryc].ui_sight[2], TRUE);
-	DrawRotaGraph(x_r(960), y_r(540), (float)y_r(2), 0, UI_main[pplayer->ptr->countryc].ui_sight[0], TRUE);
-	DrawExtendGraph(0, 0, dispx, dispy, UI_main[pplayer->ptr->countryc].ui_sight[7], TRUE);
+	DrawRotaGraph(x_r(960), y_r(540), (float)y_r(2), deg2rad(-dist / 20), UI_main[pplayer->ptr->countryc].ui_sight[1].get(), TRUE);
+	DrawRotaGraph((int)posx, (int)posy, (float)y_r(2) * ratio / 4.0f, 0, UI_main[pplayer->ptr->countryc].ui_sight[2].get(), TRUE);
+	DrawRotaGraph(x_r(960), y_r(540), (float)y_r(2), 0, UI_main[pplayer->ptr->countryc].ui_sight[0].get(), TRUE);
+	DrawExtendGraph(0, 0, dispx, dispy, UI_main[pplayer->ptr->countryc].ui_sight[7].get(), TRUE);
 	DrawFormatStringToHandle(x_r(1056), y_r(594), GetColor(255, 255, 255), font, "[%03d]", (int)dist);
 	DrawFormatStringToHandle(x_r(1056), y_r(648), GetColor(255, 255, 255), font, "[x%02.1f]", ratio);
 }
@@ -806,32 +805,32 @@ void UIS::draw_ui(int selfammo, float y_v) {
 	/*弾*/
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
 	if (pplayer->loadcnt[0] > 0) {
-		DrawRotaGraph(x_r(2112 - (int)(384 * pplayer->loadcnt[0] / pplayer->ptr->reloadtime[0])), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[pplayer->ammotype], TRUE);
+		DrawRotaGraph(x_r(2112 - (int)(384 * pplayer->loadcnt[0] / pplayer->ptr->reloadtime[0])), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[pplayer->ammotype].get(), TRUE);
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(128.0f * pow(1.0f - (float)pplayer->loadcnt[0] / (float)pplayer->ptr->reloadtime[0], 10)));
 		if (selfammo == 0) {
-			DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[3], TRUE);
+			DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[3].get(), TRUE);
 		}
 		else {
-			DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[(pplayer->ammotype - 1) % 3], TRUE);
+			DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[(pplayer->ammotype - 1) % 3].get(), TRUE);
 		}
 	}
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
 	if (pplayer->loadcnt[0] == 0) {
-		DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[pplayer->ammotype], TRUE);
+		DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[pplayer->ammotype].get(), TRUE);
 	}
-	DrawRotaGraph(x_r(1728 - (int)(192 * pplayer->loadcnt[0] / pplayer->ptr->reloadtime[0])), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[pplayer->ammotype], TRUE);
-	DrawRotaGraph(x_r(1760), y_r(128), (double)x_r(40) / 40.0, 0.0, ui_reload[(pplayer->ammotype + 1) % 3], TRUE);
-	DrawRotaGraph(x_r(1792), y_r(192), (double)x_r(40) / 40.0, 0.0, ui_reload[(pplayer->ammotype + 2) % 3], TRUE);
+	DrawRotaGraph(x_r(1728 - (int)(192 * pplayer->loadcnt[0] / pplayer->ptr->reloadtime[0])), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[pplayer->ammotype].get(), TRUE);
+	DrawRotaGraph(x_r(1760), y_r(128), (double)x_r(40) / 40.0, 0.0, ui_reload[(pplayer->ammotype + 1) % 3].get(), TRUE);
+	DrawRotaGraph(x_r(1792), y_r(192), (double)x_r(40) / 40.0, 0.0, ui_reload[(pplayer->ammotype + 2) % 3].get(), TRUE);
 	/*速度計*/
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-	DrawExtendGraph(x_r(0), y_r(888), x_r(192), y_r(1080), UI_main[pplayer->ptr->countryc].ui_sight[3], TRUE);
-	DrawRotaGraph(x_r(96), y_r(984), x_r(192) / 152, deg2rad(120.0f * pplayer->speed / pplayer->ptr->spdflont[3] - 60.f), UI_main[pplayer->ptr->countryc].ui_sight[4], TRUE);
+	DrawExtendGraph(x_r(0), y_r(888), x_r(192), y_r(1080), UI_main[pplayer->ptr->countryc].ui_sight[3].get(), TRUE);
+	DrawRotaGraph(x_r(96), y_r(984), x_r(192) / 152, deg2rad(120.0f * pplayer->speed / pplayer->ptr->spdflont[3] - 60.f), UI_main[pplayer->ptr->countryc].ui_sight[4].get(), TRUE);
 
 	SetDrawArea(x_r(192), y_r(892), x_r(192 + 40), y_r(892 + 54));
-	DrawRotaGraph(x_r(192 + 40 / 2), y_r(892 + 54 / 2 + (int)(54.0f * gearf)), (double)x_r(40) / 40.0, 0.f, UI_main[pplayer->ptr->countryc].ui_sight[5], TRUE);
+	DrawRotaGraph(x_r(192 + 40 / 2), y_r(892 + 54 / 2 + (int)(54.0f * gearf)), (double)x_r(40) / 40.0, 0.f, UI_main[pplayer->ptr->countryc].ui_sight[5].get(), TRUE);
 	SetDrawArea(x_r(0), y_r(0), x_r(1920), y_r(1080));
 
-	DrawExtendGraph(x_r(192), y_r(892 - 4), x_r(232), y_r(950), UI_main[pplayer->ptr->countryc].ui_sight[6], TRUE);
+	DrawExtendGraph(x_r(192), y_r(892 - 4), x_r(232), y_r(950), UI_main[pplayer->ptr->countryc].ui_sight[6].get(), TRUE);
 	differential(gearf, (float)pplayer->gear, 0.1f);
 
 	for (size_t i = 0; i < UI_body.size(); ++i) {
@@ -843,7 +842,7 @@ void UIS::draw_ui(int selfammo, float y_v) {
 		else {
 			SetDrawBright(255, 255, 255);
 		}
-		DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, double(-y_v + pplayer->yrad), UI_body[i], TRUE);
+		DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, double(-y_v + pplayer->yrad), UI_body[i].get(), TRUE);
 	}
 
 	for (int i = 0; i < UI_turret.size(); ++i) {
@@ -853,7 +852,7 @@ void UIS::draw_ui(int selfammo, float y_v) {
 			else { SetDrawBright((int)(255.f * sin(pers*DX_PI_F / 2)), (int)(255.f * cos(pers*DX_PI_F / 2)), 0); }
 		}
 		else { SetDrawBright(255, 255, 255); }
-		DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, double(-y_v + pplayer->yrad + pplayer->gunrad.x), UI_turret[i], TRUE);
+		DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, double(-y_v + pplayer->yrad + pplayer->gunrad.x), UI_turret[i].get(), TRUE);
 	}
 	//DrawFormatString(x_r(1056), y_r(594), GetColor(255, 255, 255), "[%03d][%03d]", UI_body.size(),UI_turret.size());
 }

@@ -793,7 +793,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 			if (map.flug) {
 				SetDrawScreen(minimap);
 				ClearDrawScreen();
-				DrawExtendGraph(x_r(420), y_r(0), x_r(1500), y_r(1080), mapparts.get_minmap(), FALSE);
+				DrawExtendGraph(x_r(420), y_r(0), x_r(1500), y_r(1080), mapparts.get_minmap().get(), FALSE);
 				for (size_t p_cnt = 0; p_cnt < teamc; ++p_cnt) {
 					DrawCircle(x_(player[p_cnt].pos.x), y_(player[p_cnt].pos.z), 5, (player[p_cnt].HP[0] == 0) ? c_008000 : c_00ff00, 1);
 				}

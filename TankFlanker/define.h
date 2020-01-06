@@ -24,6 +24,7 @@
 #include "MV1ModelHandle.hpp"
 #include "EffekseerEffectHandle.hpp"
 #include "SoundHandle.hpp"
+#include "GraphHandle.hpp"
 
 
 using std::size_t;
@@ -221,7 +222,7 @@ private:
 	VECTOR view, view_r;						/*通常視点の角度、距離*/
 	std::vector<int> fonts;						/*フォント*/
 	std::array<SoundHandle, 13> se_;				/*効果音*/
-	int ui_reload[4] = { 0 };					/*UI用*/
+	std::array<GraphHandle, 4> ui_reload;					/*UI用*/
 	EffekseerEffectHandle effHndle[effects];			/*エフェクトリソース*/
 public:
 	Myclass();
@@ -251,7 +252,8 @@ public:
 	~Myclass();
 	void set_se_vol(unsigned char size);
 	void play_sound(int p1);
-	int* get_ui2(void) { return ui_reload; }
+	auto& get_ui2() & { return ui_reload; }
+	const auto& get_ui2() const& { return ui_reload; }
 	int get_font(int p1) { return fonts[p1]; }			//フォントハンドル取り出し
 	VECTOR get_view_r(void) { return view_r; }
 	VECTOR get_view_pos(void) { return VScale(VGet(sin(view_r.y) * cos(view_r.x), sin(view_r.x), cos(view_r.y) * cos(view_r.x)), 15.0f * view_r.z); }
@@ -321,9 +323,9 @@ private:
 	int shadow_near;							/*shadow近距離*/
 	int shadow_far;								/*shadowマップ用*/
 	MV1ModelHandle m_model, minmap;						/*mapモデル*/
-	int texp,texo, texn, texm,texl;						/*mapテクスチャ*/
+	GraphHandle texp,texo, texn, texm,texl;						/*mapテクスチャ*/
 	MV1ModelHandle sky_model;						/*skyモデル*/
-	int sky_sun;								/*sunpic*/
+	GraphHandle sky_sun;								/*sunpic*/
 	VECTOR lightvec;							/*light方向*/
 	/*grass*/
 	int grasss = 50000;							/*grassの数*/
@@ -331,9 +333,9 @@ private:
 	std::vector<DWORD> grassind;
 	int VerBuf, IndexBuf;							/**/
 	MV1ModelHandle grass;							/*grassモデル*/
-	int graph;/*画像ハンドル*/
+	GraphHandle graph;/*画像ハンドル*/
 	int IndexNum, VerNum;							/**/
-	int GgHandle;								/**/
+	GraphHandle GgHandle;								/**/
 	int vnum, pnum;								/**/
 	MV1_REF_POLYGONLIST RefMesh;						/**/
 	//campos
@@ -352,7 +354,8 @@ public:
 	void delete_map(void);
 	MV1ModelHandle& get_map_handle() & noexcept { return m_model; }
 	const MV1ModelHandle& get_map_handle() const & noexcept { return m_model; }
-	int get_minmap() { return texp; }
+	auto& get_minmap() & { return texp; }
+	const auto& get_minmap() const & noexcept{ return texp; }
 	int get_map_shadow_far() { return shadow_far; }
 	int get_map_shadow_near() { return shadow_near; }
 	int get_map_shadow_seminear() { return shadow_seminear; }
@@ -363,10 +366,10 @@ public:
 class UIS {
 private:
 	/**/
-	int ui_reload[4] = { 0 };						/*弾UI*/
-	std::vector<int> UI_body;						/*弾UI*/
-	std::vector<int> UI_turret;						/*弾UI*/
-	struct country { int ui_sight[8] = { 0 }; };/*改善*/
+	std::array<GraphHandle, 4> ui_reload;						/*弾UI*/
+	std::vector<GraphHandle> UI_body;						/*弾UI*/
+	std::vector<GraphHandle> UI_turret;						/*弾UI*/
+	struct country { std::array<GraphHandle, 8> ui_sight; };/*改善*/
 	std::vector<country> UI_main;						/*国別UI*/
 	size_t countries = 1;							/*国数*/
 	float gearf = 0.f;							/*変速*/
