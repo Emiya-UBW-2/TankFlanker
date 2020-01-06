@@ -1,4 +1,5 @@
 ﻿#include "define.h"
+#include <algorithm>
 #include <memory>
 size_t count_impl(const TCHAR* pattern) {
 	WIN32_FIND_DATA win32fdt;
@@ -17,7 +18,7 @@ size_t count_enemy() {
 	return count_impl("stage/data_0/enemy/*.txt");
 }
 /*main*/
-int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd) {
+int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 	//temp------------------------------------------------------------------//
 	int i, j, k, tgt_p;
 	int mousex, mousey;							/*mouse*/
@@ -74,7 +75,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		FileRead_gets(mstr, 64, mdata);
 
 
-		const int mapc = std::stof(getright(mstr));
+		const int mapc = std::stoi(getright(mstr));
 
 //		const bool mapc = bool(std::stoul(getright(mstr)));
 		FileRead_close(mdata);
@@ -89,16 +90,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		for (size_t p_cnt = 0; p_cnt < teamc; ++p_cnt) {
 			mdata = FileRead_open(("stage/data_0/team/" + std::to_string(p_cnt) + ".txt").c_str(), FALSE);
 			FileRead_close(mdata);
-
-			if (p_cnt == 0) { player[p_cnt].use = k; }
-			else { player[p_cnt].use = 2; }//p_cnt % parts.get_vehc(); }
+			player[p_cnt].use = (p_cnt == 0) ? k : 2;
 			player[p_cnt].pos = VGet(20.0f * p_cnt, 0.0f, -400.0f);
 			player[p_cnt].type = TEAM;
-			player[p_cnt].yrad = DX_PI_F * player[p_cnt].type;
-			for (i = 0; i < waypc; ++i) {
-				player[p_cnt].waypos[i] = player[p_cnt].pos;
-				player[p_cnt].wayspd[i] = 2;
-			}
 		}
 		for (size_t p_cnt = teamc; p_cnt < playerc; ++p_cnt) {
 			mdata = FileRead_open(("stage/data_0/enemy/" + std::to_string(p_cnt) + ".txt").c_str(), FALSE);
@@ -107,15 +101,13 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			player[p_cnt].use = 1;// p_cnt % parts.get_vehc();
 			player[p_cnt].pos = VGet(20.0f * (p_cnt - teamc), 0.0f, 400.0f);
 			player[p_cnt].type = ENEMY;
-			player[p_cnt].yrad = DX_PI_F * player[p_cnt].type;
-			for (i = 0; i < waypc; ++i) {
-				player[p_cnt].waypos[i] = player[p_cnt].pos;
-				player[p_cnt].wayspd[i] = 2;
-			}
 		}
-		/*vehsから引き継ぎ*/
-		for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
-			player[p_cnt].ptr = parts.get_vehicle(player[p_cnt].use);
+		for (auto&& p : player) {
+			p.yrad = DX_PI_F * p.type;
+			std::fill(std::begin(p.waypos), std::end(p.waypos), p.pos);
+			std::fill(std::begin(p.wayspd), std::end(p.wayspd), 2);
+			/*vehsから引き継ぎ*/
+			p.ptr = parts.get_vehicle(p.use);
 		}
 		/*UI*/
 		uiparts->set_state(&player[0]);
@@ -123,25 +115,26 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		SetUseASyncLoadFlag(TRUE);
 			/*players*/
 			SetCreate3DSoundFlag(TRUE);
-			for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
-				player[p_cnt].obj = player[p_cnt].ptr->model.Duplicate();
-				player[p_cnt].colobj = player[p_cnt].ptr->colmodel.Duplicate();
-				for (i = 0; i < 3; i++) { player[p_cnt].hitpic[i] = hit_mod.Duplicate(); }
-				player[p_cnt].se[0] = SoundHandle::Load("data/audio/se/engine/0.wav");
-				player[p_cnt].se[1] = SoundHandle::Load("data/audio/se/fire/gun.wav");
-				for (i = 2; i < 10; ++i) {
-					player[p_cnt].se[i] = SoundHandle::Load("data/audio/se/fire/" + std::to_string(i - 2) + ".wav");
+			for (auto&& p : player) {
+				p.obj = p.ptr->model.Duplicate();
+				p.colobj = p.ptr->colmodel.Duplicate();
+				for (auto&& h : p.hitpic) { h = hit_mod.Duplicate(); }
+				p.se[0] = SoundHandle::Load("data/audio/se/engine/0.wav");
+				p.se[1] = SoundHandle::Load("data/audio/se/fire/gun.wav");
+				size_t i = 2;
+				for (; i < 10; ++i) {
+					p.se[i] = SoundHandle::Load("data/audio/se/fire/" + std::to_string(i - 2) + ".wav");
 				}
-				for (i = 10; i < 27; ++i) {
-					player[p_cnt].se[i] = SoundHandle::Load("data/audio/se/ricochet/" + std::to_string(i - 10) + ".wav");
+				for (; i < 27; ++i) {
+					p.se[i] = SoundHandle::Load("data/audio/se/ricochet/" + std::to_string(i - 10) + ".wav");
 				}
-				for (i = 27; i < 29; ++i) {
-					player[p_cnt].se[i] = SoundHandle::Load("data/audio/se/engine/o" + std::to_string(i - 27) + ".wav");
+				for (; i < 29; ++i) {
+					p.se[i] = SoundHandle::Load("data/audio/se/engine/o" + std::to_string(i - 27) + ".wav");
 				}
-				for (i = 29; i < 31; ++i) {
-					player[p_cnt].se[i] = SoundHandle::Load("data/audio/se/battle/hit_enemy/" + std::to_string(i - 29) + ".wav");
+				for (; i < 31; ++i) {
+					p.se[i] = SoundHandle::Load("data/audio/se/battle/hit_enemy/" + std::to_string(i - 29) + ".wav");
 				}
-		}
+			}
 		SetCreate3DSoundFlag(FALSE);
 		SetUseASyncLoadFlag(FALSE);
 		mapparts.set_map_readyb(mapc);
@@ -155,7 +148,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		const auto c_ffc896 = GetColor(255, 200, 150);
 		for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 			//色調
-			for (i = 0; i < MV1GetMaterialNum(player[p_cnt].obj.get()); ++i) {
+			for (int i = 0; i < MV1GetMaterialNum(player[p_cnt].obj.get()); ++i) {
 				MV1SetMaterialSpcColor(player[p_cnt].obj.get(), i, GetColorF(0.85f, 0.82f, 0.78f, 0.5f));
 				MV1SetMaterialSpcPower(player[p_cnt].obj.get(), i, 5.0f);
 			}
@@ -165,9 +158,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			player[p_cnt].gear = 0;
 			//cpu
 			player[p_cnt].atkf = std::nullopt;
+			//Question: -2ってなんですか？
 			player[p_cnt].aim = -2;
 			//hit
-			for (i = 0; i < player[p_cnt].ptr->colmeshes; ++i) { MV1SetupCollInfo(player[p_cnt].colobj.get(), -1, 5, 5, 5); }
+			for (int i = 0; i < player[p_cnt].ptr->colmeshes; ++i) { MV1SetupCollInfo(player[p_cnt].colobj.get(), -1, 5, 5, 5); }
 			player[p_cnt].hitssort.resize(player[p_cnt].ptr->colmeshes);
 			//ammo
 			player[p_cnt].Ammo.resize(ammoc*gunc);
@@ -313,7 +307,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 									if (way == 1) {
 										if (player[waysel].wayselect == 0) { player[waysel].waynow = 0; }
 										player[waysel].waypos[player[waysel].wayselect] = VGet(_2x(mousex), 0, _2y(mousey));
-										for (i = player[waysel].wayselect; i < waypc; ++i) { player[waysel].waypos[i] = player[waysel].waypos[player[waysel].wayselect]; }
+										for (size_t i = player[waysel].wayselect; i < waypc; ++i) { player[waysel].waypos[i] = player[waysel].waypos[player[waysel].wayselect]; }
 										++player[waysel].wayselect;
 									}
 								}

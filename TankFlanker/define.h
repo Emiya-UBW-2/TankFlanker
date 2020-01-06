@@ -27,7 +27,7 @@ using std::size_t;
 inline const int dispx = GetSystemMetrics(SM_CXSCREEN);			/*描画X*/
 inline const int dispy = GetSystemMetrics(SM_CYSCREEN);			/*描画Y*/
 constexpr float M_GR = -9.8f;							/*重力加速度*/
-#define waypc		4							/*移動確保数*/
+constexpr size_t waypc = 4;							/*移動確保数*/
 constexpr size_t ammoc = 16;						/*砲弾確保数*/
 #define animes		4							/*人アニメーション*/
 #define voice		1							/*ボイス*/
@@ -119,7 +119,7 @@ struct vehicle {
 	std::vector<VECTOR> loc;					/*フレームの元座標*/
 	VECTOR coloc[4] = { VGet(0,0,0) };				/*box2D用フレーム*/
 	int frames{ 0 };
-	int colmeshes{ 0 };
+	size_t colmeshes{};
 	int meshes{ 0 };
 };
 static_assert(std::is_move_constructible_v<vehicle>);
@@ -162,7 +162,7 @@ struct players {
 	/*cpu関連*/
 	std::optional<size_t> atkf;							/*cpuのヘイト*/
 	int aim{ 0 };							/*ヘイトの変更カウント*/
-	int wayselect{ 0 }, waynow{ 0 };				/**/
+	size_t wayselect{ 0 }, waynow{ 0 };				/**/
 	VECTOR waypos[waypc]{ VGet(0, 0, 0) };				/*ウェイポイント*/
 	int wayspd[waypc]{ 0 };						/*速度指定*/
 	int state{ 0 };							/*ステータス*/
@@ -261,16 +261,15 @@ private:
 		int neck{ 0 };
 		VECTOR nvec{ VGet(0,0,0) };
 		int amine[animes]{ 0 };
-		float time[animes]{ 0.f };
+		std::array<float, animes> time{};
 		float alltime[animes]{ 0.f };
-		float per[animes]{ 0.f };
+		std::array<float, animes> per{};
 		char vflug{ 0 };
 		float voicetime{ 0.f };
 		float voicealltime[voice]{ 0 };
 		int voices[voice]{ 0 };
 		std::array<SoundHandle, voice> vsound;
 	};
-	int human{ 0 };								/*乗員人数*/
 	bool usegrab{ false };							/*人の物理演算のオフ、オン、一人だけオン*/
 	float f_rate{ 60.f };							/*fps*/
 
@@ -286,7 +285,7 @@ public:
 	void set_humans(const MV1ModelHandle& inmod);
 	void set_humanvc_vol(unsigned char size);
 	void set_humanmove(const players& player, VECTOR rad, float fps);
-	void draw_human(int p1);
+	void draw_human(size_t p1);
 	void draw_humanall();
 	void delete_human(void);
 	void start_humanvoice(std::int8_t p1);
@@ -300,7 +299,7 @@ private:
 	int groundx;
 	float drawdist;
 	/**/
-	int treec = 750;							/*木の数*/
+	size_t treec = 750;							/*木の数*/
 	struct trees {
 		MV1ModelHandle mnear;							/**/
 		MV1ModelHandle mfar;							/**/
@@ -341,7 +340,7 @@ public:
 	bool set_map_ready(void);
 	void set_camerapos(VECTOR pos, VECTOR vec, VECTOR up, float ratio);
 	void set_map_shadow_near(float vier_r);
-	void draw_map_track(players*player);
+	void draw_map_track(const players& player);
 	void draw_map_model(void);
 	void set_map_track(void);
 	void draw_map_sky(void);
@@ -364,7 +363,7 @@ private:
 	std::vector<int> UI_turret;						/*弾UI*/
 	struct country { int ui_sight[8] = { 0 }; };/*改善*/
 	std::vector<country> UI_main;						/*国別UI*/
-	int countries = 1;							/*国数*/
+	size_t countries = 1;							/*国数*/
 	float gearf = 0.f;							/*変速*/
 	float recs = 0.f;							/*跳弾表現用*/
 	players *pplayer;							/*playerdata*/
@@ -372,7 +371,7 @@ private:
 	float deb[60][6 + 1]{ 0.f };
 	LONGLONG waypoint{ 0 };							/*時間取得*/
 	float waydeb[6]{ 0 };
-	int seldeb{ 0 };
+	size_t seldeb{};
 public:
 	UIS();
 	void draw_load(void);								/*ロード画面*/
