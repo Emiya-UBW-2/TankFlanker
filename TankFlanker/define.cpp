@@ -1,4 +1,4 @@
-#include "define.h"
+﻿#include "define.h"
 #include <string_view>
 #include <array>
 //
@@ -928,24 +928,21 @@ void set_pos_effect(EffectS *efh, const EffekseerEffectHandle& handle) {
 }
 //
 void set_normal(float* xnor, float* znor, int maphandle, VECTOR position) {
-	float temp[2];
-	MV1_COLL_RESULT_POLY HitPoly2;
+	const auto r0_0 = MV1CollCheck_Line(maphandle, 0, VAdd(position, VGet(0.0f, 2.0f, -0.5f)), VAdd(position, VGet(0.0f, -2.0f, -0.5f)));
+	if (r0_0.HitFlag) {
+		const auto r0_1 = MV1CollCheck_Line(maphandle, 0, VAdd(position, VGet(0.0f, 2.0f, 0.5f)), VAdd(position, VGet(0.0f, -2.0f, 0.5f)));
+		if (r0_1.HitFlag) {
+			differential(*xnor, atan2(r0_0.HitPosition.y - r0_1.HitPosition.y, 1.0f), 0.05f);/*X*/
+		}
+	}
 
-	HitPoly2 = MV1CollCheck_Line(maphandle, 0, VAdd(position, VGet(0.0f, 2.0f, -0.5f)), VAdd(position, VGet(0.0f, -2.0f, -0.5f)));
-	if (HitPoly2.HitFlag) { temp[0] = HitPoly2.HitPosition.y; }
-	else { temp[0] = -9999.0f; }
-	HitPoly2 = MV1CollCheck_Line(maphandle, 0, VAdd(position, VGet(0.0f, 2.0f, 0.5f)), VAdd(position, VGet(0.0f, -2.0f, 0.5f)));
-	if (HitPoly2.HitFlag) { temp[1] = HitPoly2.HitPosition.y; }
-	else { temp[1] = -9999.0f; }
-	if (temp[0] != -9999.0 && temp[1] != -9999.0) { differential(*xnor, atan2(temp[0] - temp[1], 1.0f), 0.05f); }/*X*/
-
-	HitPoly2 = MV1CollCheck_Line(maphandle, 0, VAdd(position, VGet(0.5f, 2.0f, 0.0f)), VAdd(position, VGet(0.5f, -2.0f, 0.0f)));
-	if (HitPoly2.HitFlag) { temp[0] = HitPoly2.HitPosition.y; }
-	else { temp[0] = -9999.0f; }
-	HitPoly2 = MV1CollCheck_Line(maphandle, 0, VAdd(position, VGet(-0.5f, 2.0f, 0.0f)), VAdd(position, VGet(-0.5f, -2.0f, 0.0f)));
-	if (HitPoly2.HitFlag) { temp[1] = HitPoly2.HitPosition.y; }
-	else { temp[1] = -9999.0f; }
-	if (temp[0] != -9999.0 && temp[1] != -9999.0) { differential(*znor, atan2(temp[0] - temp[1], 1.0f), 0.05f); }/*Z*/
+	const auto r1_0 = MV1CollCheck_Line(maphandle, 0, VAdd(position, VGet(0.5f, 2.0f, 0.0f)), VAdd(position, VGet(0.5f, -2.0f, 0.0f)));
+	if (r1_0.HitFlag) {
+		const auto r1_1 = MV1CollCheck_Line(maphandle, 0, VAdd(position, VGet(-0.5f, 2.0f, 0.0f)), VAdd(position, VGet(-0.5f, -2.0f, 0.0f)));
+		if (r1_1.HitFlag) {
+			differential(*znor, atan2(r1_0.HitPosition.y - r1_1.HitPosition.y, 1.0f), 0.05f);/*Z*/
+		}
+	}
 }
 bool get_reco(players* play, players* tgt, size_t i, size_t gun_s) {
 	//int f = 0;
