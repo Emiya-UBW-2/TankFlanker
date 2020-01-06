@@ -217,7 +217,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			player[p_cnt].bodyDef.type = b2_dynamicBody;
 			player[p_cnt].bodyDef.position.Set(player[p_cnt].pos.x, player[p_cnt].pos.z);
 			player[p_cnt].bodyDef.angle = -player[p_cnt].yrad;
-			player[p_cnt].body = world->CreateBody(&(player[p_cnt].bodyDef));
+			player[p_cnt].body.reset(world->CreateBody(&(player[p_cnt].bodyDef)));
 			player[p_cnt].playerfix = player[p_cnt].body->CreateFixture(&(player[p_cnt].fixtureDef));		// シェイプをボディに追加します。
 		}
 		/*音量調整*/
@@ -997,7 +997,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			/*Box2D*/
 			delete player[p_cnt].playerfix->GetUserData();
 			player[p_cnt].playerfix->SetUserData(NULL);
-			player[p_cnt].body->DestroyFixture(player[p_cnt].playerfix);
 			/**/
 			player[p_cnt].obj.Dispose();
 			player[p_cnt].colobj.Dispose();

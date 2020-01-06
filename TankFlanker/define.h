@@ -97,6 +97,7 @@ struct EffectS {
 	VECTOR effpos = { VGet(0, 0, 0) };				/**/
 	VECTOR effnor = { VGet(0, 0, 0) };				/**/
 };
+
 struct vehicle {
 	std::string name;						/*名前*/
 	int countryc;							/*国*/
@@ -122,6 +123,17 @@ struct vehicle {
 	int meshes{ 0 };
 };
 static_assert(std::is_move_constructible_v<vehicle>);
+namespace std
+{
+	template<>
+	struct default_delete<b2Body>
+	{
+		void operator()(b2Body* body) const
+		{
+			body->GetWorld()->DestroyBody(body);
+		}
+	};
+};
 struct players {
 	/*情報*/
 	int use{ 0 };							/*使用車両*/
@@ -178,7 +190,7 @@ struct players {
 	int usepic[3];							/*使用フレーム*/
 	int hitbuf;							/*使用弾痕*/
 	/*box2d*/
-	b2Body* body;							/**/
+	std::unique_ptr<b2Body> body;							/**/
 	b2FixtureDef fixtureDef;					/*動的ボディフィクスチャを定義します。*/
 	b2PolygonShape dynamicBox;					/*ダイナミックボディに別のボックスシェイプを定義します。*/
 	b2Fixture *playerfix;						/**/
