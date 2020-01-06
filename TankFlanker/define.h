@@ -10,25 +10,28 @@
 #include <cstdlib>
 #include "Box2D/Box2D.h"
 #include "useful.h"
-#include <thread>
 #include <array>
 
 #include<algorithm>
 #include <vector>
 #include <cstring>
-#include "MV1ModelHandle.hpp"
-#include "EffekseerEffectHandle.hpp"
-#include "SoundHandle.hpp"
 #include <string_view>
 #include <cstdint>
 #include <optional>
+#include <array>
+
+
+#include "MV1ModelHandle.hpp"
+#include "EffekseerEffectHandle.hpp"
+#include "SoundHandle.hpp"
+
 
 using std::size_t;
-inline const int dispx = GetSystemMetrics(SM_CXSCREEN);			/*描画X*/
-inline const int dispy = GetSystemMetrics(SM_CYSCREEN);			/*描画Y*/
+inline const int dispx = GetSystemMetrics(SM_CXSCREEN);				/*描画X*/
+inline const int dispy = GetSystemMetrics(SM_CYSCREEN);				/*描画Y*/
 constexpr float M_GR = -9.8f;							/*重力加速度*/
 constexpr size_t waypc = 4;							/*移動確保数*/
-constexpr size_t ammoc = 16;						/*砲弾確保数*/
+constexpr size_t ammoc = 64;						/*砲弾確保数*/
 #define animes		4							/*人アニメーション*/
 #define voice		1							/*ボイス*/
 #define map_x		1000							/*マップサイズX*/
@@ -92,7 +95,7 @@ struct ammos {
 	VECTOR pos{ VGet(0, 0, 0) }, repos{ VGet(0, 0, 0) }, vec{ VGet(0, 0, 0) }, rad{ VGet(0, 0, 0) };
 };
 struct EffectS {
-	Effekseer3DPlayingHandle efhandle;						/**/
+	Effekseer3DPlayingHandle efhandle;				/**/
 	bool efflug{ 0 };						/**/
 	VECTOR effpos = { VGet(0, 0, 0) };				/**/
 	VECTOR effnor = { VGet(0, 0, 0) };				/**/
@@ -101,8 +104,9 @@ struct EffectS {
 struct vehicle {
 	std::string name;						/*名前*/
 	int countryc;							/*国*/
-	MV1ModelHandle model;							/*モデル*/
-	MV1ModelHandle colmodel;						/*コリジョン*/
+	MV1ModelHandle model;						/*モデル*/
+	MV1ModelHandle model_far;					/*遠モデル*/
+	MV1ModelHandle colmodel;					/*コリジョン*/
 	MV1ModelHandle inmodel;						/*内装*/
 	float spdflont[4] = { 0.0f };					/*前進*/
 	float spdback[4] = { 0.0f };					/*後退*/
@@ -138,11 +142,12 @@ struct players {
 	/*情報*/
 	int use{ 0 };							/*使用車両*/
 	vehicle* ptr;							/*vehicle*/
-	MV1ModelHandle obj;							/*モデル*/
+	MV1ModelHandle obj;						/*モデル*/
+	MV1ModelHandle farobj;						/*モデル*/
 	MV1ModelHandle colobj;						/*コリジョン*/
-	MV1ModelHandle hitpic[3];							/*弾痕モデル*/
+	MV1ModelHandle hitpic[3];					/*弾痕モデル*/
 	char type{ 0 };							/*敵味方識別*/
-	std::array<SoundHandle, 50> se;						/*SE*/
+	std::array<SoundHandle, 50> se;					/*SE*/
 	/**/
 	int move{ 0 };							/*キー操作*/
 	VECTOR pos{ VGet(0, 0, 0) };					/*座標*/
@@ -160,7 +165,7 @@ struct players {
 	int firerad{ 0 };						/*反動角度*/
 	float recorad{ 0.f };						/*弾き反動*/
 	/*cpu関連*/
-	std::optional<size_t> atkf;							/*cpuのヘイト*/
+	std::optional<size_t> atkf;					/*cpuのヘイト*/
 	int aim{ 0 };							/*ヘイトの変更カウント*/
 	size_t wayselect{ 0 }, waynow{ 0 };				/**/
 	VECTOR waypos[waypc]{ VGet(0, 0, 0) };				/*ウェイポイント*/
@@ -190,7 +195,7 @@ struct players {
 	int usepic[3];							/*使用フレーム*/
 	int hitbuf;							/*使用弾痕*/
 	/*box2d*/
-	std::unique_ptr<b2Body> body;							/**/
+	std::unique_ptr<b2Body> body;					/**/
 	b2FixtureDef fixtureDef;					/*動的ボディフィクスチャを定義します。*/
 	b2PolygonShape dynamicBox;					/*ダイナミックボディに別のボックスシェイプを定義します。*/
 	b2Fixture *playerfix;						/**/
@@ -204,28 +209,28 @@ struct switches {
 class Myclass {
 private:
 	/*setting*/
-	bool usegrab{ false };							/*人の物理演算のオフ、オン、一人だけオン*/
-	unsigned char ANTI{ 1 };						/*アンチエイリアス倍率*/
-	bool YSync{ true };							/*垂直同期*/
-	float f_rate{ 60.f };							/*fps*/
-	bool windowmode{ false };						/*ウィンドウor全画面*/
-	float drawdist{ 100.0f };						/*木の描画距離*/
+	bool usegrab{ false };						/*人の物理演算のオフ、オン、一人だけオン*/
+	unsigned char ANTI{ 1 };					/*アンチエイリアス倍率*/
+	bool YSync{ true };						/*垂直同期*/
+	float f_rate{ 60.f };						/*fps*/
+	bool windowmode{ false };					/*ウィンドウor全画面*/
+	float drawdist{ 100.0f };					/*木の描画距離*/
 	int gndx = 8;
 	/**/
-	std::vector<vehicle> vecs;						/*車輛情報*/
-	VECTOR view, view_r;							/*通常視点の角度、距離*/
-	std::vector<int> fonts;							/*フォント*/
-	std::array<SoundHandle, 13> se_;								/*効果音*/
-	int ui_reload[4] = { 0 };						/*UI用*/
-	EffekseerEffectHandle effHndle[effects];						/*エフェクトリソース*/
+	std::vector<vehicle> vecs;					/*車輛情報*/
+	VECTOR view, view_r;						/*通常視点の角度、距離*/
+	std::vector<int> fonts;						/*フォント*/
+	std::array<SoundHandle, 13> se_;				/*効果音*/
+	int ui_reload[4] = { 0 };					/*UI用*/
+	EffekseerEffectHandle effHndle[effects];			/*エフェクトリソース*/
 public:
 	Myclass();
 	bool get_usegrab(void) { return usegrab; }
 	int get_gndx(void) { return gndx; }
 	float get_drawdist(void) { return drawdist; }
 	float get_f_rate(void) { return f_rate; }
-	void write_option(void);						//未実装
-	//bool set_fonts(int arg_num, ...);					//(必要なフォント数,サイズ1,サイズ2, ...)
+	void write_option(void);					//未実装
+	//bool set_fonts(int arg_num, ...);
 	template<typename ...Args>
 	void set_fonts(Args&& ...args)
 	{
@@ -236,10 +241,10 @@ public:
 		// - https://stackoverflow.com/questions/45519117/using-fold-expression-to-merge-multiple-vector
 		(this->fonts.emplace(this->fonts.end(), DxLib::CreateFontToHandle(NULL, x_r(args), y_r(args / 3), DX_FONTTYPE_ANTIALIASING_EDGE)), ...);
 		SetUseASyncLoadFlag(false);
-	}
+	}								//(必要なフォント数,サイズ1,サイズ2, ...)
 
 	bool set_veh(void);
-	int window_choosev(void);						//車両選択
+	int window_choosev(void);					//車両選択
 	void set_viewrad(VECTOR vv);
 	void set_view_r(void);
 	void Screen_Flip(LONGLONG waits);
@@ -247,7 +252,7 @@ public:
 	void set_se_vol(unsigned char size);
 	void play_sound(int p1);
 	int* get_ui2(void) { return ui_reload; }
-	int get_font(int p1) { return fonts[p1]; }				//フォントハンドル取り出し
+	int get_font(int p1) { return fonts[p1]; }			//フォントハンドル取り出し
 	VECTOR get_view_r(void) { return view_r; }
 	VECTOR get_view_pos(void) { return VScale(VGet(sin(view_r.y) * cos(view_r.x), sin(view_r.x), cos(view_r.y) * cos(view_r.x)), 15.0f * view_r.z); }
 	EffekseerEffectHandle& get_effHandle(int p1) noexcept { return effHndle[p1]; }
@@ -273,13 +278,13 @@ private:
 	bool usegrab{ false };							/*人の物理演算のオフ、オン、一人だけオン*/
 	float f_rate{ 60.f };							/*fps*/
 
-	MV1ModelHandle inmodel_handle;						//中モデル
-	bool in_f{ false };							//中描画スイッチ
-	int inflames;								//inmodelのフレーム数
-	std::vector<humans> hum;						/**/
-	std::vector<VECTOR> locin;						/*inmodelのフレーム*/
-	std::vector<VECTOR> pos_old;						/*inmodelの前回のフレーム*/
-	bool first;								//初回フラグ
+	MV1ModelHandle inmodel_handle;					//中モデル
+	bool in_f{ false };						//中描画スイッチ
+	int inflames;							//inmodelのフレーム数
+	std::vector<humans> hum;					/**/
+	std::vector<VECTOR> locin;					/*inmodelのフレーム*/
+	std::vector<VECTOR> pos_old;					/*inmodelの前回のフレーム*/
+	bool first;							//初回フラグ
 public:
 	HUMANS(bool useg, float frates);
 	void set_humans(const MV1ModelHandle& inmod);
@@ -301,10 +306,10 @@ private:
 	/**/
 	size_t treec = 750;							/*木の数*/
 	struct trees {
-		MV1ModelHandle mnear;							/**/
-		MV1ModelHandle mfar;							/**/
-		std::vector<MV1ModelHandle> nears;							/**/
-		std::vector<MV1ModelHandle> fars;							/**/
+		MV1ModelHandle mnear;						/**/
+		MV1ModelHandle mfar;						/**/
+		std::vector<MV1ModelHandle> nears;				/**/
+		std::vector<MV1ModelHandle> fars;				/**/
 
 		std::vector<pair> treesort;
 		std::vector<VECTOR> pos;
@@ -315,9 +320,9 @@ private:
 	int shadow_seminear;							/*shadow中距離*/
 	int shadow_near;							/*shadow近距離*/
 	int shadow_far;								/*shadowマップ用*/
-	MV1ModelHandle m_model, minmap;							/*mapモデル*/
+	MV1ModelHandle m_model, minmap;						/*mapモデル*/
 	int texp,texo, texn, texm,texl;						/*mapテクスチャ*/
-	MV1ModelHandle sky_model;								/*skyモデル*/
+	MV1ModelHandle sky_model;						/*skyモデル*/
 	int sky_sun;								/*sunpic*/
 	VECTOR lightvec;							/*light方向*/
 	/*grass*/
@@ -378,7 +383,7 @@ public:
 	void set_state(players* play);							/*使用するポインタの指定*/
 	void set_reco(void);								/*反射スイッチ*/
 	void draw_sight(float posx, float posy, float ratio, float dist, int font);	/*照準UI*/
-	void draw_ui(int selfammo,float y_v);							/*メインUI*/
+	void draw_ui(int selfammo,float y_v);						/*メインUI*/
 	void put_way(void);
 	void end_way(void);
 	void debug(float fps, float time);

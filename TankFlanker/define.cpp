@@ -1,13 +1,11 @@
 ﻿#include "define.h"
-#include <string_view>
-#include <array>
 //
 Myclass::Myclass() {
 	using namespace std::literals;
 	WIN32_FIND_DATA win32fdt;
 	HANDLE hFind;
 	char mstr[64];								/*tank*/
-	int mdata;							/*tank*/
+	int mdata;								/*tank*/
 
 	SetOutApplicationLogValidFlag(FALSE);					/*log*/
 	mdata = FileRead_open("data/setting.txt", FALSE);
@@ -82,6 +80,7 @@ Myclass::Myclass() {
 	SetUseASyncLoadFlag(TRUE);
 		for (auto& v : vecs) {
 			v.model = MV1ModelHandle::Load("data/tanks/" + v.name + "/model.mv1");
+			v.model_far = MV1ModelHandle::Load("data/tanks/" + v.name + "/model_far.mv1");
 			v.colmodel = MV1ModelHandle::Load("data/tanks/" + v.name + "/col.mv1");
 			v.inmodel = MV1ModelHandle::Load("data/tanks/" + v.name + "/in/model.mv1");
 		}
@@ -162,7 +161,7 @@ int Myclass::window_choosev(void) {
 		if (CheckHitKey(KEY_INPUT_ESCAPE) != 0) { i = -1; break; }				//end
 		SetDrawScreen(DX_SCREEN_BACK);
 		ClearDrawScreen();
-			differential(real, deg2rad(360 * l / vecs.size()), 0.05f);
+			differential(real, deg2rad(360 * l / (int)vecs.size()), 0.05f);
 			setcv(1.0f, 100.0f, VGet(-sin(real)*(10.f + r), 1, -cos(real)*(10.f + r)), VGet(-sin(real)*r, 2, -cos(real)*r), VGet(0, 1.0f, 0), 45.0f);
 			SetLightDirection(VSub(VGet(-sin(real)*r, 2, -cos(real)*r), VGet(-sin(real)*(10.f + r), 4, -cos(real)*(10.f + r))));
 			for (size_t k = 0; k < vecs.size(); k++) {
@@ -588,7 +587,7 @@ void MAPS::set_camerapos(VECTOR pos, VECTOR vec, VECTOR up,float ratio){
 	rat = ratio;
 }
 void MAPS::set_map_shadow_near(float vier_r){
-	float shadow_dist = 15.0f * vier_r + 10.0f; if (shadow_dist <= 10.0f) { shadow_dist = 10.0f; }
+	float shadow_dist = 30.0f * vier_r + 10.0f; if (shadow_dist <= 10.0f) { shadow_dist = 10.0f; }
 	SetShadowMapDrawArea(shadow_near, VSub(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist)), VAdd(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist)));
 	SetShadowMapDrawArea(shadow_seminear, VSub(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist * 2)), VAdd(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist * 2)));
 }
