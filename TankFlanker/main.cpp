@@ -249,8 +249,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			for (i = 29; i < 31; ++i) { Set3DRadiusSoundMem(300.0f, player[p_cnt].se[i].get()); }
 		}
 		const auto c_000000 = GetColor(0, 0, 0);
-		const auto c_00ff00 = GetColor(0, 255, 0);
-		const auto c_ff0000 = GetColor(255, 0, 0);
+		const auto c_00ff00 = GetColor(0, 255, 0);//凄い暗い？
+		const auto c_ff0000 = GetColor(255, 0, 0);//
 		const auto c_008000 = GetColor(0, 128, 0);
 		const auto c_800000 = GetColor(128, 0, 0);
 		const auto c_ffff00 = GetColor(255, 255, 0);
@@ -788,10 +788,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 				ClearDrawScreen();
 				DrawExtendGraph(x_r(420), y_r(0), x_r(1500), y_r(1080), mapparts.get_minmap(), FALSE);
 				for (size_t p_cnt = 0; p_cnt < teamc; ++p_cnt) {
-					DrawCircle(x_(player[p_cnt].pos.x), y_(player[p_cnt].pos.z), 5, (player[p_cnt].HP[0] == 0) ? c_00ff00 : c_008000, 1);
+					DrawCircle(x_(player[p_cnt].pos.x), y_(player[p_cnt].pos.z), 5, (player[p_cnt].HP[0] == 0) ? c_008000 : c_00ff00, 1);
 				}
 				for (size_t p_cnt = teamc; p_cnt < playerc; ++p_cnt) {
-					DrawCircle(x_(player[p_cnt].pos.x), y_(player[p_cnt].pos.z), 5, (player[p_cnt].HP[0] == 0) ? c_ff0000 : c_800000, 1);
+					DrawCircle(x_(player[p_cnt].pos.x), y_(player[p_cnt].pos.z), 5, (player[p_cnt].HP[0] == 0) ? c_800000 : c_ff0000, 1);
 				}
 				//teamc + enemyc
 				for (size_t p_cnt = 1; p_cnt < teamc; ++p_cnt) {
@@ -975,8 +975,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 						if (player[k].HP[0] != 0) {
 							if (player[k].iconpos.z > 0.0f && player[k].iconpos.z < 1.0f) {
 								DrawFormatStringToHandle(
-									(int)player[k].iconpos.x, (int)player[k].iconpos.y, j, parts.get_font(0),
-									"[%d]\n%dm", (player[k].type == TEAM) ? c_ff0000 : c_00ff00, (int)VSize(VSub(player[k].pos, player[0].pos))
+									(int)player[k].iconpos.x, (int)player[k].iconpos.y, (player[k].type == TEAM) ? c_00ff00 : c_ff0000, parts.get_font(0),
+									"%dm", (int)VSize(VSub(player[k].pos, player[0].pos))
 								);
 							}
 						}
