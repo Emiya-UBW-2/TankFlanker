@@ -313,7 +313,7 @@ void HUMANS::set_humans(const MV1ModelHandle& inmod) {
 void HUMANS::set_humanvc_vol(unsigned char size) {
 	for (auto&& v : hum[0].vsound) { ChangeVolumeSoundMem(size, v.get()); }
 }
-void HUMANS::set_humanmove(const players& player, VECTOR rad, float fps) {
+void HUMANS::set_humanmove(const players& player, VECTOR rad, float /*fps*/) {
 	float tmpft, tmpfy;
 	int i, j,inflm=inflames;
 	bool grab = usegrab;
@@ -970,7 +970,7 @@ void set_normal(float* xnor, float* znor, int maphandle, VECTOR position) {
 	if (temp[0] != -9999.0 && temp[1] != -9999.0) { differential(*znor, atan2(temp[0] - temp[1], 1.0f), 0.05f); }/*Z*/
 }
 bool get_reco(players* play, players* tgt, size_t i, size_t gun_s) {
-	int colmesh, k, f = 0;
+	int colmesh, f = 0;
 	MV1_COLL_RESULT_POLY HitPoly;
 	float tmpf[2];
 	std::optional<size_t> hitnear;
@@ -1016,7 +1016,7 @@ bool get_reco(players* play, players* tgt, size_t i, size_t gun_s) {
 			set_effect(&(play->effcs[ef_reco]), HitPoly.HitPosition, HitPoly.Normal);
 			if (play->Ammo[i].pene > tgt->ptr->armer[hitnear.value()] * (1.0f / abs(VDot(VNorm(play->Ammo[i].vec), HitPoly.Normal)))) {
 				if (tgt->HP[0] != 0) {
-					PlaySoundMem(tgt->se[29 + GetRand(1)], DX_PLAYTYPE_BACK, TRUE);
+					PlaySoundMem(tgt->se[29 + GetRand(1)].get(), DX_PLAYTYPE_BACK, TRUE);
 					set_effect(&(play->effcs[ef_bomb]), MV1GetFramePosition(tgt->obj.get(), bone_engine), VGet(0, 0, 0));
 					set_effect(&(play->effcs[ef_smoke1]), MV1GetFramePosition(tgt->obj.get(), bone_engine), VGet(0, 0, 0));
 					if (play->hitadd == false) { play->hitadd = true; }
@@ -1026,7 +1026,7 @@ bool get_reco(players* play, players* tgt, size_t i, size_t gun_s) {
 				tgt->usepic[tgt->hitbuf] = 0;
 			}
 			else {
-				PlaySoundMem(tgt->se[10 + GetRand(16)], DX_PLAYTYPE_BACK, TRUE);
+				PlaySoundMem(tgt->se[10 + GetRand(16)].get(), DX_PLAYTYPE_BACK, TRUE);
 				if (tgt->recoadd == false) {
 					tgt->recorad = atan2(HitPoly.HitPosition.x - tgt->pos.x, HitPoly.HitPosition.z - tgt->pos.z);
 					tgt->recoadd = true;
@@ -1053,7 +1053,7 @@ bool get_reco(players* play, players* tgt, size_t i, size_t gun_s) {
 		if (hitnear) {
 			HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos);
 			set_effect(&(play->effcs[ef_reco2]), HitPoly.HitPosition, HitPoly.Normal);
-			PlaySoundMem(tgt->se[10 + GetRand(16)], DX_PLAYTYPE_BACK, TRUE);
+			PlaySoundMem(tgt->se[10 + GetRand(16)].get(), DX_PLAYTYPE_BACK, TRUE);
 			play->Ammo[i].vec = VAdd(play->Ammo[i].vec, VScale(HitPoly.Normal, VDot(play->Ammo[i].vec, HitPoly.Normal) * -2.0f));
 			play->Ammo[i].pos = VAdd(HitPoly.HitPosition, VScale(play->Ammo[i].vec, 0.01f));
 		}
