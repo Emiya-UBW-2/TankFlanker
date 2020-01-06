@@ -147,79 +147,79 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 		//players
 		const auto c_ffff96 = GetColor(255, 255, 150);
 		const auto c_ffc896 = GetColor(255, 200, 150);
-		for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+		for (auto&& p : player) {
 			//色調
-			for (int i = 0; i < MV1GetMaterialNum(player[p_cnt].obj.get()); ++i) {
-				MV1SetMaterialSpcColor(player[p_cnt].obj.get(), i, GetColorF(0.85f, 0.82f, 0.78f, 0.5f));
-				MV1SetMaterialSpcPower(player[p_cnt].obj.get(), i, 5.0f);
-				MV1SetMaterialSpcColor(player[p_cnt].farobj.get(), i, GetColorF(0.85f, 0.82f, 0.78f, 0.5f));
-				MV1SetMaterialSpcPower(player[p_cnt].farobj.get(), i, 5.0f);
+			for (int i = 0; i < MV1GetMaterialNum(p.obj.get()); ++i) {
+				MV1SetMaterialSpcColor(p.obj.get(), i, GetColorF(0.85f, 0.82f, 0.78f, 0.5f));
+				MV1SetMaterialSpcPower(p.obj.get(), i, 5.0f);
+				MV1SetMaterialSpcColor(p.farobj.get(), i, GetColorF(0.85f, 0.82f, 0.78f, 0.5f));
+				MV1SetMaterialSpcPower(p.farobj.get(), i, 5.0f);
 			}
-			MV1SetMaterialDrawAlphaTestAll(player[p_cnt].obj.get(), TRUE, DX_CMP_GREATER, 128);
-			MV1SetMaterialDrawAlphaTestAll(player[p_cnt].farobj.get(), TRUE, DX_CMP_GREATER, 128);
+			MV1SetMaterialDrawAlphaTestAll(p.obj.get(), TRUE, DX_CMP_GREATER, 128);
+			MV1SetMaterialDrawAlphaTestAll(p.farobj.get(), TRUE, DX_CMP_GREATER, 128);
 			//リセット
-			player[p_cnt].hitbuf = 0;
-			player[p_cnt].gear = 0;
+			p.hitbuf = 0;
+			p.gear = 0;
 			//cpu
-			player[p_cnt].atkf = std::nullopt;
+			p.atkf = std::nullopt;
 			//Question: -2ってなんですか？
-			player[p_cnt].aim = -2;
+			p.aim = -2;
 			//hit
-			for (int i = 0; i < player[p_cnt].ptr->colmeshes; ++i) { MV1SetupCollInfo(player[p_cnt].colobj.get(), -1, 5, 5, 5); }
-			player[p_cnt].hitssort.resize(player[p_cnt].ptr->colmeshes);
+			for (size_t i = 0; i < p.ptr->colmeshes; ++i) { MV1SetupCollInfo(p.colobj.get(), -1, 5, 5, 5); }
+			p.hitssort.resize(p.ptr->colmeshes);
 			//ammo
-			player[p_cnt].Ammo.resize(ammoc*gunc);
+			p.Ammo.resize(ammoc*gunc);
 			for (size_t i = 0; i < ammoc * gunc; ++i) {
-				player[p_cnt].Ammo[i].color = (player[p_cnt].type == TEAM) ? c_ffff96 : c_ffc896;
+				p.Ammo[i].color = (p.type == TEAM) ? c_ffff96 : c_ffc896;
 			}
 
 			//HP
-			player[p_cnt].HP.resize(player[p_cnt].ptr->colmeshes);
+			p.HP.resize(p.ptr->colmeshes);
 			/*3456は装甲部分なので詰め込む*/
-			player[p_cnt].HP[0] = 1;								//life
-			for (i = 4; i < player[p_cnt].ptr->colmeshes; ++i) { player[p_cnt].HP[i] = 100; }	//spaceARMER
+			p.HP[0] = 1;								//life
+			for (size_t i = 4; i < p.ptr->colmeshes; ++i) { p.HP[i] = 100; }	//spaceARMER
 			//wheel
-			player[p_cnt].Springs.resize(player[p_cnt].ptr->frames);
+			p.Springs.resize(p.ptr->frames);
 			//0初期化いる
 		//
-			MV1SetMatrix(player[p_cnt].colobj.get(), MGetTranslate(VGet(0, 0, 0)));
+			MV1SetMatrix(p.colobj.get(), MGetTranslate(VGet(0, 0, 0)));
 			//装てん
-			player[p_cnt].loadcnt[0] = 1;
+			p.loadcnt[0] = 1;
 			//ypos反映
-			HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, VAdd(player[p_cnt].pos, VGet(0.0f, (float)map_x, 0.0f)), VAdd(player[p_cnt].pos, VGet(0.0f, -(float)map_x, 0.0f)));
-			if (HitPoly.HitFlag) { player[p_cnt].pos.y = HitPoly.HitPosition.y; }
-			for (i = 0; i < waypc; ++i) {
-				HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, VAdd(player[p_cnt].waypos[i], VGet(0.0f, (float)map_x, 0.0f)), VAdd(player[p_cnt].waypos[i], VGet(0.0f, -(float)map_x, 0.0f)));
-				if (HitPoly.HitFlag) { player[p_cnt].waypos[i].y = HitPoly.HitPosition.y; }
+			HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, VAdd(p.pos, VGet(0.0f, (float)map_x, 0.0f)), VAdd(p.pos, VGet(0.0f, -(float)map_x, 0.0f)));
+			if (HitPoly.HitFlag) { p.pos.y = HitPoly.HitPosition.y; }
+			for (auto&& w : p.waypos) {
+				HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, VAdd(w, VGet(0.0f, (float)map_x, 0.0f)), VAdd(w, VGet(0.0f, -(float)map_x, 0.0f)));
+				if (HitPoly.HitFlag) { w.y = HitPoly.HitPosition.y; }
 			}
 			//
 		}
 		//物理set
-		for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
-			player[p_cnt].dynamicBox.SetAsBox(
-				(player[p_cnt].ptr->coloc[0].x - player[p_cnt].ptr->coloc[2].x) / 2,
-				(player[p_cnt].ptr->coloc[0].z - player[p_cnt].ptr->coloc[2].z) / 2,
+		for (auto&& p : player) {
+			p.dynamicBox.SetAsBox(
+				(p.ptr->coloc[0].x - p.ptr->coloc[2].x) / 2,
+				(p.ptr->coloc[0].z - p.ptr->coloc[2].z) / 2,
 				b2Vec2(
-				(player[p_cnt].ptr->coloc[2].x + player[p_cnt].ptr->coloc[0].x) / 2,
-					(player[p_cnt].ptr->coloc[2].z + player[p_cnt].ptr->coloc[0].z) / 2
+				(p.ptr->coloc[2].x + p.ptr->coloc[0].x) / 2,
+					(p.ptr->coloc[2].z + p.ptr->coloc[0].z) / 2
 				),
 				0.f
 			);
-			player[p_cnt].fixtureDef.shape = &(player[p_cnt].dynamicBox);
-			player[p_cnt].fixtureDef.density = 1.0f;								// ボックス密度をゼロ以外に設定すると、動的になります。
-			player[p_cnt].fixtureDef.friction = 0.3f;								// デフォルトの摩擦をオーバーライドします。
-			player[p_cnt].bodyDef.type = b2_dynamicBody;
-			player[p_cnt].bodyDef.position.Set(player[p_cnt].pos.x, player[p_cnt].pos.z);
-			player[p_cnt].bodyDef.angle = -player[p_cnt].yrad;
-			player[p_cnt].body.reset(world->CreateBody(&(player[p_cnt].bodyDef)));
-			player[p_cnt].playerfix = player[p_cnt].body->CreateFixture(&(player[p_cnt].fixtureDef));		// シェイプをボディに追加します。
+			p.fixtureDef.shape = &(p.dynamicBox);
+			p.fixtureDef.density = 1.0f;								// ボックス密度をゼロ以外に設定すると、動的になります。
+			p.fixtureDef.friction = 0.3f;								// デフォルトの摩擦をオーバーライドします。
+			p.bodyDef.type = b2_dynamicBody;
+			p.bodyDef.position.Set(p.pos.x, p.pos.z);
+			p.bodyDef.angle = -p.yrad;
+			p.body.reset(world->CreateBody(&(p.bodyDef)));
+			p.playerfix = p.body->CreateFixture(&(p.fixtureDef));		// シェイプをボディに追加します。
 		}
 		/*音量調整*/
 		humanparts.set_humanvc_vol(255);
 		parts.set_se_vol(128);
-		for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
-			for (i = 1; i < 27; ++i) { ChangeVolumeSoundMem(128, player[p_cnt].se[i].get()); }
-			for (i = 29; i < 31; ++i) { ChangeVolumeSoundMem(128, player[p_cnt].se[i].get()); }
+		for (auto&& p : player) {
+			for (i = 1; i < 27; ++i) { ChangeVolumeSoundMem(128, p.se[i].get()); }
+			for (i = 29; i < 31; ++i) { ChangeVolumeSoundMem(128, p.se[i].get()); }
 		}
 		/*メインループ*/
 		aim.flug = false;
