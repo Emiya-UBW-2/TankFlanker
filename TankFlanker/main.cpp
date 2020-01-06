@@ -26,7 +26,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 	bool btmp;
 	//int lookplayerc;							/*視認しているplayer人数*/
 	bool keyget[19]{ false };						/*キー用*/
-	std::string tempname;
 	//変数------------------------------------------------------------------//
 	bool out{ false };							/*終了フラグ*/
 	std::vector<pair> pssort;						/*playerソート*/
@@ -88,8 +87,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 		pssort.resize(playerc);
 		//設定
 		for (size_t p_cnt = 0; p_cnt < teamc; ++p_cnt) {
-			tempname = "stage/data_0/team/" + std::to_string(p_cnt) + ".txt";
-			mdata = FileRead_open(tempname.c_str(), FALSE);
+			mdata = FileRead_open(("stage/data_0/team/" + std::to_string(p_cnt) + ".txt").c_str(), FALSE);
 			FileRead_close(mdata);
 
 			if (p_cnt == 0) { player[p_cnt].use = k; }
@@ -103,8 +101,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_  HINSTANCE hPrevInstance, 
 			}
 		}
 		for (size_t p_cnt = teamc; p_cnt < playerc; ++p_cnt) {
-			tempname = "stage/data_0/enemy/" + std::to_string(p_cnt) + ".txt";
-			mdata = FileRead_open(tempname.c_str(), FALSE);
+			mdata = FileRead_open(("stage/data_0/enemy/" + std::to_string(p_cnt) + ".txt").c_str(), FALSE);
 			FileRead_close(mdata);
 
 			player[p_cnt].use = 1;// p_cnt % parts.get_vehc();

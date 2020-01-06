@@ -710,7 +710,7 @@ void MAPS::delete_map(void) {
 //
 UIS::UIS() {
 	int j, i;
-	std::string tempname, tempname2;
+	using namespace std::literals;
 	WIN32_FIND_DATA win32fdt;
 	HANDLE hFind;
 
@@ -719,8 +719,7 @@ UIS::UIS() {
 	UI_main.resize(countries);/*改善*/
 	SetUseASyncLoadFlag(TRUE);
 		for (j = 0; j < std::size(ui_reload); ++j) {
-			tempname = "data/ui/ammo_" + std::to_string(j)+".bmp";
-			ui_reload[j] = LoadGraph(tempname.c_str());
+			ui_reload[j] = LoadGraph(("data/ui/ammo_" + std::to_string(j) + ".bmp").c_str());
 		}/*弾0,弾1,弾2,空弾*/
 		hFind = FindFirstFile("data/ui/body/*.png", &win32fdt);
 		if (hFind != INVALID_HANDLE_VALUE) {
@@ -728,23 +727,18 @@ UIS::UIS() {
 			j = 0;
 			do {
 				if (win32fdt.cFileName[0] == 'B') {
-					tempname = "data/ui/body/";
-					tempname += win32fdt.cFileName;
-					UI_body.emplace_back(LoadGraph(tempname.c_str()));
+					UI_body.emplace_back(LoadGraph(("data/ui/body/"s + win32fdt.cFileName).c_str()));
 				}
 				if (win32fdt.cFileName[0] == 'T') {
-					tempname = "data/ui/body/";
-					tempname += win32fdt.cFileName;
-					UI_turret.emplace_back(LoadGraph(tempname.c_str()));
+					UI_turret.emplace_back(LoadGraph(("data/ui/body/"s + win32fdt.cFileName).c_str()));
 				}
 			} while (FindNextFile(hFind, &win32fdt));
 		}//else{ return false; }
 		FindClose(hFind);
 		for (j = 0; j < countries; ++j) {
-			tempname = "German";
+			// TODO: Germanの部分は可変になる
 			for (i = 0; i < 8; ++i) {
-				tempname2 = "data/ui/" + tempname + "/" + std::to_string(i) + ".png";
-				UI_main[j].ui_sight[i] = LoadGraph(tempname2.c_str());
+				UI_main[j].ui_sight[i] = LoadGraph(("data/ui/German/" + std::to_string(i) + ".png").c_str());
 			}
 		}
 	SetUseASyncLoadFlag(FALSE);
