@@ -162,6 +162,7 @@
   <ItemGroup>
     <ClInclude Include="define.h" />
     <ClInclude Include="EffekseerEffectHandle.hpp" />
+    <ClInclude Include="FontHandle.hpp" />
     <ClInclude Include="GraphHandle.hpp" />
     <ClInclude Include="MV1ModelHandle.hpp" />
     <ClInclude Include="SoundHandle.hpp" />

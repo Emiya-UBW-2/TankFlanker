@@ -1,4 +1,5 @@
 ﻿#include "define.h"
+#include "FontHandle.hpp"
 //
 Myclass::Myclass() {
 	using namespace std::literals;
@@ -143,8 +144,8 @@ bool Myclass::set_veh(void) {
 int Myclass::window_choosev(void) {
 	SetMousePoint(x_r(960),y_r(969));
 	SetMouseDispFlag(TRUE);
-	int font18 = CreateFontToHandle(NULL, x_r(18), y_r(18 / 3), DX_FONTTYPE_ANTIALIASING);
-	int font72 = CreateFontToHandle(NULL, x_r(72), y_r(72 / 3), DX_FONTTYPE_ANTIALIASING);
+	const auto font18 = FontHandle::Create(x_r(18), y_r(18 / 3), DX_FONTTYPE_ANTIALIASING);
+	const auto font72 = FontHandle::Create(NULL, x_r(72), y_r(72 / 3), DX_FONTTYPE_ANTIALIASING);
 	int i = 0, l = 0, x = 0, y = 0;
 	unsigned int m;
 	int mousex, mousey;
@@ -169,21 +170,21 @@ int Myclass::window_choosev(void) {
 				MV1SetRotationXYZ(vecs[k].model.get(), VGet(0, deg2rad((360 * k / vecs.size() + 30)), 0));
 				MV1DrawModel(vecs[k].model.get());
 			}
-			DrawFormatStringToHandle(x_r(960) - GetDrawFormatStringWidthToHandle(font72, "%s", vecs[i].name.c_str()) / 2, y_r(154), c_00ff00, font72, "%s", vecs[i].name.c_str());
-			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(850), y_r(850), c_00ff00, font18, "MAX SPD    : %5.2f km/h", vecs[i].spdflont[3] * 3.6f); }
-			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(850), y_r(870), c_00ff00, font18, "BACK SPD   : %5.2f km/h", vecs[i].spdback[3] * 3.6f); }
-			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(1140), y_r(810), c_00ff00, font18, "TURN SPEED : %5.2f deg/s", vecs[i].vehicle_RD * 180 / DX_PI_F); }
-			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(1120), y_r(580), c_00ff00, font18, "MAX ARMER  : %5.2f mm", vecs[i].armer[0]); }
-			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(650), y_r(410), c_00ff00, font18, "GUN RAD     : %5.2f°～%5.2f°", vecs[i].gun_lim_[2] * 180 / DX_PI_F, vecs[i].gun_lim_[3] * 180 / DX_PI_F); }
-			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(650), y_r(430), c_00ff00, font18, "GUN CALIBER : %05.1fmm", vecs[i].ammosize*1000.f); }
+			font72.DrawString(x_r(960) - font72.GetDrawWidth(vecs[i].name) / 2, y_r(154), vecs[i].name, c_00ff00);
+			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(850), y_r(850), c_00ff00, font18.get(), "MAX SPD    : %5.2f km/h", vecs[i].spdflont[3] * 3.6f); }
+			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(850), y_r(870), c_00ff00, font18.get(), "BACK SPD   : %5.2f km/h", vecs[i].spdback[3] * 3.6f); }
+			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(1140), y_r(810), c_00ff00, font18.get(), "TURN SPEED : %5.2f deg/s", vecs[i].vehicle_RD * 180 / DX_PI_F); }
+			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(1120), y_r(580), c_00ff00, font18.get(), "MAX ARMER  : %5.2f mm", vecs[i].armer[0]); }
+			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(650), y_r(410), c_00ff00, font18.get(), "GUN RAD     : %5.2f°～%5.2f°", vecs[i].gun_lim_[2] * 180 / DX_PI_F, vecs[i].gun_lim_[3] * 180 / DX_PI_F); }
+			if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) { DrawFormatStringToHandle(x_r(650), y_r(430), c_00ff00, font18.get(), "GUN CALIBER : %05.1fmm", vecs[i].ammosize*1000.f); }
 			//
-			DrawFormatStringToHandle(x_r(0), y_r(18 * 1), c_00ff00, font18, "%s", "SETTING");
-			DrawFormatStringToHandle(x_r(0), y_r(18 * 2), c_00ff00, font18, " 人の物理演算         : %s", usegrab ? "TRUE" : "FALSE");
-			DrawFormatStringToHandle(x_r(0), y_r(18 * 3), c_00ff00, font18, " アンチエイリアス倍率 : x%d", ANTI);
-			DrawFormatStringToHandle(x_r(0), y_r(18 * 4), c_00ff00, font18, " 垂直同期             : %s", YSync ? "TRUE" : "FALSE");
-			DrawFormatStringToHandle(x_r(0), y_r(18 * 5), c_00ff00, font18, " ウィンドウor全画面   : %s", windowmode ? "TRUE" : "FALSE");
-			DrawFormatStringToHandle(x_r(0), y_r(18 * 6), c_00ff00, font18, " 木の描画距離         : %5.2f m", drawdist);
-			DrawFormatStringToHandle(x_r(0), y_r(18 * 7), c_00ff00, font18, " 地面のクォリティ     : x%d", gndx);
+			font18.DrawString(x_r(0), y_r(18 * 1), "SETTING", c_00ff00);
+			DrawFormatStringToHandle(x_r(0), y_r(18 * 2), c_00ff00, font18.get(), " 人の物理演算         : %s", usegrab ? "TRUE" : "FALSE");
+			DrawFormatStringToHandle(x_r(0), y_r(18 * 3), c_00ff00, font18.get(), " アンチエイリアス倍率 : x%d", ANTI);
+			DrawFormatStringToHandle(x_r(0), y_r(18 * 4), c_00ff00, font18.get(), " 垂直同期             : %s", YSync ? "TRUE" : "FALSE");
+			DrawFormatStringToHandle(x_r(0), y_r(18 * 5), c_00ff00, font18.get(), " ウィンドウor全画面   : %s", windowmode ? "TRUE" : "FALSE");
+			DrawFormatStringToHandle(x_r(0), y_r(18 * 6), c_00ff00, font18.get(), " 木の描画距離         : %5.2f m", drawdist);
+			DrawFormatStringToHandle(x_r(0), y_r(18 * 7), c_00ff00, font18.get(), " 地面のクォリティ     : x%d", gndx);
 			//
 			GetMousePoint(&mousex, &mousey);
 			if (inm(x_r(360), y_r(340), x_r(400), y_r(740))) {
@@ -192,7 +193,7 @@ int Myclass::window_choosev(void) {
 			}
 			else { m = c_00ff00; }
 			DrawBox(x_r(360), y_r(340), x_r(400), y_r(740), m, FALSE);
-			DrawFormatStringToHandle(x_r(396) - GetDrawFormatStringWidthToHandle(font18, "%s", "<"), y_r(531), c_ffffff, font18, "%s", "<");
+			font18.DrawString(x_r(396) - font18.GetDrawWidth("<"), y_r(531), "<", c_ffffff);
 			//
 			if (inm(x_r(1520), y_r(340), x_r(1560), y_r(740))) {
 				m = c_ffff00;
@@ -200,7 +201,7 @@ int Myclass::window_choosev(void) {
 			}
 			else { m = c_00ff00; }
 			DrawBox(x_r(1520), y_r(340), x_r(1560), y_r(740), m, FALSE);
-			DrawFormatStringToHandle(x_r(1524), y_r(531), c_ffffff, font18, "%s", ">");
+			font18.DrawString(x_r(1524), y_r(531), ">", c_ffffff);
 			//
 			if (inm(x_r(760), y_r(960), x_r(1160), y_r(996))) {
 				m = c_ffc800;
@@ -208,11 +209,10 @@ int Myclass::window_choosev(void) {
 			}
 			else { m = c_ff6400; }
 			DrawBox(x_r(760), y_r(960), x_r(1160), y_r(996), m, FALSE);
-			DrawFormatStringToHandle(x_r(960) - GetDrawFormatStringWidthToHandle(font18, "%s", "戦闘開始") / 2, y_r(969), c_ffffff, font18, "%s", "戦闘開始");
+			using namespace std::literals;
+			font18.DrawString(x_r(960) - font18.GetDrawWidth("戦闘開始") / 2, y_r(969), "戦闘開始", c_ffffff);
 		Screen_Flip(waits);
 	}
-	DeleteFontToHandle(font18);
-	DeleteFontToHandle(font72);
 	if (i != -1) {
 		const auto c_000000 = GetColor(0, 0, 0);
 		float unt = 0;
@@ -730,7 +730,7 @@ UIS::UIS() {
 	SetUseASyncLoadFlag(FALSE);
 }
 void UIS::draw_load(void){
-	int font18 = CreateFontToHandle(NULL, x_r(18), y_r(18 / 3), DX_FONTTYPE_ANTIALIASING);
+	const auto font18 = FontHandle::Create(x_r(18), y_r(18 / 3), DX_FONTTYPE_ANTIALIASING);
 	SetUseASyncLoadFlag(TRUE);
 	auto pad = GraphHandle::Load("data/key.png");
 	SetUseASyncLoadFlag(FALSE);
@@ -747,36 +747,34 @@ void UIS::draw_load(void){
 		//
 		const float pers = (float)(pp - GetASyncLoadNum()) / pp;
 		DrawBox(x_r(0), y_r(1080-6), x_r(1920.f*pers), y_r(1080-3), c_00ff00, TRUE);
-		DrawFormatStringToHandle(x_r(0), y_r(1080-24), c_00ff00, font18, "LOADING : %06.2f%%", pers * 100.f);
+		DrawFormatStringToHandle(x_r(0), y_r(1080-24), c_00ff00, font18.get(), "LOADING : %06.2f%%", pers * 100.f);
 		//
 		DrawExtendGraph(x_r(552), y_r(401), x_r(1367), y_r(679), pad.get(), TRUE);
 		int i = 0;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff0000, font18, "%s : 前進", "W"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff0000, font18, "%s : 後退", "S"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff0000, font18, "%s : 左転", "A"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff0000, font18, "%s : 右転", "D"); i += 18;
-		//DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff0000, font18, "%s : シフトアップ", "R"); i += 18;
-		//DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff0000, font18, "%s : シフトダウン", "F"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff6400, font18, "%s : 砲昇", "↑"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff6400, font18, "%s : 砲降", "↓"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff6400, font18, "%s : 砲左", "←"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff6400, font18, "%s : 砲右", "→"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff6400, font18, "%s : 精密砲操作", "左CTRL"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff6400, font18, "%s : 照準", "左shift"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff6400, font18, "%s : レティクル上昇", "Z"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff6400, font18, "%s : レティクル下降", "X"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff6400, font18, "%s : ズームアウト", "C"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_ff6400, font18, "%s : ズームイン", "V"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_00c800, font18, "%s : 再装填", "Q"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_00c800, font18, "%s : 射撃", "space"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_3264ff, font18, "%s : 指揮", "右shift"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_3264ff, font18, "%s : 見回し/指揮", "マウス"); i += 18;
-		DrawFormatStringToHandle(x_r(1367), y_r(401 + i), c_3264ff, font18, "%s : 終了", "ESC"); i += 18;
+		font18.DrawString(x_r(1367), y_r(401 + i), "W : 前進", c_ff0000); i += 18;
+		font18.DrawString(x_r(1367), y_r(401 + i), "S : 後退", c_ff0000); i += 18;
+		font18.DrawString(x_r(1367), y_r(401 + i), "A : 左転", c_ff0000); i += 18;
+		font18.DrawString(x_r(1367), y_r(401 + i), "D : 右転", c_ff0000); i += 18;
+		//font18.DrawString(x_r(1367), y_r(401 + i), "R : シフトアップ", c_ff0000); i += 18;
+		//font18.DrawString(x_r(1367), y_r(401 + i), "F : シフトダウン", c_ff0000); i += 18;
+		font18.DrawString(x_r(1367), y_r(401 + i), "↑ : 砲昇", c_ff6400); i += 18;
+		font18.DrawString(x_r(1367), y_r(401 + i), "↓ : 砲降", c_ff6400); i += 18;
+		font18.DrawString(x_r(1367), y_r(401 + i), "← : 砲左", c_ff6400); i += 18;
+		font18.DrawString(x_r(1367), y_r(401 + i), "→ : 砲右", c_ff6400); i += 18;
+		font18.DrawString(x_r(1367), y_r(401 + i), "左CTRL : 精密砲操作", c_ff6400); i += 18;
+		font18.DrawString(x_r(1367), y_r(401 + i), "左shift : 照準", c_ff6400); i += 18;
+		font18.DrawString(x_r(1367), y_r(401 + i), "Z : レティクル上昇", c_ff6400); i += 18;
+		font18.DrawString(x_r(1367), y_r(401 + i), "X : レティクル下降", c_ff6400); i += 18;
+		font18.DrawString(x_r(1367), y_r(401 + i), "C : ズームアウト", c_ff6400); i += 18;
+		font18.DrawString(x_r(1367), y_r(401 + i), "V : ズームイン", c_ff6400); i += 18;
+		font18.DrawString(x_r(1367), y_r(401 + i), "Q : 再装填", c_00c800); i += 18;
+		font18.DrawString(x_r(1367), y_r(401 + i), "space : 射撃", c_00c800); i += 18;
+		font18.DrawString(x_r(1367), y_r(401 + i), "右shift : 指揮", c_3264ff); i += 18;
+		font18.DrawString(x_r(1367), y_r(401 + i), "マウス : 見回し/指揮", c_3264ff); i += 18;
+		font18.DrawString(x_r(1367), y_r(401 + i), "ESC : 終了", c_3264ff); i += 18;
 		ScreenFlip();
 		while (GetNowHiPerformanceCount() - waits < 1000000.0f / 60.f) {}
 	}
-	DeleteFontToHandle(font18);
-
 	SetDrawScreen(DX_SCREEN_BACK);
 	ClearDrawScreen();
 	ScreenFlip();
