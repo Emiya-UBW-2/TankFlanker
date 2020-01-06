@@ -5,7 +5,7 @@ Myclass::Myclass() {
 	WIN32_FIND_DATA win32fdt;
 	HANDLE hFind;
 	char mstr[64];								/*tank*/
-	int mdata;							/*tank*/
+	int mdata;								/*tank*/
 
 	SetOutApplicationLogValidFlag(FALSE);					/*log*/
 	mdata = FileRead_open("data/setting.txt", FALSE);
@@ -80,6 +80,7 @@ Myclass::Myclass() {
 	SetUseASyncLoadFlag(TRUE);
 		for (auto& v : vecs) {
 			v.model = MV1ModelHandle::Load("data/tanks/" + v.name + "/model.mv1");
+			v.model_far = MV1ModelHandle::Load("data/tanks/" + v.name + "/model_far.mv1");
 			v.colmodel = MV1ModelHandle::Load("data/tanks/" + v.name + "/col.mv1");
 			v.inmodel = MV1ModelHandle::Load("data/tanks/" + v.name + "/in/model.mv1");
 		}
@@ -590,7 +591,7 @@ void MAPS::set_camerapos(VECTOR pos, VECTOR vec, VECTOR up,float ratio){
 	rat = ratio;
 }
 void MAPS::set_map_shadow_near(float vier_r){
-	float shadow_dist = 15.0f * vier_r + 10.0f; if (shadow_dist <= 10.0f) { shadow_dist = 10.0f; }
+	float shadow_dist = 30.0f * vier_r + 10.0f; if (shadow_dist <= 10.0f) { shadow_dist = 10.0f; }
 	SetShadowMapDrawArea(shadow_near, VSub(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist)), VAdd(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist)));
 	SetShadowMapDrawArea(shadow_seminear, VSub(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist * 2)), VAdd(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist * 2)));
 }

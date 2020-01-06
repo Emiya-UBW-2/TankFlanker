@@ -105,6 +105,7 @@ struct vehicle {
 	std::string name;						/*名前*/
 	int countryc;							/*国*/
 	MV1ModelHandle model;						/*モデル*/
+	MV1ModelHandle model_far;					/*遠モデル*/
 	MV1ModelHandle colmodel;					/*コリジョン*/
 	MV1ModelHandle inmodel;						/*内装*/
 	float spdflont[4] = { 0.0f };					/*前進*/
@@ -142,6 +143,7 @@ struct players {
 	int use{ 0 };							/*使用車両*/
 	vehicle* ptr;							/*vehicle*/
 	MV1ModelHandle obj;						/*モデル*/
+	MV1ModelHandle farobj;						/*モデル*/
 	MV1ModelHandle colobj;						/*コリジョン*/
 	MV1ModelHandle hitpic[3];					/*弾痕モデル*/
 	char type{ 0 };							/*敵味方識別*/
