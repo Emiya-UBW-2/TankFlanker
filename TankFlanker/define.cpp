@@ -95,7 +95,6 @@ Myclass::Myclass() {
 			ui_reload[j] = LoadGraph(("data/ui/ammo_" + std::to_string(j) + ".bmp").c_str());
 		}		/*弾0,弾1,弾2,空弾*/
 	SetUseASyncLoadFlag(FALSE);
-	//return true;
 }
 void Myclass::write_option(void) {
 }

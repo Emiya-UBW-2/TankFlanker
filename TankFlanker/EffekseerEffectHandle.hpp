@@ -7,12 +7,21 @@ private:
     int handle_;
     constexpr Effekseer2DPlayingHandle(int h) noexcept : handle_(h) {}
     friend EffekseerEffectHandle;
+    static constexpr int invalid_handle = -1;
 public:
-    constexpr Effekseer2DPlayingHandle() noexcept : handle_(-1) {}
+    constexpr Effekseer2DPlayingHandle() noexcept : handle_(invalid_handle) {}
     Effekseer2DPlayingHandle(const Effekseer2DPlayingHandle&) = delete;
-    Effekseer2DPlayingHandle(Effekseer2DPlayingHandle&&) = default;
+    Effekseer2DPlayingHandle(Effekseer2DPlayingHandle&& o) noexcept : handle_(o.handle_)
+    {
+        o.handle_ = invalid_handle;
+    }
     Effekseer2DPlayingHandle& operator=(const Effekseer2DPlayingHandle&) = delete;
-    Effekseer2DPlayingHandle& operator=(Effekseer2DPlayingHandle&&) = default;
+    Effekseer2DPlayingHandle& operator=(Effekseer2DPlayingHandle&& o) noexcept
+    {
+        this->handle_ = o.handle_;
+        o.handle_ = invalid_handle;
+        return *this;
+    }
     ~Effekseer2DPlayingHandle() noexcept
     {
         if (-1 != this->handle_) {
@@ -109,12 +118,21 @@ private:
     int handle_;
     constexpr Effekseer3DPlayingHandle(int h) noexcept : handle_(h) {}
     friend EffekseerEffectHandle;
+    static constexpr int invalid_handle = -1;
 public:
-    constexpr Effekseer3DPlayingHandle() noexcept : handle_(-1) {}
+    constexpr Effekseer3DPlayingHandle() noexcept : handle_(invalid_handle) {}
     Effekseer3DPlayingHandle(const Effekseer3DPlayingHandle&) = delete;
-    Effekseer3DPlayingHandle(Effekseer3DPlayingHandle&&) = default;
+    Effekseer3DPlayingHandle(Effekseer3DPlayingHandle&& o) noexcept : handle_(o.handle_)
+    {
+        o.handle_ = invalid_handle;
+    }
     Effekseer3DPlayingHandle& operator=(const Effekseer3DPlayingHandle&) = delete;
-    Effekseer3DPlayingHandle& operator=(Effekseer3DPlayingHandle&&) = default;
+    Effekseer3DPlayingHandle& operator=(Effekseer3DPlayingHandle&& o) noexcept
+    {
+        this->handle_ = o.handle_;
+        o.handle_ = invalid_handle;
+        return *this;
+    }
     ~Effekseer3DPlayingHandle() noexcept
     {
         if (-1 != this->handle_) {
@@ -210,12 +228,21 @@ class EffekseerEffectHandle {
 private:
     int handle_;
     constexpr EffekseerEffectHandle(int h) noexcept : handle_(h) {}
+    static constexpr int invalid_handle = -1;
 public:
-    constexpr EffekseerEffectHandle() noexcept : handle_(-1) {}
+    constexpr EffekseerEffectHandle() noexcept : handle_(invalid_handle) {}
     EffekseerEffectHandle(const EffekseerEffectHandle&) = delete;
-    EffekseerEffectHandle(EffekseerEffectHandle&&) = default;
+    EffekseerEffectHandle(EffekseerEffectHandle&& o) noexcept : handle_(o.handle_)
+    {
+        o.handle_ = invalid_handle;
+    }
     EffekseerEffectHandle& operator=(const EffekseerEffectHandle&) = delete;
-    EffekseerEffectHandle& operator=(EffekseerEffectHandle&&) = default;
+    EffekseerEffectHandle& operator=(EffekseerEffectHandle&& o) noexcept
+    {
+        this->handle_ = o.handle_;
+        o.handle_ = invalid_handle;
+        return *this;
+    }
     ~EffekseerEffectHandle() noexcept
     {
         if (-1 != this->handle_) {
@@ -233,20 +260,20 @@ public:
         @return	エフェクトのハンドル
     */
     Effekseer2DPlayingHandle Play2D() const noexcept {
-        return PlayEffekseer2DEffect(this->handle_);
+        return { PlayEffekseer2DEffect(this->handle_) };
     }
     /**
         @brief	メモリ上のEffekseerのエフェクトリソースを3D表示で再生する。
         @return	エフェクトのハンドル
     */
     Effekseer3DPlayingHandle Play3D() const noexcept {
-        return PlayEffekseer3DEffect(this->handle_);
+        return { PlayEffekseer3DEffect(this->handle_) };
     }
     [[deprecated]] int get() const noexcept { return this->handle_; }
     constexpr explicit operator bool() { return -1 != this->handle_; }
     // LoadEffekseerEffectはfileNameをstd::wstringに必ず格納するので、効率のためにオーバーロードが必要
-    static EffekseerEffectHandle load(const char* fileName, float magnification = 1.0f) noexcept { return LoadEffekseerEffect(fileName, magnification); }
-    static EffekseerEffectHandle load(const wchar_t* fileName, float magnification = 1.0f) noexcept { return LoadEffekseerEffect(fileName, magnification); }
+    static EffekseerEffectHandle load(const char* fileName, float magnification = 1.0f) noexcept { return { LoadEffekseerEffect(fileName, magnification) }; }
+    static EffekseerEffectHandle load(const wchar_t* fileName, float magnification = 1.0f) noexcept { return { LoadEffekseerEffect(fileName, magnification) }; }
     static EffekseerEffectHandle load(const std::string& fileName, float magnification = 1.0f) noexcept { return load(fileName.c_str(), magnification); }
     static EffekseerEffectHandle load(const std::wstring& fileName, float magnification = 1.0f) noexcept { return load(fileName.c_str(), magnification); }
 };
