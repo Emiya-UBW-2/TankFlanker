@@ -105,7 +105,7 @@ bool Myclass::set_veh(void) {
 		v.colmeshes = MV1GetMeshNum(v.colmodel.get());
 		v.loc.reserve(v.frames);
 		for (int i = 0; i < v.frames; ++i) { v.loc.emplace_back(MV1GetFramePosition(v.model.get(), i)); }
-		for (size_t i = 0 ;std::size(v.coloc); ++i) { v.coloc[i] = MV1GetFramePosition(v.colmodel.get(), int(5 + i)); }
+		for (size_t i = 0; i < std::size(v.coloc); ++i) { v.coloc[i] = MV1GetFramePosition(v.colmodel.get(), int(5 + i)); }
 	}
 	//エフェクト------------------------------------------------------------//
 	const auto c_00ff00 = GetColor(0, 255, 0);
@@ -297,7 +297,7 @@ void HUMANS::set_humans(const MV1ModelHandle& inmod) {
 	//
 	MV1SetMatrix(inmodel_handle.get(), MGetTranslate(VGet(0, 0, 0)));
 	for (i = 0; i < inflames; i++) {
-		locin[i] = MV1GetFramePosition(inmodel_handle.get(), i);
+		locin.push_back(MV1GetFramePosition(inmodel_handle.get(), i));
 		MV1ResetFrameUserLocalMatrix(inmodel_handle.get(), i);
 	}
 	hum[0].neck = 0;
