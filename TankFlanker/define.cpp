@@ -1,6 +1,4 @@
 ﻿#include "define.h"
-#include <string_view>
-#include <array>
 //
 Myclass::Myclass() {
 	using namespace std::literals;
