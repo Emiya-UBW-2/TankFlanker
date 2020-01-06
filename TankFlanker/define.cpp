@@ -297,7 +297,7 @@ void HUMANS::set_humans(const MV1ModelHandle& inmod) {
 	//
 	MV1SetMatrix(inmodel_handle.get(), MGetTranslate(VGet(0, 0, 0)));
 	for (i = 0; i < inflames; i++) {
-		locin.push_back(MV1GetFramePosition(inmodel_handle.get(), i));
+		locin.emplace_back(MV1GetFramePosition(inmodel_handle.get(), i));
 		MV1ResetFrameUserLocalMatrix(inmodel_handle.get(), i);
 	}
 	hum[0].neck = 0;
@@ -730,12 +730,12 @@ UIS::UIS() {
 				if (win32fdt.cFileName[0] == 'B') {
 					tempname = "data/ui/body/";
 					tempname += win32fdt.cFileName;
-					UI_body.push_back(LoadGraph(tempname.c_str()));
+					UI_body.emplace_back(LoadGraph(tempname.c_str()));
 				}
 				if (win32fdt.cFileName[0] == 'T') {
 					tempname = "data/ui/body/";
 					tempname += win32fdt.cFileName;
-					UI_turret.push_back(LoadGraph(tempname.c_str()));
+					UI_turret.emplace_back(LoadGraph(tempname.c_str()));
 				}
 			} while (FindNextFile(hFind, &win32fdt));
 		}//else{ return false; }
