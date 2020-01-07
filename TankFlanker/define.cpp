@@ -9,6 +9,7 @@ Myclass::Myclass() {
 	int mdata;								/*tank*/
 
 	SetOutApplicationLogValidFlag(FALSE);					/*log*/
+
 	mdata = FileRead_open("data/setting.txt", FALSE);
 	FileRead_gets(mstr, 64, mdata); usegrab		= bool(std::stoul(getright(mstr)));
 	FileRead_gets(mstr, 64, mdata); ANTI		= unsigned char(std::stoul(getright(mstr)));
@@ -19,10 +20,10 @@ Myclass::Myclass() {
 	FileRead_gets(mstr, 64, mdata); gndx		= std::stoi(getright(mstr));
 	FileRead_close(mdata);
 
-	SetMainWindowText("Tank Flanker");
-	//SetWindowStyleMode(4);
-	SetWindowUserCloseEnableFlag(FALSE);
-	SetAeroDisableFlag(TRUE);
+	SetMainWindowText("Tank Flanker");					/*name*/
+	//SetWindowStyleMode(4);						/**/
+	//SetWindowUserCloseEnableFlag(FALSE);					/*alt+F4対処*/
+	SetAeroDisableFlag(TRUE);						/**/
 	SetUsePixelLighting(TRUE);						/*ピクセルライティング*/
 	if (ANTI >= 2) { SetCreateDrawValidGraphMultiSample(ANTI, 2); }		/*アンチエイリアス*/
 	SetWaitVSyncFlag(YSync);						/*垂直同期*/
@@ -109,19 +110,19 @@ bool Myclass::set_veh(void) {
 			v.colmeshes = size_t(colmeshes);
 		}
 		v.loc.reserve(v.frames);
-		for (int i = 0; i < v.frames; ++i) { v.loc.emplace_back(MV1GetFramePosition(v.model.get(), i)); }
+		for (size_t i = 0; i < v.frames; ++i) { v.loc.emplace_back(MV1GetFramePosition(v.model.get(), int(i))); }
 		for (size_t i = 0; i < std::size(v.coloc); ++i) { v.coloc[i] = MV1GetFramePosition(v.colmodel.get(), int(5 + i)); }
 	}
 	//エフェクト------------------------------------------------------------//
 	const auto c_00ff00 = GetColor(0, 255, 0);
 	const auto c_ffff00 = GetColor(255, 255, 0);
 	const auto c_ff0000 = GetColor(255, 0, 0);
+	//読み込みミスすることがあったのですが、現状なさそう？
 	for (int j = 0, k = 0; j < effects; ++j, ++k) {
 		size_t i = 0;
 		while (ProcessMessage() == 0) {
 			effHndle[j] = EffekseerEffectHandle::load("data/effect/" + std::to_string(j) + ".efk");
 			i++;
-
 			const auto waits = GetNowHiPerformanceCount();
 			SetDrawScreen(DX_SCREEN_BACK);
 			DrawFormatString(0, (18 * k), c_00ff00, "エフェクト読み込み中…%d/%d", j, effects);//
@@ -265,24 +266,28 @@ HUMANS::HUMANS(bool useg,float frates){
 }
 void HUMANS::set_humans(const MV1ModelHandle& inmod) {
 	using namespace std::literals;
+	std::array<const char*, 1> name{ "結月ゆかり" };// TODO: 書き換える
 	//load
 	SetUseASyncLoadFlag(FALSE);
 	inmodel_handle = inmod.Duplicate();
 	inflames = MV1GetFrameNum(inmodel_handle.get());
 	pos_old.resize(inflames);
 	hum.resize((inflames - bone_in_turret >= 1) ? inflames - bone_in_turret : 1);
+	//読み込み
 	for (auto&& h : hum) {
 		if (usegrab) { MV1SetLoadModelUsePhysicsMode(DX_LOADMODEL_PHYSICS_REALTIME); }
 		else { MV1SetLoadModelUsePhysicsMode(DX_LOADMODEL_PHYSICS_LOADCALC); }
-		h.obj = MV1ModelHandle::Load("data/chara/結月ゆかり/model.mv1");
+		h.obj = MV1ModelHandle::Load("data/chara/"s + name.at(0) + "/model.mv1");
 	}
-	//
+	//読み込み後の設定、読み込み
 	for (auto&& h : hum) {
+		//色調
 		for (int j = 0; j < MV1GetMaterialNum(h.obj.get()); ++j) {
 			MV1SetMaterialDifColor(h.obj.get(), j, GetColorF(0.5f, 0.5f, 0.5f, 1.0f));
 			MV1SetMaterialSpcColor(h.obj.get(), j, GetColorF(0.35f, 0.32f, 0.28f, 0.5f));
 			MV1SetMaterialSpcPower(h.obj.get(), j, 1.0f);
 		}
+		//アニメーション
 		for (size_t j = 0; j < animes; ++j) {
 			h.amine[j] = MV1AttachAnim(h.obj.get(), int(j), -1, TRUE);
 			h.time[j] = 0.0f;
@@ -290,10 +295,11 @@ void HUMANS::set_humans(const MV1ModelHandle& inmod) {
 			h.per[j] = 0.f;
 		}
 	}
+	//車長にはボイスと口パクアニメーション
 	for (size_t i = 0; i < voice; ++i) {
 		hum[0].voices[i] = MV1AttachAnim(hum[0].obj.get(), int(animes + i), -1, TRUE);
 		hum[0].voicealltime[i] = MV1GetAttachAnimTotalTime(hum[0].obj.get(), hum[0].voices[i]);
-		hum[0].vsound[i] = SoundHandle::Load("data/chara/結月ゆかり/" + std::to_string(i) + ".wav");
+		hum[0].vsound[i] = SoundHandle::Load("data/chara/"s + name.at(0) + "/" + std::to_string(i) + ".wav");
 	}
 	//
 	MV1SetMatrix(inmodel_handle.get(), MGetTranslate(VGet(0, 0, 0)));
@@ -324,10 +330,10 @@ void HUMANS::set_humanmove(const players& player, VECTOR rad, float /*fps*/) {
 			MV1SetFrameUserLocalMatrix(inmodel_handle.get(), i, player.ps_t);
 		}
 		else if (i == bone_gun1) {
-			MV1SetFrameUserLocalMatrix(inmodel_handle.get(), i, MMult(MMult(MGetRotX(player.gunrad.y), MGetTranslate(VSub(locin[i], locin[bone_trt]))), player.ps_t));
+			MV1SetFrameUserLocalMatrix(inmodel_handle.get(), i, MMult(MMult(MGetRotX(player.gunrad.y), MGetTranslate(VSub(locin[bone_gun1], locin[bone_trt]))), player.ps_t));
 		}
 		else if (i == bone_gun2) {
-			MV1SetFrameUserLocalMatrix(inmodel_handle.get(), i, MGetTranslate(VAdd(VSub(player.ptr->loc[i], player.ptr->loc[bone_gun1]), VGet(0, 0, player.fired))));
+			MV1SetFrameUserLocalMatrix(inmodel_handle.get(), i, MGetTranslate(VAdd(VSub(player.ptr->loc[bone_gun2], player.ptr->loc[bone_gun1]), VGet(0, 0, player.fired))));
 		}
 		//警告	C6289	不適切な演算子です : || を使用した相互排除は常に 0 でない定数となります。 && を使用しようとしましたか ?
 		else if (i >= bone_hatch &&( i != 9 || i != 10 )) {
@@ -433,36 +439,35 @@ void HUMANS::start_humananime(int p1) {
 }
 //
 MAPS::MAPS(int map_size, float draw_dist){
-	groundx = map_size*1024;
-	drawdist = draw_dist;
-	//shadow----------------------------------------------------------------//
-	shadow_near = MakeShadowMap(8192, 8192);				/*近影*/
-	SetShadowMapAdjustDepth(shadow_near, 0.0005f);
-	shadow_seminear = MakeShadowMap(8192, 8192);				/*近影*/
-	shadow_far = MakeShadowMap(8192, 8192);					/*マップ用*/
-	//map-------------------------------------------------------------------//
+	groundx = map_size*1024;									/*ノーマルマップのサイズ*/
+	drawdist = draw_dist;										/*木の遠近*/
+	//shadow----------------------------------------------------------------------------------------//
+	shadow_near = MakeShadowMap(8192, 8192);							/*近影*/
+	SetShadowMapAdjustDepth(shadow_near, 0.0005f);							/*ずれを小さくするため*/
+	shadow_seminear = MakeShadowMap(8192, 8192);							/*近影*/
+	shadow_far = MakeShadowMap(8192, 8192);								/*マップ用*/
+	//map-------------------------------------------------------------------------------------------//
 	SetUseASyncLoadFlag(TRUE);
-	sky_sun = GraphHandle::Load("data/sun.png");					/*太陽*/
-	texo = GraphHandle::Load("data/nm.png");					/*轍*/
-	texp = GraphHandle::Make(groundx, groundx, FALSE);				/*ノーマルマップ*/
-	texn = GraphHandle::Make(groundx, groundx, FALSE);				/*実マップ*/
+	sky_sun = GraphHandle::Load("data/sun.png");							/*太陽*/
+	texo = GraphHandle::Load("data/nm.png");							/*轍*/
+	texp = GraphHandle::Make(groundx, groundx, FALSE);						/*ノーマルマップ*/
+	texn = GraphHandle::Make(groundx, groundx, FALSE);						/*実マップ*/
 	SetUseASyncLoadFlag(FALSE);
 }
 void MAPS::set_map_readyb(size_t set){
 	using namespace std::literals;
 	lightvec = VGet(0.5f, -0.5f, 0.5f);
-	//ここはsetの値によってマップを他のに変更したく存じます(名無)
 	std::array<const char*, 2> mapper{ "map", "map" };// TODO: 書き換える
 	SetUseASyncLoadFlag(TRUE);
-		tree.mnear = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/tree/model.mv1");			/*近木*/
-		tree.mfar = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/tree/model2.mv1");			/*遠木*/
-		texl = GraphHandle::Load("data/"s + mapper.at(set) + "/SandDesert_04_00344_FWD.png");					/*nor*/
-		texm = GraphHandle::Load("data/"s + mapper.at(set) + "/SandDesert_04_00344_NM.png");					/*nor*/
+		tree.mnear = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/tree/model.mv1");	/*近木*/
+		tree.mfar = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/tree/model2.mv1");	/*遠木*/
+		texl = GraphHandle::Load("data/"s + mapper.at(set) + "/SandDesert_04_00344_FWD.png");	/*nor*/
+		texm = GraphHandle::Load("data/"s + mapper.at(set) + "/SandDesert_04_00344_NM.png");	/*nor*/
 		m_model = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/map.mv1");			/*map*/
-		sky_model = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/sky/model_sky.mv1");			/*sky*/
-		graph = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/grass.png");					/*grass*/
-		grass = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/grass/grass.mqo");			/*grass*/
-		GgHandle = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/gg.png");				/*地面草*/
+		sky_model = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/sky/model_sky.mv1");	/*sky*/
+		graph = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/grass.png");		/*grass*/
+		grass = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/grass/grass.mqo");		/*grass*/
+		GgHandle = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/gg.png");		/*地面草*/
 	SetUseASyncLoadFlag(FALSE);
 	return;
 }
@@ -509,11 +514,11 @@ bool MAPS::set_map_ready() {
 		pnum = 0;
 		MV1SetupReferenceMesh(grass.get(), -1, TRUE);				/*参照用メッシュの作成*/
 		RefMesh = MV1GetReferenceMesh(grass.get(), -1, TRUE);			/*参照用メッシュの取得*/
-		IndexNum = RefMesh.PolygonNum * 3 * grasss;			/*インデックスの数を取得*/
-		VerNum = RefMesh.VertexNum * grasss;				/*頂点の数を取得*/
+		IndexNum = RefMesh.PolygonNum * 3 * grasss;				/*インデックスの数を取得*/
+		VerNum = RefMesh.VertexNum * grasss;					/*頂点の数を取得*/
 
-		grassver.resize(VerNum);					/*頂点データとインデックスデータを格納するメモリ領域の確保*/
-		grassind.resize(IndexNum);					/*頂点データとインデックスデータを格納するメモリ領域の確保*/
+		grassver.resize(VerNum);						/*頂点データとインデックスデータを格納するメモリ領域の確保*/
+		grassind.resize(IndexNum);						/*頂点データとインデックスデータを格納するメモリ領域の確保*/
 
 		for (int i = 0; i < grasss; ++i) {
 			const auto tmpvect = VGet((float)(-5000 + GetRand(10000)) / 10.0f, 0.0f, (float)(-5000 + GetRand(10000)) / 10.0f);
@@ -536,8 +541,7 @@ bool MAPS::set_map_ready() {
 				);
 			}
 			//Question: ここより上の部分ってループ外に追い出せないのか
-			//MV1SetScale(grass.get(), VGet((float)(200 + GetRand(400)) / 100.0f, (float)(25 + GetRand(100)) / 100.0f, (float)(200 + GetRand(400)) / 100.0f));	/*拡大*/
-			MV1RefreshReferenceMesh(grass.get(), -1, TRUE);		/*参照用メッシュの更新*/
+			MV1RefreshReferenceMesh(grass.get(), -1, TRUE);			/*参照用メッシュの更新*/
 			RefMesh = MV1GetReferenceMesh(grass.get(), -1, TRUE);		/*参照用メッシュの取得*/
 			for (size_t j = 0; j < size_t(RefMesh.VertexNum); ++j) {
 				grassver[j + vnum].pos = RefMesh.Vertexs[j].Position;
@@ -940,14 +944,13 @@ void set_normal(float* xnor, float* znor, int maphandle, VECTOR position) {
 	}
 }
 bool get_reco(players* play, players* tgt, size_t i, size_t gun_s) {
-	//int f = 0;
 	std::optional<size_t> hitnear;
 	//主砲
 	if (gun_s == 0) {
-		//空間装甲、モジュール
+		//とりあえず当たったかどうか
 		bool is_hit = false;
 		for (size_t colmesh = 0; colmesh < tgt->ptr->colmeshes; ++colmesh) {
-			const auto HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos);
+			const auto HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos, int(colmesh));
 			if (HitPoly.HitFlag) {
 				tgt->hitssort[colmesh] = pair(colmesh, VSize(VSub(HitPoly.HitPosition, play->Ammo[i].repos)));
 				is_hit = true;
@@ -958,27 +961,28 @@ bool get_reco(players* play, players* tgt, size_t i, size_t gun_s) {
 		}
 		if (!is_hit) { return false; }
 		std::sort(tgt->hitssort.begin(), tgt->hitssort.end(), [](const pair& x, const pair& y) {return x.second < y.second; });
+		//近い順に、はじく操作のいらないメッシュに対しダメージ面に届くまで判定
 		for (auto& tt : tgt->hitssort) {
 			const auto k = tt.first;
+			if (tt.second == 9999.f) { break; }//装甲面に当たらなかったならスルー
 			if (k >= 4) {
 				if (tgt->HP[k] > 0) {
-					//空間装甲 //モジュール
-					if (k != 4) {
-						const auto HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos);
-						if (HitPoly.HitFlag) {
-							set_effect(&(play->effcs[ef_reco]), HitPoly.HitPosition, HitPoly.Normal);
-							tgt->HP[k] -= 50; if (tgt->HP[k] <= 0) { tgt->HP[k] = 0; } play->Ammo[i].pene /= 2.0f; play->Ammo[i].speed /= 2.f;
-						}
+					if (k == 4) { continue; }//砲身だけ処理を別にしたいので分けます
+					//空間装甲、モジュール
+					const auto HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos, int(k));
+					if (HitPoly.HitFlag) {
+						set_effect(&(play->effcs[ef_reco]), HitPoly.HitPosition, HitPoly.Normal);
+						tgt->HP[k] -= 50; if (tgt->HP[k] <= 0) { tgt->HP[k] = 0; } play->Ammo[i].pene /= 2.0f; play->Ammo[i].speed /= 2.f;
 					}
 				}
 			}
 			else {
 				hitnear = k; break;
 			}
-			if (tt.second == 9999.f) { break; }
 		}
+		//ダメージ面に当たった時に装甲値に勝てるかどうか
 		if (hitnear) {
-			const auto HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos);
+			const auto HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos,int(hitnear.value()));//当たっているものとして詳しい判定をとる
 			MV1SetFrameUserLocalMatrix(tgt->colobj.get(), 9 + 0 + 3 * tgt->hitbuf, MMult(MGetTranslate(HitPoly.HitPosition), MInverse(tgt->ps_m)));
 			MV1SetFrameUserLocalMatrix(tgt->colobj.get(), 9 + 1 + 3 * tgt->hitbuf, MMult(MGetTranslate(VAdd(HitPoly.Normal, HitPoly.HitPosition)), MInverse(tgt->ps_m)));
 			MV1SetFrameUserLocalMatrix(tgt->colobj.get(), 9 + 2 + 3 * tgt->hitbuf, MMult(MGetTranslate(VAdd(VCross(HitPoly.Normal, play->Ammo[i].vec), HitPoly.HitPosition)), MInverse(tgt->ps_m)));
@@ -1027,7 +1031,7 @@ bool get_reco(players* play, players* tgt, size_t i, size_t gun_s) {
 			}
 		}
 		if (hitnear) {
-			const auto HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos);
+			const auto HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos, int(hitnear.value()));
 			set_effect(&(play->effcs[ef_reco2]), HitPoly.HitPosition, HitPoly.Normal);
 			PlaySoundMem(tgt->se[10 + GetRand(16)].get(), DX_PLAYTYPE_BACK, TRUE);
 			play->Ammo[i].vec = VAdd(play->Ammo[i].vec, VScale(HitPoly.Normal, VDot(play->Ammo[i].vec, HitPoly.Normal) * -2.0f));

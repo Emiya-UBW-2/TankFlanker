@@ -19,39 +19,38 @@ size_t count_enemy() {
 }
 /*main*/
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
-	//temp------------------------------------------------------------------//
-	int i, j, k, tgt_p;
-	int mousex, mousey;							/*mouse*/
+	//temp--------------------------------------------------------------------------//
+	int mousex, mousey;								/*mouse*/
 	float tmpf, tempfx, tempfy,turn_bias;
 	VECTOR tempvec[2];
 	bool btmp;
-	//int lookplayerc;							/*視認しているplayer人数*/
-	bool keyget[19]{ false };						/*キー用*/
-	//変数------------------------------------------------------------------//
-	bool out{ false };							/*終了フラグ*/
-	std::vector<pair> pssort;						/*playerソート*/
-	std::vector<players> player;						/*player*/
-	VECTOR aims;								/*照準器座標*/
-	float aimm;								/*照準距離*/
-	float fps;								/*fps*/
-	int selfammo;								/*UI用*/
-	switches aim, map;							/*視点変更*/
-	float ratio, rat_r, aim_r;						/*照準視点　倍率、実倍率、距離*/
-	size_t waysel, choose = (std::numeric_limits<size_t>::max)();						/*指揮視点　指揮車両、マウス選択*/
+	//int lookplayerc;								/*視認しているplayer人数*/
+	bool keyget[19]{ false };							/*キー用*/
+	//変数--------------------------------------------------------------------------//
+	bool out{ false };								/*終了フラグ*/
+	std::vector<pair> pssort;							/*playerソート*/
+	std::vector<players> player;							/*player*/
+	VECTOR aims;									/*照準器座標*/
+	float aimm;									/*照準距離*/
+	float fps;									/*fps*/
+	int selfammo;									/*UI用*/
+	switches aim, map;								/*視点変更*/
+	float ratio, rat_r, aim_r;							/*照準視点　倍率、実倍率、距離*/
+	size_t waysel, choose = (std::numeric_limits<size_t>::max)();			/*指揮視点　指揮車両、マウス選択*/
 	std::uint8_t way = 0; //マウストリガー
-	LONGLONG old_time, waits;						/*時間取得*/
-	VECTOR campos, viewpos, uppos;						/*カメラ*/
-	MV1_COLL_RESULT_POLY HitPoly;						/*あたり判定*/
+	LONGLONG old_time, waits;							/*時間取得*/
+	VECTOR campos, viewpos, uppos;							/*カメラ*/
+	MV1_COLL_RESULT_POLY HitPoly;							/*あたり判定*/
 	float cpu_move;
-	char mstr[64];								/*tank*/
-	int mdata;								/*tank*/
-	//init------------------------------------------------------------------//
+	char mstr[64];									/*tank*/
+	int mdata;									/*tank*/
+	//init--------------------------------------------------------------------------//
 	Myclass	parts;
-	HUMANS	humanparts(parts.get_usegrab(), parts.get_f_rate());		/*車内関係*/
-	MAPS	mapparts(parts.get_gndx(), parts.get_drawdist());		/*地形、ステージ関係*/
+	HUMANS	humanparts(parts.get_usegrab(), parts.get_f_rate());			/*車内関係*/
+	MAPS	mapparts(parts.get_gndx(), parts.get_drawdist());			/*地形、ステージ関係*/
 	auto uiparts = std::make_unique<UIS>();
 	float f_rates = parts.get_f_rate();
-	//load------------------------------------------------------------------//
+	//load--------------------------------------------------------------------------//
 	parts.set_fonts(18);
 	SetUseASyncLoadFlag(TRUE);
 		//hit-------------------------------------------------------------------//
@@ -66,17 +65,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 	uiparts->draw_load();//
 	if (parts.set_veh() != true) { return -1; }
 	/*物理開始*/
-	auto world = std::make_unique<b2World>(b2Vec2(0.0f, 0.0f));					// 剛体を保持およびシミュレートするワールドオブジェクトを構築
+	auto world = std::make_unique<b2World>(b2Vec2(0.0f, 0.0f));			/* 剛体を保持およびシミュレートするワールドオブジェクトを構築*/
 	//これ以降繰り返しロード------------------------------------------------//
 	do {
-		k = parts.window_choosev(); if (k == -1) { return 0; }		/*player指定*/
+		int m = parts.window_choosev(); if (m == -1) { return 0; }		/*player指定*/
 
 		mdata = FileRead_open("stage/data_0/main.txt", FALSE);
 		FileRead_gets(mstr, 64, mdata);
-
-
 		const int mapc = std::stoi(getright(mstr));
-
 //		const bool mapc = bool(std::stoul(getright(mstr)));
 		FileRead_close(mdata);
 
@@ -90,7 +86,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 		for (size_t p_cnt = 0; p_cnt < teamc; ++p_cnt) {
 			mdata = FileRead_open(("stage/data_0/team/" + std::to_string(p_cnt) + ".txt").c_str(), FALSE);
 			FileRead_close(mdata);
-			player[p_cnt].use = (p_cnt == 0) ? k : 2;
+			player[p_cnt].use = (p_cnt == 0) ? m : 2;
 			player[p_cnt].pos = VGet(20.0f * p_cnt, 0.0f, -400.0f);
 			player[p_cnt].type = TEAM;
 		}
@@ -175,13 +171,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 
 			//HP
 			p.HP.resize(p.ptr->colmeshes);
-			/*3456は装甲部分なので詰め込む*/
+			/*0123は装甲部分なので詰め込む*/
 			p.HP[0] = 1;								//life
 			for (size_t i = 4; i < p.ptr->colmeshes; ++i) { p.HP[i] = 100; }	//spaceARMER
 			//wheel
 			p.Springs.resize(p.ptr->frames);
 			//0初期化いる
-		//
+			//
 			MV1SetMatrix(p.colobj.get(), MGetTranslate(VGet(0, 0, 0)));
 			//装てん
 			p.loadcnt[0] = 1;
@@ -218,8 +214,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 		humanparts.set_humanvc_vol(255);
 		parts.set_se_vol(128);
 		for (auto&& p : player) {
-			for (i = 1; i < 27; ++i) { ChangeVolumeSoundMem(128, p.se[i].get()); }
-			for (i = 29; i < 31; ++i) { ChangeVolumeSoundMem(128, p.se[i].get()); }
+			for (size_t i = 1; i < 27; ++i) { ChangeVolumeSoundMem(128, p.se[i].get()); }
+			for (size_t i = 29; i < 31; ++i) { ChangeVolumeSoundMem(128, p.se[i].get()); }
 		}
 		/*メインループ*/
 		aim.flug = false;
@@ -240,10 +236,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 			PlaySoundMem(player[p_cnt].se[28].get(), DX_PLAYTYPE_LOOP, TRUE);
 			Set3DRadiusSoundMem(200.0f, player[p_cnt].se[0].get());
 			Set3DRadiusSoundMem(200.0f, player[p_cnt].se[1].get());
-			for (i = 2; i < 10; ++i) { Set3DRadiusSoundMem(300.0f, player[p_cnt].se[i].get()); }
-			for (i = 10; i < 27; ++i) { Set3DRadiusSoundMem(100.0f, player[p_cnt].se[i].get()); }
-			for (i = 27; i < 29; ++i) { Set3DRadiusSoundMem(200.0f, player[p_cnt].se[i].get()); }
-			for (i = 29; i < 31; ++i) { Set3DRadiusSoundMem(300.0f, player[p_cnt].se[i].get()); }
+			size_t i = 2;
+			for (; i < 10; ++i) { Set3DRadiusSoundMem(300.0f, player[p_cnt].se[i].get()); }
+			for (; i < 27; ++i) { Set3DRadiusSoundMem(100.0f, player[p_cnt].se[i].get()); }
+			for (; i < 29; ++i) { Set3DRadiusSoundMem(200.0f, player[p_cnt].se[i].get()); }
+			for (; i < 31; ++i) { Set3DRadiusSoundMem(300.0f, player[p_cnt].se[i].get()); }
 		}
 		const auto c_000000 = GetColor(0, 0, 0);
 		const auto c_00ff00 = GetColor(0, 255, 0);
@@ -287,7 +284,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 					keyget[17] = CheckHitKey(KEY_INPUT_SPACE) != 0;
 					keyget[18] = CheckHitKey(KEY_INPUT_B) != 0;
 				}
-				else { for (i = 1; i < 19; ++i) { keyget[i] = false; } }
+				else { for (size_t i = 1; i < 19; ++i) { keyget[i] = false; } }
 
 				if (keyget[1]) { ++map.cnt; if (map.cnt == 1) { map.flug ^= 1; SetCursorPos(x_r(960), y_r(540)); } }
 				else { map.cnt = 0; }			/*指揮*/
@@ -417,7 +414,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 								if (player[player[p_cnt].atkf.value()].HP[0] == 0 || player[p_cnt].aim > 5) { player[p_cnt].aim = int(player[p_cnt].atkf.value()); player[p_cnt].atkf = std::nullopt; }
 							}
 							//ぶつかり防止
-							for (tgt_p = 0; tgt_p < playerc; ++tgt_p) {
+							for (size_t tgt_p = 0; tgt_p < playerc; ++tgt_p) {
 								if (p_cnt != tgt_p) {
 									if (VSize(VSub(player[tgt_p].pos, player[p_cnt].pos)) <= 10.0 && player[tgt_p].HP[0] > 0) {
 										tempvec[0] = VNorm(VSub(player[tgt_p].pos, player[p_cnt].pos));
@@ -571,8 +568,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 					//サウンド
 					if (abs(player[p_cnt].speed) >= player[p_cnt].ptr->spdflont[0]) { ChangeVolumeSoundMem(64, player[p_cnt].se[0].get()); }
 					else { ChangeVolumeSoundMem((int)(64.f*abs(player[p_cnt].speed) / player[p_cnt].ptr->spdflont[0]), player[p_cnt].se[0].get()); }//0.1ms
-					for (i = 27; i < 29; ++i) { ChangeVolumeSoundMem((int)(32.f + 32.f*abs(player[p_cnt].speed / player[p_cnt].ptr->spdflont[3])), player[p_cnt].se[i].get()); }//0.1ms
-					for (i = 0; i < 31; ++i) { if (CheckSoundMem(player[p_cnt].se[i].get()) == 1) { Set3DPositionSoundMem(player[p_cnt].pos, player[p_cnt].se[i].get()); } }//1.5ms
+					for (size_t i = 27; i < 29; ++i) { ChangeVolumeSoundMem((int)(32.f + 32.f*abs(player[p_cnt].speed / player[p_cnt].ptr->spdflont[3])), player[p_cnt].se[i].get()); }//0.1ms
+					for (size_t i = 0; i < 31; ++i) { if (CheckSoundMem(player[p_cnt].se[i].get()) == 1) { Set3DPositionSoundMem(player[p_cnt].pos, player[p_cnt].se[i].get()); } }//1.5ms
 					//サウンド全体=1.7ms
 					//tree判定
 					mapparts.set_hitplayer(player[p_cnt].pos);
@@ -586,37 +583,37 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 					MV1SetMatrix(player[p_cnt].obj.get(), player[p_cnt].ps_m);
 					MV1SetMatrix(player[p_cnt].farobj.get(), player[p_cnt].ps_m);
 					//common
-					for (i = bone_trt; i < player[p_cnt].ptr->frames; ++i) {
+					for (size_t i = bone_trt; i < player[p_cnt].ptr->frames; ++i) {
 						if (i == bone_trt) {
 							MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, player[p_cnt].ps_t);
 							MV1SetFrameUserLocalMatrix(player[p_cnt].farobj.get(), i, player[p_cnt].ps_t);
 							MV1SetFrameUserLocalMatrix(player[p_cnt].colobj.get(), i, player[p_cnt].ps_t);
 						}
 						else if (i == bone_gun1) {
-							const auto mtemp = MMult(MMult(MGetRotX(player[p_cnt].gunrad.y), MGetTranslate(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[bone_trt]))), player[p_cnt].ps_t);
+							const auto mtemp = MMult(MMult(MGetRotX(player[p_cnt].gunrad.y), MGetTranslate(VSub(player[p_cnt].ptr->loc[bone_gun1], player[p_cnt].ptr->loc[bone_trt]))), player[p_cnt].ps_t);
 							MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, mtemp);
 							MV1SetFrameUserLocalMatrix(player[p_cnt].farobj.get(), i, mtemp);
 							MV1SetFrameUserLocalMatrix(player[p_cnt].colobj.get(), i, mtemp);
 						}
 						else if (i == bone_gun2) {
-							const auto mtemp = MGetTranslate(VAdd(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[bone_gun1]), VGet(0, 0, player[p_cnt].fired)));
+							const auto mtemp = MGetTranslate(VAdd(VSub(player[p_cnt].ptr->loc[bone_gun2], player[p_cnt].ptr->loc[bone_gun1]), VGet(0, 0, player[p_cnt].fired)));
 							MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, mtemp);
 							MV1SetFrameUserLocalMatrix(player[p_cnt].farobj.get(), i, mtemp);
 							MV1SetFrameUserLocalMatrix(player[p_cnt].colobj.get(), i, mtemp);
 						}
 						else if (i == bone_gun) {
-							const auto mtemp = MMult(MMult(MGetRotX(player[p_cnt].gunrad.y), MGetTranslate(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[bone_trt]))), player[p_cnt].ps_t);
+							const auto mtemp = MMult(MMult(MGetRotX(player[p_cnt].gunrad.y), MGetTranslate(VSub(player[p_cnt].ptr->loc[bone_gun], player[p_cnt].ptr->loc[bone_trt]))), player[p_cnt].ps_t);
 							MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, mtemp);
 							MV1SetFrameUserLocalMatrix(player[p_cnt].farobj.get(), i, mtemp);
 						}
 						else if (i == bone_gun_) {
-							const auto mtemp = MGetTranslate(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[bone_gun]));
+							const auto mtemp = MGetTranslate(VSub(player[p_cnt].ptr->loc[bone_gun_], player[p_cnt].ptr->loc[bone_gun]));
 							MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, mtemp);
 							MV1SetFrameUserLocalMatrix(player[p_cnt].farobj.get(), i, mtemp);
 						}
 						else if (i >= bone_wheel && i < player[p_cnt].ptr->frames - 4) {
 							if ((i - bone_wheel) % 2 == 1) {
-								const auto mtemp = MMult(MGetRotX(player[p_cnt].wheelrad[signbit(player[p_cnt].ptr->loc[i].x) + 1]), MGetTranslate(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[size_t(i) - 1])));
+								const auto mtemp = MMult(MGetRotX(player[p_cnt].wheelrad[signbit(player[p_cnt].ptr->loc[i].x) + 1]), MGetTranslate(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[i - 1])));
 								MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, mtemp);
 								MV1SetFrameUserLocalMatrix(player[p_cnt].farobj.get(), i, mtemp);
 							}
@@ -645,7 +642,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 						}
 					}
 					/*collition*/
-					for (i = 0; i < player[p_cnt].ptr->colmeshes; ++i) { MV1RefreshCollInfo(player[p_cnt].colobj.get(), -1); }
+					for (size_t i = 0; i < player[p_cnt].ptr->colmeshes; ++i) { MV1RefreshCollInfo(player[p_cnt].colobj.get(), -1); }
 					/**/
 					if (player[p_cnt].fired >= 0.01f) { player[p_cnt].fired *= 0.95f; }
 					if (player[p_cnt].loadcnt[0] > 0) {
@@ -673,12 +670,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 								player[p_cnt].Ammo[j].repos = player[p_cnt].Ammo[j].pos;
 								player[p_cnt].Ammo[j].cnt = 0;
 								//					       
-								player[p_cnt].useammo[guns] = (std::min)(player[p_cnt].useammo[guns] + 1, ammoc - 1);
+								//player[p_cnt].useammo[guns] = (std::min)(player[p_cnt].useammo[guns] + 1, ammoc - 1);
 								//繰り返す必要があるのですが余剰でよろしいでしょうか
-								/*
+								//*
 								player[p_cnt].useammo[guns] ++;
 								player[p_cnt].useammo[guns] %= ammoc;
-								*/
+								//*/
 
 								++player[p_cnt].loadcnt[guns];
 								if (guns == 0) {
@@ -704,7 +701,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 								player[p_cnt].Ammo[i].pos = VAdd(player[p_cnt].Ammo[i].pos, VScale(player[p_cnt].Ammo[i].vec, player[p_cnt].Ammo[i].speed));
 								HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, player[p_cnt].Ammo[i].repos, player[p_cnt].Ammo[i].pos);
 								if (HitPoly.HitFlag) { player[p_cnt].Ammo[i].pos = HitPoly.HitPosition; }
-								for (tgt_p = 0; tgt_p < playerc; ++tgt_p) {
+								for (size_t tgt_p = 0; tgt_p < playerc; ++tgt_p) {
 									if (p_cnt == tgt_p) { continue; }
 									btmp = get_reco(&(player[p_cnt]), &(player[tgt_p]), i, guns);
 									if (btmp) { break; }
@@ -752,7 +749,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 				//(usegrab=TRUE)0.9~1.0ms(FALSE)0.1ms
 				/*effect*/
 				for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
-					for (i = 0; i < efs_user; ++i) {
+					for (int i = 0; i < efs_user; ++i) {
 						if (i != ef_smoke2 && i != ef_smoke3) { set_pos_effect(&player[p_cnt].effcs[i], parts.get_effHandle(i)); }
 					}
 						tempvec[0] = MV1GetFramePosition(player[p_cnt].obj.get(), bone_smoke1);
@@ -803,8 +800,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 				//teamc + enemyc
 				for (size_t p_cnt = 1; p_cnt < teamc; ++p_cnt) {
 					DrawLine(x_(player[p_cnt].pos.x), y_(player[p_cnt].pos.z), x_(player[p_cnt].waypos[player[p_cnt].waynow].x), y_(player[p_cnt].waypos[player[p_cnt].waynow].z), c_ff0000, 3);
-					for (j = player[p_cnt].waynow; j < waypc - 1; ++j) {
-						DrawLine(x_(player[p_cnt].waypos[j].x), y_(player[p_cnt].waypos[j].z), x_(player[p_cnt].waypos[j + 1].x), y_(player[p_cnt].waypos[j + 1].z), GetColor(255, 64 * j, 0), 3);
+					for (int i = player[p_cnt].waynow; i < waypc - 1; ++i) {
+						DrawLine(x_(player[p_cnt].waypos[i].x), y_(player[p_cnt].waypos[i].z), x_(player[p_cnt].waypos[i + 1].x), y_(player[p_cnt].waypos[i + 1].z), GetColor(255, 64 * i, 0), 3);
 					}
 				}
 				for (size_t p_cnt = 0; p_cnt < teamc; ++p_cnt) {
@@ -817,7 +814,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 					DrawBox(x_r(132), y_r(162 + p_cnt * 24), x_r(324), y_r(180 + p_cnt * 24), c, TRUE);
 					DrawFormatStringToHandle(x_r(132), y_r(162 + p_cnt * 24), c_ffffff, parts.get_font(0), " %s", player[p_cnt].ptr->name.c_str());
 					//進軍
-					for (k = 0; k < player[p_cnt].wayselect; k++) { DrawBox(x_r(348 + k * 12), y_r(162 + p_cnt * 24), x_r(356 + k * 12), y_r(180 + p_cnt * 24), c_3232ff, TRUE); }
+					for (size_t i = 0; i < player[p_cnt].wayselect; i++) { DrawBox(x_r(348 + i * 12), y_r(162 + p_cnt * 24), x_r(356 + i * 12), y_r(180 + p_cnt * 24), c_3232ff, TRUE); }
 				}
 				for (size_t p_cnt = teamc; p_cnt < playerc; ++p_cnt) {
 					DrawBox(x_r(1500), y_r(162 + (p_cnt - teamc) * 24), x_r(1692), y_r(180 + (p_cnt - teamc) * 24), (player[p_cnt].HP[0] == 0) ? c_808080 : c_ff0000, TRUE);
@@ -872,10 +869,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 					for (auto& tt : pssort) {
 						if (tt.second == (float)map_x) { continue; }
 						if (tt.second < (30.0f * parts.get_view_r().z + 20.0f)) { break; }
-						const auto k = tt.first;
-						MV1DrawMesh(player[k].farobj.get(), 0);
-						for (i = 1; i < player[k].ptr->meshes; ++i) {
-							if (player[k].HP[i + 4] > 0) { MV1DrawMesh(player[k].farobj.get(), i); }
+						const auto j = tt.first;
+						MV1DrawMesh(player[j].farobj.get(), 0);
+						for (int i = 1; i < player[j].ptr->meshes; ++i) {
+							if (player[j].HP[i + 4] > 0) { MV1DrawMesh(player[j].farobj.get(), i); }
 						}
 					}
 					ShadowMap_DrawEnd();
@@ -883,10 +880,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 					humanparts.draw_human(0);
 					for (auto& tt : pssort) {
 						if (tt.second > (30.0f * parts.get_view_r().z + 20.0f)) { continue; }
-						const auto k = tt.first;
-						MV1DrawMesh(player[k].obj.get(), 0);
-						for (i = 1; i < player[k].ptr->meshes; ++i) {
-							if (player[k].HP[i + 4] > 0) { MV1DrawMesh(player[k].obj.get(), i); }
+						const auto j = tt.first;
+						MV1DrawMesh(player[j].obj.get(), 0);
+						for (int i = 1; i < player[j].ptr->meshes; ++i) {
+							if (player[j].HP[i + 4] > 0) { MV1DrawMesh(player[j].obj.get(), i); }
 						}
 					}
 					ShadowMap_DrawEnd();
@@ -898,27 +895,27 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 					humanparts.draw_human(0);
 					for (auto& tt : pssort) {
 						if (tt.second == (float)map_x) { continue; }
-						const auto k = tt.first;
-						if (k != 0 || (k == 0 && !aim.flug)) {
+						const auto j = tt.first;
+						if (j != 0 || (j == 0 && !aim.flug)) {
 							if (tt.second < 200.f || aim.flug) {
-								MV1DrawMesh(player[k].obj.get(), 0);
-								for (i = 1; i < player[k].ptr->meshes; ++i) {
-									if (i >= 1 && i < 3) { MV1SetFrameTextureAddressTransform(player[k].obj.get(), 0, 0.0, player[k].wheelrad[i], 1.0, 1.0, 0.5, 0.5, 0.0); }
-									if (i == 3) { MV1ResetFrameTextureAddressTransform(player[k].obj.get(), 0); }
-									if (player[k].HP[i + 4] > 0) { MV1DrawMesh(player[k].obj.get(), i); }
+								MV1DrawMesh(player[j].obj.get(), 0);
+								for (int i = 1; i < player[j].ptr->meshes; ++i) {
+									if (i >= 1 && i < 3) { MV1SetFrameTextureAddressTransform(player[j].obj.get(), 0, 0.0, player[j].wheelrad[i], 1.0, 1.0, 0.5, 0.5, 0.0); }
+									if (i == 3) { MV1ResetFrameTextureAddressTransform(player[j].obj.get(), 0); }
+									if (player[j].HP[i + 4] > 0) { MV1DrawMesh(player[j].obj.get(), i); }
 								}
-								for (i = 0; i < 3; ++i) {
-									MV1SetRotationZYAxis(player[k].hitpic[i].get(), VSub(MV1GetFramePosition(player[k].colobj.get(), 11 + 3 * i), MV1GetFramePosition(player[k].colobj.get(), 9 + 3 * i)), VSub(MV1GetFramePosition(player[k].colobj.get(), 10 + 3 * i), MV1GetFramePosition(player[k].colobj.get(), 9 + 3 * i)), 0.f);
-									MV1SetPosition(player[k].hitpic[i].get(), VAdd(MV1GetFramePosition(player[k].colobj.get(), 9 + 3 * i), VScale(VSub(MV1GetFramePosition(player[k].colobj.get(), 10 + 3 * i), MV1GetFramePosition(player[k].colobj.get(), 9 + 3 * i)), 0.005f)));
-									MV1DrawFrame(player[k].hitpic[i].get(), player[k].usepic[i]);
+								for (int i = 0; i < 3; ++i) {
+									MV1SetRotationZYAxis(player[j].hitpic[i].get(), VSub(MV1GetFramePosition(player[j].colobj.get(), 11 + 3 * i), MV1GetFramePosition(player[j].colobj.get(), 9 + 3 * i)), VSub(MV1GetFramePosition(player[j].colobj.get(), 10 + 3 * i), MV1GetFramePosition(player[j].colobj.get(), 9 + 3 * i)), 0.f);
+									MV1SetPosition(player[j].hitpic[i].get(), VAdd(MV1GetFramePosition(player[j].colobj.get(), 9 + 3 * i), VScale(VSub(MV1GetFramePosition(player[j].colobj.get(), 10 + 3 * i), MV1GetFramePosition(player[j].colobj.get(), 9 + 3 * i)), 0.005f)));
+									MV1DrawFrame(player[j].hitpic[i].get(), player[j].usepic[i]);
 								}
 							}
 							else {
-								MV1DrawMesh(player[k].farobj.get(), 0);
-								for (i = 1; i < player[k].ptr->meshes; ++i) {
-									if (i >= 1 && i < 3) { MV1SetFrameTextureAddressTransform(player[k].farobj.get(), 0, 0.0, player[k].wheelrad[i], 1.0, 1.0, 0.5, 0.5, 0.0); }
-									if (i == 3) { MV1ResetFrameTextureAddressTransform(player[k].farobj.get(), 0); }
-									if (player[k].HP[i + 4] > 0) { MV1DrawMesh(player[k].farobj.get(), i); }
+								MV1DrawMesh(player[j].farobj.get(), 0);
+								for (int i = 1; i < player[j].ptr->meshes; ++i) {
+									if (i >= 1 && i < 3) { MV1SetFrameTextureAddressTransform(player[j].farobj.get(), 0, 0.0, player[j].wheelrad[i], 1.0, 1.0, 0.5, 0.5, 0.0); }
+									if (i == 3) { MV1ResetFrameTextureAddressTransform(player[j].farobj.get(), 0); }
+									if (player[j].HP[i + 4] > 0) { MV1DrawMesh(player[j].farobj.get(), i); }
 								}
 							}
 						}
@@ -993,12 +990,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 				else {
 					for (auto& tt : pssort) {
 						if (tt.second == (float)map_x) { continue; }
-						const auto k = tt.first;
-						if (player[k].HP[0] != 0) {
-							if (player[k].iconpos.z > 0.0f && player[k].iconpos.z < 1.0f) {
+						const auto i = tt.first;
+						if (player[i].HP[0] != 0) {
+							if (player[i].iconpos.z > 0.0f && player[i].iconpos.z < 1.0f) {
 								DrawFormatStringToHandle(
-									(int)player[k].iconpos.x, (int)player[k].iconpos.y, (player[k].type == TEAM) ? c_00ff00 : c_ff0000, parts.get_font(0),
-									"%dm", (int)VSize(VSub(player[k].pos, player[0].pos))
+									(int)player[i].iconpos.x, (int)player[i].iconpos.y, (player[i].type == TEAM) ? c_00ff00 : c_ff0000, parts.get_font(0),
+									"%dm", (int)VSize(VSub(player[i].pos, player[0].pos))
 								);
 							}
 						}
@@ -1025,8 +1022,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 			player[p_cnt].obj.Dispose();
 			player[p_cnt].farobj.Dispose();
 			player[p_cnt].colobj.Dispose();
-			for (i = 0; i < 50; ++i) { player[p_cnt].se[i].Dispose(); }
-			for (i = 0; i < 3; i++) { player[p_cnt].hitpic[i].Dispose(); }
+			for (size_t i = 0; i < 50; ++i) { player[p_cnt].se[i].Dispose(); }
+			for (size_t i = 0; i < 3; i++) { player[p_cnt].hitpic[i].Dispose(); }
 			player[p_cnt].Ammo.clear();
 			player[p_cnt].Springs.clear();
 			player[p_cnt].HP.clear();
