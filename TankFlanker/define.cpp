@@ -950,7 +950,7 @@ bool get_reco(players* play, players* tgt, size_t i, size_t gun_s) {
 		//とりあえず当たったかどうか
 		bool is_hit = false;
 		for (size_t colmesh = 0; colmesh < tgt->ptr->colmeshes; ++colmesh) {
-			const auto HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos, int(colmesh));
+			const auto HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos);
 			if (HitPoly.HitFlag) {
 				tgt->hitssort[colmesh] = pair(colmesh, VSize(VSub(HitPoly.HitPosition, play->Ammo[i].repos)));
 				is_hit = true;
@@ -969,7 +969,7 @@ bool get_reco(players* play, players* tgt, size_t i, size_t gun_s) {
 				if (tgt->HP[k] > 0) {
 					if (k == 4) { continue; }//砲身だけ処理を別にしたいので分けます
 					//空間装甲、モジュール
-					const auto HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos, int(k));
+					const auto HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos);
 					if (HitPoly.HitFlag) {
 						set_effect(&(play->effcs[ef_reco]), HitPoly.HitPosition, HitPoly.Normal);
 						tgt->HP[k] -= 50; if (tgt->HP[k] <= 0) { tgt->HP[k] = 0; } play->Ammo[i].pene /= 2.0f; play->Ammo[i].speed /= 2.f;
@@ -982,7 +982,7 @@ bool get_reco(players* play, players* tgt, size_t i, size_t gun_s) {
 		}
 		//ダメージ面に当たった時に装甲値に勝てるかどうか
 		if (hitnear) {
-			const auto HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos,int(hitnear.value()));//当たっているものとして詳しい判定をとる
+			const auto HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos);//当たっているものとして詳しい判定をとる
 			MV1SetFrameUserLocalMatrix(tgt->colobj.get(), 9 + 0 + 3 * tgt->hitbuf, MMult(MGetTranslate(HitPoly.HitPosition), MInverse(tgt->ps_m)));
 			MV1SetFrameUserLocalMatrix(tgt->colobj.get(), 9 + 1 + 3 * tgt->hitbuf, MMult(MGetTranslate(VAdd(HitPoly.Normal, HitPoly.HitPosition)), MInverse(tgt->ps_m)));
 			MV1SetFrameUserLocalMatrix(tgt->colobj.get(), 9 + 2 + 3 * tgt->hitbuf, MMult(MGetTranslate(VAdd(VCross(HitPoly.Normal, play->Ammo[i].vec), HitPoly.HitPosition)), MInverse(tgt->ps_m)));
@@ -1031,7 +1031,7 @@ bool get_reco(players* play, players* tgt, size_t i, size_t gun_s) {
 			}
 		}
 		if (hitnear) {
-			const auto HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos, int(hitnear.value()));
+			const auto HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos);
 			set_effect(&(play->effcs[ef_reco2]), HitPoly.HitPosition, HitPoly.Normal);
 			PlaySoundMem(tgt->se[10 + GetRand(16)].get(), DX_PLAYTYPE_BACK, TRUE);
 			play->Ammo[i].vec = VAdd(play->Ammo[i].vec, VScale(HitPoly.Normal, VDot(play->Ammo[i].vec, HitPoly.Normal) * -2.0f));
