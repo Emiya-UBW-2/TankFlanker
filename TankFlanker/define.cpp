@@ -1021,7 +1021,7 @@ bool get_reco(players* play, players* tgt, size_t i, size_t gun_s) {
 		tmpf[0] = play->Ammo[i].speed;
 		for (size_t colmesh = 0; colmesh < tgt->ptr->colmeshes; ++colmesh) {
 			if (colmesh >= 5) { if (tgt->HP[colmesh] == 0) { continue; } }
-			const auto HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos);
+			const auto HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos,int(colmesh));
 			if (HitPoly.HitFlag) {
 				tmpf[1] = VSize(VSub(HitPoly.HitPosition, play->Ammo[i].repos));
 				if (tmpf[1] <= tmpf[0]) {
