@@ -971,7 +971,7 @@ bool get_reco(players* play, players* tgt, size_t i, size_t gun_s) {
 					//空間装甲、モジュール
 					const auto HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos, int(k));
 					if (HitPoly.HitFlag) {
-						set_effect(&(play->effcs[ef_reco]), HitPoly.HitPosition, HitPoly.Normal);
+						set_effect(&play->effcs[ef_reco], HitPoly.HitPosition, HitPoly.Normal);
 						tgt->HP[k] -= 50; if (tgt->HP[k] <= 0) { tgt->HP[k] = 0; } play->Ammo[i].pene /= 2.0f; play->Ammo[i].speed /= 2.f;
 					}
 				}
