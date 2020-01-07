@@ -21,11 +21,11 @@ size_t count_enemy() {
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 	//temp--------------------------------------------------------------------------//
 	int mousex, mousey;								/*mouse*/
-	float tmpf, tempfx, tempfy,turn_bias;
+	float tmpf, tempfx, tempfy;
 	VECTOR tempvec[2];
 	bool btmp;
-	//int lookplayerc;								/*視認しているplayer人数*/
-	bool keyget[19]{ false };							/*キー用*/
+	//bool keyget[19]{ false };							/*キー用*/
+	std::array<bool, 16>keyget;
 	//変数--------------------------------------------------------------------------//
 	bool out{ false };								/*終了フラグ*/
 	std::vector<pair> pssort;							/*playerソート*/
@@ -33,7 +33,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 	VECTOR aims;									/*照準器座標*/
 	float aimm;									/*照準距離*/
 	float fps;									/*fps*/
-	int selfammo;									/*UI用*/
+	std::uint8_t selfammo;								/*UI用*/
 	switches aim, map;								/*視点変更*/
 	float ratio, rat_r, aim_r;							/*照準視点　倍率、実倍率、距離*/
 	size_t waysel, choose = (std::numeric_limits<size_t>::max)();			/*指揮視点　指揮車両、マウス選択*/
@@ -202,8 +202,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 				0.f
 			);
 			p.fixtureDef.shape = &(p.dynamicBox);
-			p.fixtureDef.density = 1.0f;								// ボックス密度をゼロ以外に設定すると、動的になります。
-			p.fixtureDef.friction = 0.3f;								// デフォルトの摩擦をオーバーライドします。
+			p.fixtureDef.density = 1.0f;					// ボックス密度をゼロ以外に設定すると、動的になります。
+			p.fixtureDef.friction = 0.3f;					// デフォルトの摩擦をオーバーライドします。
 			p.bodyDef.type = b2_dynamicBody;
 			p.bodyDef.position.Set(p.pos.x, p.pos.z);
 			p.bodyDef.angle = -p.yrad;
@@ -218,9 +218,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 			for (size_t i = 29; i < 31; ++i) { ChangeVolumeSoundMem(128, p.se[i].get()); }
 		}
 		/*メインループ*/
-		aim.flug = false;
-		map.flug = false;
-		selfammo = 0;
+		aim.flug = false;		/*照準*/
+		map.flug = false;		/*マップ*/
+		selfammo = 0;			/*選択弾種*/
 		ratio = 1.0f;			/*照準視点　倍率*/
 		rat_r = ratio;			/*照準視点　実倍率*/
 		aim_r = 100.0f;			/*照準視点　距離*/
@@ -228,19 +228,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 		parts.set_viewrad(VGet(0.f, player[0].yrad, 1.f));
 		SetCursorPos(x_r(960), y_r(540));
 		old_time = GetNowHiPerformanceCount() + (LONGLONG)(1000000.0f / f_rates);
-		for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
-			player[p_cnt].effcs[ef_smoke2].efhandle = parts.get_effHandle(ef_smoke2).Play3D();
-			player[p_cnt].effcs[ef_smoke3].efhandle = parts.get_effHandle(ef_smoke2).Play3D();
-			PlaySoundMem(player[p_cnt].se[0].get(), DX_PLAYTYPE_LOOP, TRUE);
-			PlaySoundMem(player[p_cnt].se[27].get(), DX_PLAYTYPE_LOOP, TRUE);
-			PlaySoundMem(player[p_cnt].se[28].get(), DX_PLAYTYPE_LOOP, TRUE);
-			Set3DRadiusSoundMem(200.0f, player[p_cnt].se[0].get());
-			Set3DRadiusSoundMem(200.0f, player[p_cnt].se[1].get());
+		for (auto& p : player) {
+			p.effcs[ef_smoke2].efhandle = parts.get_effHandle(ef_smoke2).Play3D();
+			p.effcs[ef_smoke3].efhandle = parts.get_effHandle(ef_smoke2).Play3D();
+			PlaySoundMem(p.se[0].get(), DX_PLAYTYPE_LOOP, TRUE);
+			PlaySoundMem(p.se[27].get(), DX_PLAYTYPE_LOOP, TRUE);
+			PlaySoundMem(p.se[28].get(), DX_PLAYTYPE_LOOP, TRUE);
+			Set3DRadiusSoundMem(200.0f, p.se[0].get());
+			Set3DRadiusSoundMem(200.0f, p.se[1].get());
 			size_t i = 2;
-			for (; i < 10; ++i) { Set3DRadiusSoundMem(300.0f, player[p_cnt].se[i].get()); }
-			for (; i < 27; ++i) { Set3DRadiusSoundMem(100.0f, player[p_cnt].se[i].get()); }
-			for (; i < 29; ++i) { Set3DRadiusSoundMem(200.0f, player[p_cnt].se[i].get()); }
-			for (; i < 31; ++i) { Set3DRadiusSoundMem(300.0f, player[p_cnt].se[i].get()); }
+			for (; i < 10; ++i) { Set3DRadiusSoundMem(300.0f, p.se[i].get()); }
+			for (; i < 27; ++i) { Set3DRadiusSoundMem(100.0f, p.se[i].get()); }
+			for (; i < 29; ++i) { Set3DRadiusSoundMem(200.0f, p.se[i].get()); }
+			for (; i < 31; ++i) { Set3DRadiusSoundMem(300.0f, p.se[i].get()); }
 		}
 		const auto c_000000 = GetColor(0, 0, 0);
 		const auto c_00ff00 = GetColor(0, 255, 0);
@@ -263,8 +263,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 				SetMouseDispFlag(FALSE);
 				if (CheckHitKey(KEY_INPUT_ESCAPE) != 0) { out = true; break; }											/*終了*/
 				if (CheckHitKey(KEY_INPUT_P) != 0) { break; }													/*リスタート*/
-				keyget[0] = (GetMouseInput() & MOUSE_INPUT_LEFT) != 0;
 				if (player[0].HP[0] > 0) {
+					keyget[0] = false;
 					keyget[1] = CheckHitKey(KEY_INPUT_RSHIFT) != 0;
 					keyget[2] = CheckHitKey(KEY_INPUT_LSHIFT) != 0;
 					keyget[3] = CheckHitKey(KEY_INPUT_V) != 0;
@@ -284,26 +284,41 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 					keyget[17] = CheckHitKey(KEY_INPUT_SPACE) != 0;
 					keyget[18] = CheckHitKey(KEY_INPUT_B) != 0;
 				}
-				else { for (size_t i = 1; i < 19; ++i) { keyget[i] = false; } }
-
-				if (keyget[1]) { ++map.cnt; if (map.cnt == 1) { map.flug ^= 1; SetCursorPos(x_r(960), y_r(540)); } }
-				else { map.cnt = 0; }			/*指揮*/
-				if (keyget[2]) { ++aim.cnt; if (aim.cnt == 1) { aim.flug ^= 1; if (aim.flug) { ratio = 3.0f; } map.flug = false; } }
-				else { aim.cnt = 0; }	/*照準*/
+				else {
+					for (auto& tt : keyget) { tt = false; }
+				}
+				/*指揮*/
+				if (keyget[1]) {
+					map.cnt = std::min<std::uint8_t>(map.cnt++, 2);
+					if (map.cnt == 1) { map.flug ^= 1; SetCursorPos(x_r(960), y_r(540)); }
+				}
+				else { map.cnt = 0; }
+				/*照準*/
+				if (keyget[2]) {
+					aim.cnt = std::min<std::uint8_t>(aim.cnt++, 2);
+					if (aim.cnt == 1) { aim.flug ^= 1; if (aim.flug) { ratio = 3.0f; } map.flug = false; }
+				}
+				else { aim.cnt = 0; }
+				/*死んだときは無効*/
 				if (player[0].HP[0] == 0) { aim.flug = false; map.flug = false; }
-				if (keyget[7]) { ++selfammo; if (selfammo == 1) { ++player[0].ammotype; player[0].ammotype %= 3; player[0].loadcnt[0] = 1; } }
-				else { if (player[0].loadcnt[0] == 0) { selfammo = 0; } }											/*弾種変更*/
+				/*弾種交換*/
+				if (keyget[7]) {
+					selfammo = std::min<std::uint8_t>(selfammo++, 2);
+					if (selfammo == 1) { ++player[0].ammotype; player[0].ammotype %= 3; player[0].loadcnt[0] = 1; }
+				}
+				else { if (player[0].loadcnt[0] == 0) { selfammo = 0; } }
+				/*指揮*/
 				if (map.flug) {
 					GetMousePoint(&mousex, &mousey); SetMouseDispFlag(TRUE);
 					choose = (std::numeric_limits<size_t>::max)();
 					for (size_t p_cnt = 1; p_cnt < teamc; ++p_cnt) {
-						if (player[p_cnt].HP[0] > 0) { if (inm(x_r(132), y_r(162 + p_cnt * 24), x_r(324), y_r(180 + p_cnt * 24))) { choose = p_cnt; if (keyget[0]) { waysel = p_cnt; } } }
+						if (player[p_cnt].HP[0] > 0) { if (inm(x_r(132), y_r(162 + p_cnt * 24), x_r(324), y_r(180 + p_cnt * 24))) { choose = p_cnt; if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0) { waysel = p_cnt; } } }
 					}
 					if (player[waysel].HP[0] > 0) {
 						if (player[waysel].wayselect <= waypc - 1) {
 							if (inm(x_r(420), y_r(0), x_r(1500), y_r(1080))) {
-								if (keyget[0]) {
-									way = std::min<std::uint8_t>(way + 1, 2);
+								if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0) {
+									way = std::min<std::uint8_t>(way ++, 2);
 									if (way == 1) {
 										if (player[waysel].wayselect == 0) { player[waysel].waynow = 0; }
 										player[waysel].waypos[player[waysel].wayselect] = VGet(_2x(mousex), 0, _2y(mousey));
@@ -315,7 +330,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 							}
 						}
 					}
-				}/*視界見回し*/
+				}
+				/*視界見回し*/
 				else {
 					if (aim.flug) {
 						SetMousePoint(x_r(960), y_r(540)); GetMouseWheelRotVol();
@@ -326,13 +342,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 					}
 					else { parts.set_view_r(); ratio = 1.0f; }
 				}
-				differential(rat_r, ratio, 0.1f);														/*倍率、測距*/
+				differential(rat_r, ratio, 0.1f);/*倍率、測距*/
 			}
 			else {
 				SetMouseDispFlag(TRUE);
 			}
 			if (true) {
 				/*操作、座標系*/
+				//for (auto& p : player) {
 				for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 					if (!map.flug) { player[p_cnt].wayselect = 0; }
 					if (player[p_cnt].HP[0] > 0) {
@@ -449,8 +466,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 					}
 					else { player[p_cnt].move = KEY_TURNUP_; }
 				}
-				//0.2ms~5ms
 				/*共通動作*/
+				//for (auto& p : player) {
 				for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 					if (p_cnt == 0) {
 						set_gunrad(&player[0], rat_r*((keyget[8]) ? 3.f : 1.f));//左CTRLを押すと精密エイム
@@ -458,197 +475,205 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 					else {
 						set_gunrad(&player[p_cnt], 1.f);
 					}
-					player[p_cnt].bodyDef.awake = true;
-					player[p_cnt].yrad = player[p_cnt].body->GetAngle();
+				}
+				for (auto& p : player) {
+					p.bodyDef.awake = true;
+					p.yrad = p.body->GetAngle();
 					//
-					if ((player[p_cnt].move & KEY_GOFLONT) != 0) {
-						if (player[p_cnt].HP[5] == 0 || player[p_cnt].HP[6] == 0) { player[p_cnt].move -= KEY_GOFLONT; }
+					if ((p.move & KEY_GOFLONT) != 0) {
+						if (p.HP[5] == 0 || p.HP[6] == 0) { p.move -= KEY_GOFLONT; }
 						else {
-							if (player[p_cnt].gear > 0) {
-								if (player[p_cnt].flont >= player[p_cnt].ptr->spdflont[player[p_cnt].gear - 1]) { player[p_cnt].flont -= player[p_cnt].ptr->spdflont[player[p_cnt].gear - 1] / (5.0f * fps); }
-								else { player[p_cnt].flont += player[p_cnt].ptr->spdflont[player[p_cnt].gear - 1] / (10.0f * fps); }
+							if (p.gear > 0) {
+								if (p.flont >= p.ptr->spdflont[p.gear - 1]) { p.flont -= p.ptr->spdflont[p.gear - 1] / (5.0f * fps); }
+								else { p.flont += p.ptr->spdflont[p.gear - 1] / (10.0f * fps); }
 							}
 						}
 					}
-					if ((player[p_cnt].move & KEY_GOBACK_) != 0) {
-						if (player[p_cnt].HP[5] == 0 || player[p_cnt].HP[6] == 0) { player[p_cnt].move -= KEY_GOBACK_; }
+					if ((p.move & KEY_GOBACK_) != 0) {
+						if (p.HP[5] == 0 || p.HP[6] == 0) { p.move -= KEY_GOBACK_; }
 						else {
-							if (player[p_cnt].gear < 0) {
-								if (player[p_cnt].back <= player[p_cnt].ptr->spdback[-player[p_cnt].gear - 1]) { player[p_cnt].back -= player[p_cnt].ptr->spdback[-player[p_cnt].gear - 1] / (2.0f * fps); }
-								else { player[p_cnt].back += player[p_cnt].ptr->spdback[-player[p_cnt].gear - 1] / (5.0f * fps); }
+							if (p.gear < 0) {
+								if (p.back <= p.ptr->spdback[-p.gear - 1]) { p.back -= p.ptr->spdback[-p.gear - 1] / (2.0f * fps); }
+								else { p.back += p.ptr->spdback[-p.gear - 1] / (5.0f * fps); }
 							}
-						}
-					}
-					if (player[p_cnt].HP[5] > 0 || player[p_cnt].HP[6] > 0) {
-						turn_bias = 1.0f;
-						if (player[p_cnt].HP[5] > 0 && player[p_cnt].HP[6] > 0) {
-							if ((player[p_cnt].move & KEY_GOFLONT) != 0 && player[p_cnt].gear > 0) {
-								turn_bias = player[p_cnt].flont / (player[p_cnt].ptr->spdflont[player[p_cnt].gear - 1]);
-							}
-							if ((player[p_cnt].move & KEY_GOBACK_) != 0 && player[p_cnt].gear < 0) {
-								turn_bias = player[p_cnt].back / (player[p_cnt].ptr->spdback[-player[p_cnt].gear - 1]);
-							}
-							turn_bias = abs(turn_bias);
-						}
-						turn_bias *= ((player[p_cnt].HP[5] > 0) + (player[p_cnt].HP[6] > 0)) / 2.0f;
-					}
-					if ((player[p_cnt].move & KEY_GOLEFT_) != 0) {
-						if (player[p_cnt].HP[5] == 0 && player[p_cnt].HP[6] == 0) {
-							player[p_cnt].move -= KEY_GOLEFT_;
-						}
-						else {
-							differential(player[p_cnt].yadd, player[p_cnt].ptr->vehicle_RD * turn_bias, 0.1f);
-						}
-					}
-					if ((player[p_cnt].move & KEY_GORIGHT) != 0) {
-						if (player[p_cnt].HP[5] == 0 && player[p_cnt].HP[6] == 0) {
-							player[p_cnt].move -= KEY_GORIGHT;
-						}
-						else {
-							differential(player[p_cnt].yadd, -player[p_cnt].ptr->vehicle_RD * turn_bias, 0.1f);
 						}
 					}
 
-					if (player[p_cnt].gear != 0) { player[p_cnt].speed = player[p_cnt].flont + player[p_cnt].back; }
+					{
+						float turn_bias = 1.0f;
+						if (p.HP[5] > 0 || p.HP[6] > 0) {
+							turn_bias = 1.0f;
+							if (p.HP[5] > 0 && p.HP[6] > 0) {
+								if ((p.move & KEY_GOFLONT) != 0 && p.gear > 0) {
+									turn_bias = p.flont / (p.ptr->spdflont[p.gear - 1]);
+								}
+								if ((p.move & KEY_GOBACK_) != 0 && p.gear < 0) {
+									turn_bias = p.back / (p.ptr->spdback[-p.gear - 1]);
+								}
+								turn_bias = abs(turn_bias);
+							}
+							turn_bias *= ((p.HP[5] > 0) + (p.HP[6] > 0)) / 2.0f;
+						}
+						if ((p.move & KEY_GOLEFT_) != 0) {
+							if (p.HP[5] == 0 && p.HP[6] == 0) {
+								p.move -= KEY_GOLEFT_;
+							}
+							else {
+								differential(p.yadd, p.ptr->vehicle_RD * turn_bias, 0.1f);
+							}
+						}
+						if ((p.move & KEY_GORIGHT) != 0) {
+							if (p.HP[5] == 0 && p.HP[6] == 0) {
+								p.move -= KEY_GORIGHT;
+							}
+							else {
+								differential(p.yadd, -p.ptr->vehicle_RD * turn_bias, 0.1f);
+							}
+						}
+					}
+
+					if (p.gear != 0) { p.speed = p.flont + p.back; }
 
 
-					differential(player[p_cnt].inertia.x, (player[p_cnt].speed - player[p_cnt].speedrec), 0.02f); player[p_cnt].speedrec = player[p_cnt].speed;
-					differential(player[p_cnt].inertia.z, -(player[p_cnt].znor - player[p_cnt].znorrec) / 2.0f, 0.1f); player[p_cnt].znorrec = player[p_cnt].znor;
+					differential(p.inertia.x, (p.speed - p.speedrec), 0.02f); p.speedrec = p.speed;
+					differential(p.inertia.z, -(p.znor - p.znorrec) / 2.0f, 0.1f); p.znorrec = p.znor;
 
 					//vec
-					player[p_cnt].vec.x = player[p_cnt].speed * sin(player[p_cnt].yrad);
-					player[p_cnt].vec.z = -player[p_cnt].speed * cos(player[p_cnt].yrad);
-					if (player[p_cnt].HP[5] == 0) {
-						player[p_cnt].vec.x = player[p_cnt].ptr->loc[bone_wheel].x * sin(player[p_cnt].yadd) * sin(player[p_cnt].yrad);
-						player[p_cnt].vec.z = -player[p_cnt].ptr->loc[bone_wheel].x * sin(player[p_cnt].yadd) * cos(player[p_cnt].yrad);
+					p.vec.x = p.speed * sin(p.yrad);
+					p.vec.z = -p.speed * cos(p.yrad);
+					if (p.HP[5] == 0) {
+						p.vec.x = p.ptr->loc[bone_wheel].x * sin(p.yadd) * sin(p.yrad);
+						p.vec.z = -p.ptr->loc[bone_wheel].x * sin(p.yadd) * cos(p.yrad);
 					}
-					if (player[p_cnt].HP[6] == 0) {
-						player[p_cnt].vec.x = -player[p_cnt].ptr->loc[bone_wheel].x * sin(player[p_cnt].yadd) * sin(player[p_cnt].yrad);
-						player[p_cnt].vec.z = player[p_cnt].ptr->loc[bone_wheel].x * sin(player[p_cnt].yadd) * cos(player[p_cnt].yrad);
+					if (p.HP[6] == 0) {
+						p.vec.x = -p.ptr->loc[bone_wheel].x * sin(p.yadd) * sin(p.yrad);
+						p.vec.z = p.ptr->loc[bone_wheel].x * sin(p.yadd) * cos(p.yrad);
 					}
 					//
-					player[p_cnt].wheelrad[0] += player[p_cnt].speed / f_rates;//
-					player[p_cnt].wheelrad[1] = -player[p_cnt].wheelrad[0] * 2 + player[p_cnt].yrad * 5;
-					player[p_cnt].wheelrad[2] = -player[p_cnt].wheelrad[0] * 2 - player[p_cnt].yrad * 5;
+					p.wheelrad[0] += p.speed / f_rates;//
+					p.wheelrad[1] = -p.wheelrad[0] * 2 + p.yrad * 5;
+					p.wheelrad[2] = -p.wheelrad[0] * 2 - p.yrad * 5;
 					//
-					player[p_cnt].body->SetLinearVelocity(b2Vec2(player[p_cnt].vec.x, player[p_cnt].vec.z));
-					player[p_cnt].body->SetAngularVelocity(player[p_cnt].yadd);
-				}//0.1ms
-				//0.0ms
+					p.body->SetLinearVelocity(b2Vec2(p.vec.x, p.vec.z));
+					p.body->SetAngularVelocity(p.yadd);
+				}
 				/*物理演算*/
 				world->Step(1.0f / f_rates, 1, 1);						// シミュレーションの単一ステップを実行するように世界に指示します。 一般に、タイムステップと反復を固定しておくのが最善です。
-				for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
-					player[p_cnt].pos.x = player[p_cnt].body->GetPosition().x;
-					player[p_cnt].pos.z = player[p_cnt].body->GetPosition().y;
-					player[p_cnt].yrad = -player[p_cnt].body->GetAngle();
+				for (auto& p : player) {
+					p.pos.x = p.body->GetPosition().x;
+					p.pos.z = p.body->GetPosition().y;
+					p.yrad = -p.body->GetAngle();
 				}//0ms
 				//0.0ms
 				/*砲撃その他*/
-				for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+				for (auto& p : player) {
 					//地形判定
-					HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, VAdd(player[p_cnt].pos, VGet(0.0f, 2.0f, 0.0f)), VAdd(player[p_cnt].pos, VGet(0.0f, -0.05f, 0.0f)));//0.3ms
+					HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, VAdd(p.pos, VGet(0.0f, 2.0f, 0.0f)), VAdd(p.pos, VGet(0.0f, -0.05f, 0.0f)));//0.3ms
 					if (HitPoly.HitFlag) {
-						player[p_cnt].pos.y = HitPoly.HitPosition.y;
-						player[p_cnt].yace = 0.0f;
-						set_normal(&(player[p_cnt].xnor), &(player[p_cnt].znor), mapparts.get_map_handle().get(), player[p_cnt].pos);//0.6ms
-						player[p_cnt].nor = VTransform(VGet(0, 1.f, 0), MMult(MGetRotX(player[p_cnt].xnor), MGetRotZ(player[p_cnt].znor)));
-						//player[p_cnt].nor = VAdd(player[p_cnt].nor, VScale(VSub(HitPoly.Normal, player[p_cnt].nor), 0.1f));
+						p.pos.y = HitPoly.HitPosition.y;
+						p.yace = 0.0f;
+						set_normal(&(p.xnor), &(p.znor), mapparts.get_map_handle().get(), p.pos);//0.6ms
+						p.nor = VTransform(VGet(0, 1.f, 0), MMult(MGetRotX(p.xnor), MGetRotZ(p.znor)));
+						//p.nor = VAdd(p.nor, VScale(VSub(HitPoly.Normal, p.nor), 0.1f));
 						/*speed*/
-						if ((player[p_cnt].move & KEY_GOLEFT_) == 0 && (player[p_cnt].move & KEY_GORIGHT) == 0) { player[p_cnt].yadd *= 0.9f; }
-						if (player[p_cnt].gear > 0 || (player[p_cnt].move & KEY_GOBACK_) == 0) { player[p_cnt].back *= 0.95f; }
-						if (player[p_cnt].gear == 0) { player[p_cnt].speed *= 0.95f; }
-						if (player[p_cnt].gear < 0 || (player[p_cnt].move & KEY_GOFLONT) == 0) { player[p_cnt].flont *= 0.95f; }
+						if ((p.move & KEY_GOLEFT_) == 0 && (p.move & KEY_GORIGHT) == 0) { p.yadd *= 0.9f; }
+						if (p.gear > 0 || (p.move & KEY_GOBACK_) == 0) { p.back *= 0.95f; }
+						if (p.gear == 0) { p.speed *= 0.95f; }
+						if (p.gear < 0 || (p.move & KEY_GOFLONT) == 0) { p.flont *= 0.95f; }
 						/*track*/
-						mapparts.draw_map_track(player[p_cnt]);//0.1ms
+						mapparts.draw_map_track(p);//0.1ms
 					}
 					else {
-						player[p_cnt].pos.y += player[p_cnt].yace; player[p_cnt].yace += M_GR / 2.0f / fps / fps;
+						p.pos.y += p.yace; p.yace += M_GR / 2.0f / fps / fps;
 					}
 					//地形判定全体=3.8ms
 					//サウンド
-					if (abs(player[p_cnt].speed) >= player[p_cnt].ptr->spdflont[0]) { ChangeVolumeSoundMem(64, player[p_cnt].se[0].get()); }
-					else { ChangeVolumeSoundMem((int)(64.f*abs(player[p_cnt].speed) / player[p_cnt].ptr->spdflont[0]), player[p_cnt].se[0].get()); }//0.1ms
-					for (size_t i = 27; i < 29; ++i) { ChangeVolumeSoundMem((int)(32.f + 32.f*abs(player[p_cnt].speed / player[p_cnt].ptr->spdflont[3])), player[p_cnt].se[i].get()); }//0.1ms
-					for (size_t i = 0; i < 31; ++i) { if (CheckSoundMem(player[p_cnt].se[i].get()) == 1) { Set3DPositionSoundMem(player[p_cnt].pos, player[p_cnt].se[i].get()); } }//1.5ms
+					if (abs(p.speed) >= p.ptr->spdflont[0]) { ChangeVolumeSoundMem(64, p.se[0].get()); }
+					else { ChangeVolumeSoundMem((int)(64.f*abs(p.speed) / p.ptr->spdflont[0]), p.se[0].get()); }//0.1ms
+					for (size_t i = 27; i < 29; ++i) { ChangeVolumeSoundMem((int)(32.f + 32.f*abs(p.speed / p.ptr->spdflont[3])), p.se[i].get()); }//0.1ms
+					for (size_t i = 0; i < 31; ++i) { if (CheckSoundMem(p.se[i].get()) == 1) { Set3DPositionSoundMem(p.pos, p.se[i].get()); } }//1.5ms
 					//サウンド全体=1.7ms
 					//tree判定
-					mapparts.set_hitplayer(player[p_cnt].pos);
+					mapparts.set_hitplayer(p.pos);
 					//0.1ms
 					/*車体行列*/
-					player[p_cnt].ps_m = MMult(MMult(MMult(MMult(MGetRotAxis(VGet(cos(player[p_cnt].gunrad.x), 0, -sin(player[p_cnt].gunrad.x)), sin(deg2rad(player[p_cnt].firerad)) * deg2rad(5)), MGetRotAxis(VGet(cos(player[p_cnt].recorad), 0, -sin(player[p_cnt].recorad)), sin(deg2rad(player[p_cnt].recoall)) * deg2rad(5))), MGetRotX(atan(player[p_cnt].inertia.x))), MMult(MGetRotY(player[p_cnt].yrad), MGetRotVec2(VGet(0, 1.f, 0), player[p_cnt].nor))), MGetTranslate(player[p_cnt].pos));//MMult(MGetRotX(player[p_cnt].xnor), MGetRotZ(player[p_cnt].znor))
+					p.ps_m = MMult(MMult(MMult(MMult(MGetRotAxis(VGet(cos(p.gunrad.x), 0, -sin(p.gunrad.x)), sin(deg2rad(p.firerad)) * deg2rad(5)), MGetRotAxis(VGet(cos(p.recorad), 0, -sin(p.recorad)), sin(deg2rad(p.recoall)) * deg2rad(5))), MGetRotX(atan(p.inertia.x))), MMult(MGetRotY(p.yrad), MGetRotVec2(VGet(0, 1.f, 0), p.nor))), MGetTranslate(p.pos));//MMult(MGetRotX(p.xnor), MGetRotZ(p.znor))
 					/*砲塔行列*/
-					player[p_cnt].ps_t = MMult(MGetRotY(player[p_cnt].gunrad.x), MGetTranslate(player[p_cnt].ptr->loc[bone_trt]));
+					p.ps_t = MMult(MGetRotY(p.gunrad.x), MGetTranslate(p.ptr->loc[bone_trt]));
 					//all
-					MV1SetMatrix(player[p_cnt].colobj.get(), player[p_cnt].ps_m);
-					MV1SetMatrix(player[p_cnt].obj.get(), player[p_cnt].ps_m);
-					MV1SetMatrix(player[p_cnt].farobj.get(), player[p_cnt].ps_m);
+					MV1SetMatrix(p.colobj.get(), p.ps_m);
+					MV1SetMatrix(p.obj.get(), p.ps_m);
+					MV1SetMatrix(p.farobj.get(), p.ps_m);
 					//common
-					for (size_t i = bone_trt; i < player[p_cnt].ptr->frames; ++i) {
+					for (int i = bone_trt; i < p.ptr->frames; ++i) {
 						if (i == bone_trt) {
-							MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, player[p_cnt].ps_t);
-							MV1SetFrameUserLocalMatrix(player[p_cnt].farobj.get(), i, player[p_cnt].ps_t);
-							MV1SetFrameUserLocalMatrix(player[p_cnt].colobj.get(), i, player[p_cnt].ps_t);
+							MV1SetFrameUserLocalMatrix(p.obj.get(), i, p.ps_t);
+							MV1SetFrameUserLocalMatrix(p.farobj.get(), i, p.ps_t);
+							MV1SetFrameUserLocalMatrix(p.colobj.get(), i, p.ps_t);
 						}
 						else if (i == bone_gun1) {
-							const auto mtemp = MMult(MMult(MGetRotX(player[p_cnt].gunrad.y), MGetTranslate(VSub(player[p_cnt].ptr->loc[bone_gun1], player[p_cnt].ptr->loc[bone_trt]))), player[p_cnt].ps_t);
-							MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, mtemp);
-							MV1SetFrameUserLocalMatrix(player[p_cnt].farobj.get(), i, mtemp);
-							MV1SetFrameUserLocalMatrix(player[p_cnt].colobj.get(), i, mtemp);
+							const auto mtemp = MMult(MMult(MGetRotX(p.gunrad.y), MGetTranslate(VSub(p.ptr->loc[bone_gun1], p.ptr->loc[bone_trt]))), p.ps_t);
+							MV1SetFrameUserLocalMatrix(p.obj.get(), i, mtemp);
+							MV1SetFrameUserLocalMatrix(p.farobj.get(), i, mtemp);
+							MV1SetFrameUserLocalMatrix(p.colobj.get(), i, mtemp);
 						}
 						else if (i == bone_gun2) {
-							const auto mtemp = MGetTranslate(VAdd(VSub(player[p_cnt].ptr->loc[bone_gun2], player[p_cnt].ptr->loc[bone_gun1]), VGet(0, 0, player[p_cnt].fired)));
-							MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, mtemp);
-							MV1SetFrameUserLocalMatrix(player[p_cnt].farobj.get(), i, mtemp);
-							MV1SetFrameUserLocalMatrix(player[p_cnt].colobj.get(), i, mtemp);
+							const auto mtemp = MGetTranslate(VAdd(VSub(p.ptr->loc[bone_gun2], p.ptr->loc[bone_gun1]), VGet(0, 0, p.fired)));
+							MV1SetFrameUserLocalMatrix(p.obj.get(), i, mtemp);
+							MV1SetFrameUserLocalMatrix(p.farobj.get(), i, mtemp);
+							MV1SetFrameUserLocalMatrix(p.colobj.get(), i, mtemp);
 						}
 						else if (i == bone_gun) {
-							const auto mtemp = MMult(MMult(MGetRotX(player[p_cnt].gunrad.y), MGetTranslate(VSub(player[p_cnt].ptr->loc[bone_gun], player[p_cnt].ptr->loc[bone_trt]))), player[p_cnt].ps_t);
-							MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, mtemp);
-							MV1SetFrameUserLocalMatrix(player[p_cnt].farobj.get(), i, mtemp);
+							const auto mtemp = MMult(MMult(MGetRotX(p.gunrad.y), MGetTranslate(VSub(p.ptr->loc[bone_gun], p.ptr->loc[bone_trt]))), p.ps_t);
+							MV1SetFrameUserLocalMatrix(p.obj.get(), i, mtemp);
+							MV1SetFrameUserLocalMatrix(p.farobj.get(), i, mtemp);
 						}
 						else if (i == bone_gun_) {
-							const auto mtemp = MGetTranslate(VSub(player[p_cnt].ptr->loc[bone_gun_], player[p_cnt].ptr->loc[bone_gun]));
-							MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, mtemp);
-							MV1SetFrameUserLocalMatrix(player[p_cnt].farobj.get(), i, mtemp);
+							const auto mtemp = MGetTranslate(VSub(p.ptr->loc[bone_gun_], p.ptr->loc[bone_gun]));
+							MV1SetFrameUserLocalMatrix(p.obj.get(), i, mtemp);
+							MV1SetFrameUserLocalMatrix(p.farobj.get(), i, mtemp);
 						}
-						else if (i >= bone_wheel && i < player[p_cnt].ptr->frames - 4) {
+						else if (i >= bone_wheel && i < p.ptr->frames - 4) {
 							if ((i - bone_wheel) % 2 == 1) {
-								const auto mtemp = MMult(MGetRotX(player[p_cnt].wheelrad[signbit(player[p_cnt].ptr->loc[i].x) + 1]), MGetTranslate(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[i - 1])));
-								MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, mtemp);
-								MV1SetFrameUserLocalMatrix(player[p_cnt].farobj.get(), i, mtemp);
+								const auto mtemp = MMult(MGetRotX(p.wheelrad[signbit(p.ptr->loc[i].x) + 1]), MGetTranslate(VSub(p.ptr->loc[i], p.ptr->loc[i - 1])));
+								MV1SetFrameUserLocalMatrix(p.obj.get(), i, mtemp);
+								MV1SetFrameUserLocalMatrix(p.farobj.get(), i, mtemp);
 							}
 							else {
-								MV1ResetFrameUserLocalMatrix(player[p_cnt].obj.get(), i);
-								tempvec[1] = VAdd(MV1GetFramePosition(player[p_cnt].obj.get(), i), VScale(player[p_cnt].nor, 1.0f));
-								tempvec[0] = VAdd(MV1GetFramePosition(player[p_cnt].obj.get(), i), VScale(player[p_cnt].nor, -0.2f));
+								MV1ResetFrameUserLocalMatrix(p.obj.get(), i);
+								tempvec[1] = VAdd(MV1GetFramePosition(p.obj.get(), i), VScale(p.nor, 1.0f));
+								tempvec[0] = VAdd(MV1GetFramePosition(p.obj.get(), i), VScale(p.nor, -0.2f));
 								HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, tempvec[1], tempvec[0]);
 								if (HitPoly.HitFlag) {
 									tmpf = 1.0f - VSize(VSub(HitPoly.HitPosition, tempvec[1]));
-									player[p_cnt].Springs[i] += 1.0f / fps; if (player[p_cnt].Springs[i] >= tmpf) { player[p_cnt].Springs[i] = tmpf; }
+									p.Springs[i] += 1.0f / fps; if (p.Springs[i] >= tmpf) { p.Springs[i] = tmpf; }
 								}
 								else {
-									if (player[p_cnt].Springs[i] > -0.2f) { player[p_cnt].Springs[i] += -0.2f / fps; }
+									if (p.Springs[i] > -0.2f) { p.Springs[i] += -0.2f / fps; }
 								}
-								const auto mtemp = MGetTranslate(VAdd(player[p_cnt].ptr->loc[i], VScale(player[p_cnt].nor, player[p_cnt].Springs[i])));
-								MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, mtemp);
-								MV1SetFrameUserLocalMatrix(player[p_cnt].farobj.get(), i, mtemp);
+								const auto mtemp = MGetTranslate(VAdd(p.ptr->loc[i], VScale(p.nor, p.Springs[i])));
+								MV1SetFrameUserLocalMatrix(p.obj.get(), i, mtemp);
+								MV1SetFrameUserLocalMatrix(p.farobj.get(), i, mtemp);
 								//2ms
 							}
 						}
-						else if (i >= player[p_cnt].ptr->frames - 4) {
-							const auto mtemp = MMult(MGetRotX(player[p_cnt].wheelrad[signbit(player[p_cnt].ptr->loc[i].x) + 1]), MGetTranslate(player[p_cnt].ptr->loc[i]));
-							MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, mtemp);
-							MV1SetFrameUserLocalMatrix(player[p_cnt].farobj.get(), i, mtemp);
+						else if (i >= p.ptr->frames - 4) {
+							const auto mtemp = MMult(MGetRotX(p.wheelrad[signbit(p.ptr->loc[i].x) + 1]), MGetTranslate(p.ptr->loc[i]));
+							MV1SetFrameUserLocalMatrix(p.obj.get(), i, mtemp);
+							MV1SetFrameUserLocalMatrix(p.farobj.get(), i, mtemp);
 						}
 					}
 					/*collition*/
-					for (size_t i = 0; i < player[p_cnt].ptr->colmeshes; ++i) { MV1RefreshCollInfo(player[p_cnt].colobj.get(), -1); }
+					for (size_t i = 0; i < p.ptr->colmeshes; ++i) { MV1RefreshCollInfo(p.colobj.get(), -1); }
 					/**/
-					if (player[p_cnt].fired >= 0.01f) { player[p_cnt].fired *= 0.95f; }
-					if (player[p_cnt].loadcnt[0] > 0) {
-						if (player[p_cnt].firerad < 180) { if (player[p_cnt].firerad <= 90) { player[p_cnt].firerad += 900 / (int)fps; } else { player[p_cnt].firerad += 180 / (int)fps; } }
-						else { player[p_cnt].firerad = 180; }
+					if (p.fired >= 0.01f) { p.fired *= 0.95f; }
+					if (p.loadcnt[0] > 0) {
+						if (p.firerad < 180) { if (p.firerad <= 90) { p.firerad += 900 / (int)fps; } else { p.firerad += 180 / (int)fps; } }
+						else { p.firerad = 180; }
 					}
+
+				}
+				for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
 					for (size_t guns = 0; guns < gunc; ++guns) {
 						size_t k = guns * ammoc;
 						if (player[p_cnt].loadcnt[guns] == 0) {
@@ -740,27 +765,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 						player[p_cnt].hitadd = false;
 					}
 				}
-				//5.3ms
 				/*轍更新*/
 				mapparts.set_map_track();
-				//0ms
 				/*human*/
 				humanparts.set_humanmove(player[0], parts.get_view_r(), fps);
-				//(usegrab=TRUE)0.9~1.0ms(FALSE)0.1ms
 				/*effect*/
-				for (size_t p_cnt = 0; p_cnt < playerc; ++p_cnt) {
+				for (auto& p : player) {
 					for (int i = 0; i < efs_user; ++i) {
-						if (i != ef_smoke2 && i != ef_smoke3) { set_pos_effect(&player[p_cnt].effcs[i], parts.get_effHandle(i)); }
+						if (i != ef_smoke2 && i != ef_smoke3) { set_pos_effect(&p.effcs[i], parts.get_effHandle(i)); }
 					}
-						tempvec[0] = MV1GetFramePosition(player[p_cnt].obj.get(), bone_smoke1);
-						player[p_cnt].effcs[ef_smoke2].efhandle.SetPos(tempvec[0].x, tempvec[0].y, tempvec[0].z);
-						//SetTargetLocation(player[p_cnt].effcs[ef_smoke2].efhandle, tempvec[0].x, tempvec[0].y, tempvec[0].z);
-						tempvec[0] = MV1GetFramePosition(player[p_cnt].obj.get(), bone_smoke2);
-						player[p_cnt].effcs[ef_smoke3].efhandle.SetPos(tempvec[0].x, tempvec[0].y, tempvec[0].z);
-						//SetTargetLocation(player[p_cnt].effcs[ef_smoke3].efhandle, tempvec[0].x, tempvec[0].y, tempvec[0].z);
+					p.effcs[ef_smoke2].efhandle.SetPos(MV1GetFramePosition(p.obj.get(), bone_smoke1));
+					//SetTargetLocation(p.effcs[ef_smoke2].efhandle, MV1GetFramePosition(p.obj.get(), bone_smoke1));
+					p.effcs[ef_smoke3].efhandle.SetPos(MV1GetFramePosition(p.obj.get(), bone_smoke2));
+					//SetTargetLocation(p.effcs[ef_smoke3].efhandle, MV1GetFramePosition(p.obj.get(), bone_smoke2));
 				}
 				UpdateEffekseer3D();
-				//0.6ms
 			}
 			/*視点*/
 			if (aim.flug) {
@@ -800,7 +819,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 				//teamc + enemyc
 				for (size_t p_cnt = 1; p_cnt < teamc; ++p_cnt) {
 					DrawLine(x_(player[p_cnt].pos.x), y_(player[p_cnt].pos.z), x_(player[p_cnt].waypos[player[p_cnt].waynow].x), y_(player[p_cnt].waypos[player[p_cnt].waynow].z), c_ff0000, 3);
-					for (int i = player[p_cnt].waynow; i < waypc - 1; ++i) {
+					for (int i = int(player[p_cnt].waynow); i < waypc - 1; ++i) {
 						DrawLine(x_(player[p_cnt].waypos[i].x), y_(player[p_cnt].waypos[i].z), x_(player[p_cnt].waypos[i + 1].x), y_(player[p_cnt].waypos[i + 1].z), GetColor(255, 64 * i, 0), 3);
 					}
 				}

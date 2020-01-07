@@ -919,7 +919,7 @@ void set_effect(EffectS * efh, VECTOR pos, VECTOR nor) {
 void set_pos_effect(EffectS *efh, const EffekseerEffectHandle& handle) {
 	if (efh->efflug) {
 		efh->efhandle = handle.Play3D();
-		efh->efhandle.SetPos(efh->effpos.x, efh->effpos.y, efh->effpos.z);
+		efh->efhandle.SetPos(efh->effpos);
 		efh->efhandle.SetRotation(atan2(efh->effnor.y, sqrt(pow(efh->effnor.x, 2) + pow(efh->effnor.z, 2))), atan2(-efh->effnor.x, -efh->effnor.z), 0);
 		efh->efflug = false;
 	}

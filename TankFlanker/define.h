@@ -204,7 +204,7 @@ struct players {
 };
 struct switches {
 	bool flug{ false };
-	int cnt{ 0 };
+	std::uint8_t cnt{ 0 };
 };
 /*CLASS*/
 class Myclass {

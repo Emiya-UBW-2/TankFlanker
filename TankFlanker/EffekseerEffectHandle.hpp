@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "DxLib.h"
 #include <EffekseerForDXLib.h>
 #include <string_view>
 class EffekseerEffectHandle;
@@ -47,8 +48,8 @@ public:
         @param	x	X座標
         @param	y	Y座標
     */
-    void SetPos(float x, float y, float z) const noexcept {
-        SetPosPlayingEffekseer2DEffect(this->handle_, x, y, z);
+    void SetPos(VECTOR pos) const noexcept {
+        SetPosPlayingEffekseer2DEffect(this->handle_, pos.x, pos.y, pos.z);
     }
     /**
         @brief	再生中の2D表示のエフェクトの角度を設定する。
@@ -158,8 +159,8 @@ public:
         @param	x	X座標
         @param	y	Y座標
     */
-    void SetPos(float x, float y, float z) const noexcept {
-        SetPosPlayingEffekseer3DEffect(this->handle_, x, y, z);
+    void SetPos(VECTOR pos) const noexcept {
+        SetPosPlayingEffekseer3DEffect(this->handle_, pos.x, pos.y, pos.z);
     }
     /**
         @brief	再生中の3D表示のエフェクトの角度を設定する。
