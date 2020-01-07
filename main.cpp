@@ -19,39 +19,38 @@ size_t count_enemy() {
 }
 /*main*/
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
-	//temp------------------------------------------------------------------//
-	//int tgt_p;
-	int mousex, mousey;							/*mouse*/
+	//temp--------------------------------------------------------------------------//
+	int mousex, mousey;								/*mouse*/
 	float tmpf, tempfx, tempfy,turn_bias;
 	VECTOR tempvec[2];
 	bool btmp;
-	//int lookplayerc;							/*視認しているplayer人数*/
-	bool keyget[19]{ false };						/*キー用*/
-	//変数------------------------------------------------------------------//
-	bool out{ false };							/*終了フラグ*/
-	std::vector<pair> pssort;						/*playerソート*/
-	std::vector<players> player;						/*player*/
-	VECTOR aims;								/*照準器座標*/
-	float aimm;								/*照準距離*/
-	float fps;								/*fps*/
-	int selfammo;								/*UI用*/
-	switches aim, map;							/*視点変更*/
-	float ratio, rat_r, aim_r;						/*照準視点　倍率、実倍率、距離*/
-	size_t waysel, choose = (std::numeric_limits<size_t>::max)();						/*指揮視点　指揮車両、マウス選択*/
+	//int lookplayerc;								/*視認しているplayer人数*/
+	bool keyget[19]{ false };							/*キー用*/
+	//変数--------------------------------------------------------------------------//
+	bool out{ false };								/*終了フラグ*/
+	std::vector<pair> pssort;							/*playerソート*/
+	std::vector<players> player;							/*player*/
+	VECTOR aims;									/*照準器座標*/
+	float aimm;									/*照準距離*/
+	float fps;									/*fps*/
+	int selfammo;									/*UI用*/
+	switches aim, map;								/*視点変更*/
+	float ratio, rat_r, aim_r;							/*照準視点　倍率、実倍率、距離*/
+	size_t waysel, choose = (std::numeric_limits<size_t>::max)();			/*指揮視点　指揮車両、マウス選択*/
 	std::uint8_t way = 0; //マウストリガー
-	LONGLONG old_time, waits;						/*時間取得*/
-	VECTOR campos, viewpos, uppos;						/*カメラ*/
-	MV1_COLL_RESULT_POLY HitPoly;						/*あたり判定*/
+	LONGLONG old_time, waits;							/*時間取得*/
+	VECTOR campos, viewpos, uppos;							/*カメラ*/
+	MV1_COLL_RESULT_POLY HitPoly;							/*あたり判定*/
 	float cpu_move;
-	char mstr[64];								/*tank*/
-	int mdata;								/*tank*/
-	//init------------------------------------------------------------------//
+	char mstr[64];									/*tank*/
+	int mdata;									/*tank*/
+	//init--------------------------------------------------------------------------//
 	Myclass	parts;
-	HUMANS	humanparts(parts.get_usegrab(), parts.get_f_rate());		/*車内関係*/
-	MAPS	mapparts(parts.get_gndx(), parts.get_drawdist());		/*地形、ステージ関係*/
+	HUMANS	humanparts(parts.get_usegrab(), parts.get_f_rate());			/*車内関係*/
+	MAPS	mapparts(parts.get_gndx(), parts.get_drawdist());			/*地形、ステージ関係*/
 	auto uiparts = std::make_unique<UIS>();
 	float f_rates = parts.get_f_rate();
-	//load------------------------------------------------------------------//
+	//load--------------------------------------------------------------------------//
 	parts.set_fonts(18);
 	SetUseASyncLoadFlag(TRUE);
 		//hit-------------------------------------------------------------------//
@@ -66,7 +65,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 	uiparts->draw_load();//
 	if (parts.set_veh() != true) { return -1; }
 	/*物理開始*/
-	auto world = std::make_unique<b2World>(b2Vec2(0.0f, 0.0f));					// 剛体を保持およびシミュレートするワールドオブジェクトを構築
+	auto world = std::make_unique<b2World>(b2Vec2(0.0f, 0.0f));			/* 剛体を保持およびシミュレートするワールドオブジェクトを構築*/
 	//これ以降繰り返しロード------------------------------------------------//
 	do {
 		int m = parts.window_choosev(); if (m == -1) { return 0; }		/*player指定*/
@@ -172,13 +171,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 
 			//HP
 			p.HP.resize(p.ptr->colmeshes);
-			/*3456は装甲部分なので詰め込む*/
+			/*0123は装甲部分なので詰め込む*/
 			p.HP[0] = 1;								//life
 			for (size_t i = 4; i < p.ptr->colmeshes; ++i) { p.HP[i] = 100; }	//spaceARMER
 			//wheel
 			p.Springs.resize(p.ptr->frames);
 			//0初期化いる
-		//
+			//
 			MV1SetMatrix(p.colobj.get(), MGetTranslate(VGet(0, 0, 0)));
 			//装てん
 			p.loadcnt[0] = 1;
@@ -591,30 +590,30 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 							MV1SetFrameUserLocalMatrix(player[p_cnt].colobj.get(), i, player[p_cnt].ps_t);
 						}
 						else if (i == bone_gun1) {
-							const auto mtemp = MMult(MMult(MGetRotX(player[p_cnt].gunrad.y), MGetTranslate(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[bone_trt]))), player[p_cnt].ps_t);
+							const auto mtemp = MMult(MMult(MGetRotX(player[p_cnt].gunrad.y), MGetTranslate(VSub(player[p_cnt].ptr->loc[bone_gun1], player[p_cnt].ptr->loc[bone_trt]))), player[p_cnt].ps_t);
 							MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, mtemp);
 							MV1SetFrameUserLocalMatrix(player[p_cnt].farobj.get(), i, mtemp);
 							MV1SetFrameUserLocalMatrix(player[p_cnt].colobj.get(), i, mtemp);
 						}
 						else if (i == bone_gun2) {
-							const auto mtemp = MGetTranslate(VAdd(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[bone_gun1]), VGet(0, 0, player[p_cnt].fired)));
+							const auto mtemp = MGetTranslate(VAdd(VSub(player[p_cnt].ptr->loc[bone_gun2], player[p_cnt].ptr->loc[bone_gun1]), VGet(0, 0, player[p_cnt].fired)));
 							MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, mtemp);
 							MV1SetFrameUserLocalMatrix(player[p_cnt].farobj.get(), i, mtemp);
 							MV1SetFrameUserLocalMatrix(player[p_cnt].colobj.get(), i, mtemp);
 						}
 						else if (i == bone_gun) {
-							const auto mtemp = MMult(MMult(MGetRotX(player[p_cnt].gunrad.y), MGetTranslate(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[bone_trt]))), player[p_cnt].ps_t);
+							const auto mtemp = MMult(MMult(MGetRotX(player[p_cnt].gunrad.y), MGetTranslate(VSub(player[p_cnt].ptr->loc[bone_gun], player[p_cnt].ptr->loc[bone_trt]))), player[p_cnt].ps_t);
 							MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, mtemp);
 							MV1SetFrameUserLocalMatrix(player[p_cnt].farobj.get(), i, mtemp);
 						}
 						else if (i == bone_gun_) {
-							const auto mtemp = MGetTranslate(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[bone_gun]));
+							const auto mtemp = MGetTranslate(VSub(player[p_cnt].ptr->loc[bone_gun_], player[p_cnt].ptr->loc[bone_gun]));
 							MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, mtemp);
 							MV1SetFrameUserLocalMatrix(player[p_cnt].farobj.get(), i, mtemp);
 						}
 						else if (i >= bone_wheel && i < player[p_cnt].ptr->frames - 4) {
 							if ((i - bone_wheel) % 2 == 1) {
-								const auto mtemp = MMult(MGetRotX(player[p_cnt].wheelrad[signbit(player[p_cnt].ptr->loc[i].x) + 1]), MGetTranslate(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[size_t(i) - 1])));
+								const auto mtemp = MMult(MGetRotX(player[p_cnt].wheelrad[signbit(player[p_cnt].ptr->loc[i].x) + 1]), MGetTranslate(VSub(player[p_cnt].ptr->loc[i], player[p_cnt].ptr->loc[i - 1])));
 								MV1SetFrameUserLocalMatrix(player[p_cnt].obj.get(), i, mtemp);
 								MV1SetFrameUserLocalMatrix(player[p_cnt].farobj.get(), i, mtemp);
 							}
