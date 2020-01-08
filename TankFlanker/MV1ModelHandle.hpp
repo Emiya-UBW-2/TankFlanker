@@ -33,6 +33,9 @@ public:
 		}
 	}
 	int get() const noexcept { return handle_; }
+
+	VECTOR frame(int p1) const noexcept { return MV1GetFramePosition(handle_, p1); }
+
 	MV1ModelHandle Duplicate() const noexcept { return DxLib::MV1DuplicateModel(this->handle_); }
 	static MV1ModelHandle Load(std::basic_string_view<TCHAR> FileName) noexcept {
 		return { DxLib::MV1LoadModelWithStrLen(FileName.data(), FileName.length()) };

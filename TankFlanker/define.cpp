@@ -494,8 +494,8 @@ bool MAPS::set_map_ready() {
 	SetUseASyncLoadFlag(FALSE);
 
 	MV1SetupCollInfo(m_model.get(), 0, map_x / 5, map_x / 5, map_y / 5);
-	SetFogStartEnd(10.0f, 1400.0f);					/*fog*/
-	SetFogColor(150, 150, 175);					/*fog*/
+	SetFogStartEnd(10.0f, 1400.0f);							/*fog*/
+	SetFogColor(150, 150, 175);							/*fog*/
 	SetLightDirection(lightvec);
 	SetShadowMapLightDirection(shadow_near, lightvec);
 	SetShadowMapLightDirection(shadow_seminear, lightvec);
@@ -534,7 +534,7 @@ bool MAPS::set_map_ready() {
 			if (HitPoly.HitFlag) {
 				MV1SetMatrix(grass.get(), MMult(MGetScale(VGet((float)(200 + GetRand(400)) / 100.0f, (float)(25 + GetRand(100)) / 100.0f, (float)(200 + GetRand(400)) / 100.0f)), MMult(MMult(MGetRotY(deg2rad(GetRand(360))), MGetRotVec2(VGet(0, 1.f, 0), HitPoly.Normal)), MGetTranslate(HitPoly.HitPosition))));
 			}
-			//Question: ここより上の部分ってループ外に追い出せないのか
+			//上省
 			MV1RefreshReferenceMesh(grass.get(), -1, TRUE);			/*参照用メッシュの更新*/
 			RefMesh = MV1GetReferenceMesh(grass.get(), -1, TRUE);		/*参照用メッシュの取得*/
 			for (size_t j = 0; j < size_t(RefMesh.VertexNum); ++j) {
@@ -634,7 +634,6 @@ void MAPS::set_hitplayer(VECTOR pos) {
 	}
 }
 void MAPS::draw_trees() {
-	looktree = 0;
 
 	for (size_t j = 0; j < treec; ++j) {
 		if (CheckCameraViewClip_Box(VAdd(tree.pos[j], VGet(-10, 0, -10)), VAdd(tree.pos[j], VGet(10, 10, 10)))) {
@@ -642,7 +641,6 @@ void MAPS::draw_trees() {
 		}
 		else {
 			tree.treesort[j] = pair(j, VSize(VSub(tree.pos[j], camera)));
-			++looktree;
 		}
 	}
 	std::sort(tree.treesort.begin(), tree.treesort.end(), [](const pair& x, const pair& y) {return x.second > y.second; });
@@ -650,20 +648,20 @@ void MAPS::draw_trees() {
 	for (auto& tt : tree.treesort) {
 		if (tt.second == (float)map_x) { continue; }
 		const auto k = tt.first;
-		if (tt.second < drawdist + 200) {
-			auto per = (tt.second < 20) ? -0.5f + tt.second / 20.0f : 1.f;
-			if (tt.second > drawdist) { per = 1.0f - (tt.second - drawdist) / 200.0f; }
-			if (per > 0) {
-				MV1DrawModel(tree.nears[k].get());
-			}
-		}
 		if (tt.second > drawdist) {
-			const auto per = (tt.second < drawdist + 200) ? (tt.second - drawdist) / 200.0f : 1.f;
+			const auto per = (tt.second < drawdist + 100) ? (tt.second - drawdist) / 100.0f : 1.f;
 			if (per > 0) {
 				MV1SetOpacityRate(tree.fars[k].get(), per);
 				const auto vect = VSub(tree.pos[k], camera);
 				MV1SetRotationXYZ(tree.fars[k].get(), VGet(0.0f, atan2(vect.x, vect.z), 0.0f));
 				MV1DrawModel(tree.fars[k].get());
+			}
+		}
+		if (tt.second < drawdist + 100) {
+			auto per = (tt.second < 20) ? -0.5f + tt.second / 20.0f : 1.f;
+			if (tt.second > drawdist) { per = 1.0f - (tt.second - drawdist) / 100.0f; }
+			if (per > 0) {
+				MV1DrawModel(tree.nears[k].get());
 			}
 		}
 	}
@@ -1004,7 +1002,7 @@ bool get_reco(players* play, players* tgt, size_t i, size_t gun_s) {
 				}
 				play->Ammo[i].flug = 0;
 				tgt->HP[0] = 0;
-				tgt->usepic[tgt->hitbuf] = 0;
+				tgt->hit[tgt->hitbuf].use = 0;
 			}
 			else {
 				PlaySoundMem(tgt->se[10 + GetRand(16)].get(), DX_PLAYTYPE_BACK, TRUE);
@@ -1017,9 +1015,10 @@ bool get_reco(players* play, players* tgt, size_t i, size_t gun_s) {
 
 				play->Ammo[i].pene /= 2.0f; play->Ammo[i].speed /= 2.f;
 
-				tgt->usepic[tgt->hitbuf] = 1;
+				tgt->hit[tgt->hitbuf].use = 1;
 			}
-			MV1SetScale(tgt->hitpic[tgt->hitbuf].get(), VGet(play->ptr->ammosize*100.f*(1.0f / abs(VDot(VNorm(play->Ammo[i].vec), HitPoly.Normal))), play->ptr->ammosize*100.f, play->ptr->ammosize*100.f));//
+			MV1SetScale(tgt->hit[tgt->hitbuf].pic.get(), VGet(play->ptr->ammosize*100.f*(1.0f / abs(VDot(VNorm(play->Ammo[i].vec), HitPoly.Normal))), play->ptr->ammosize*100.f, play->ptr->ammosize*100.f));//
+			tgt->hit[tgt->hitbuf].flug = true;
 			tgt->hitbuf++; tgt->hitbuf %= 3;
 		}
 	}

@@ -101,7 +101,11 @@ struct EffectS {
 	VECTOR effpos = { VGet(0, 0, 0) };				/**/
 	VECTOR effnor = { VGet(0, 0, 0) };				/**/
 };
-
+struct Hit {
+	bool flug = false;						/**/
+	int use = 0;							/*使用フレーム*/
+	MV1ModelHandle pic;						/*弾痕モデル*/
+};
 struct vehicle {
 	std::string name;						/*名前*/
 	int countryc;							/*国*/
@@ -144,7 +148,6 @@ struct players {
 	MV1ModelHandle obj;						/*モデル*/
 	MV1ModelHandle farobj;						/*モデル*/
 	MV1ModelHandle colobj;						/*コリジョン*/
-	MV1ModelHandle hitpic[3];					/*弾痕モデル*/
 	char type{ 0 };							/*敵味方識別*/
 	std::vector<SoundHandle> se;					/*SE*/
 	/**/
@@ -180,7 +183,7 @@ struct players {
 	unsigned int gearu{ 0 };					/*キー*/
 	unsigned int geard{ 0 };					/*キー*/
 	VECTOR inertia{ VGet(0, 0, 0) };				/*慣性*/
-	float wheelrad[3]{ 0.f };					/*履帯の旋回*/
+	float wheelrad[3]{ 0.f };					/*履帯の送り、転輪旋回*/
 	VECTOR gunrad{ 0.f };						/*砲角度*/
 	float fired{ 0.f };						/*駐退*/
 	/*弾関連*/
@@ -191,8 +194,9 @@ struct players {
 	bool hitadd{ false };						/*命中フラグ*/
 	VECTOR iconpos{ VGet(0, 0, 0) };				/*UI用*/
 	EffectS effcs[efs_user];					/*effect*/
-	int usepic[3];							/*使用フレーム*/
+	/*弾痕*/
 	int hitbuf;							/*使用弾痕*/
+	std::array<Hit, 3> hit;
 	/*box2d*/
 	std::unique_ptr<b2Body> body;					/**/
 	b2FixtureDef fixtureDef;					/*動的ボディフィクスチャを定義します。*/
@@ -320,7 +324,6 @@ private:
 		std::vector<VECTOR> rad;
 		std::vector<bool> hit;
 	}tree;
-	int looktree = 0;							/*tree描画数*/
 	int shadow_seminear;							/*shadow中距離*/
 	int shadow_near;							/*shadow近距離*/
 	int shadow_far;								/*shadowマップ用*/

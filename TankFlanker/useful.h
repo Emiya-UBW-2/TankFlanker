@@ -1,6 +1,9 @@
 ﻿#pragma once
 
 #include <sstream>
+#include <memory>
+#include "DxLib.h"
+
 
 #define swap_t(type, a, b)	do {type t; t = a; a = b; b = t;} while(0)
 //pos->map
@@ -22,6 +25,10 @@
 typedef std::pair<size_t, float> pair;
 
 std::string getright(char* p1);
+
+size_t count_impl(std::basic_string_view<TCHAR> pattern);
+size_t count_team(std::string stage);
+size_t count_enemy(std::string stage);
 
 #endif
 
