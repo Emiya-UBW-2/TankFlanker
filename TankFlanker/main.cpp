@@ -1,6 +1,8 @@
-﻿#include "define.h"
+﻿#define NOMINMAX
+#include "define.h"
 #include <algorithm>
 #include <memory>
+
 size_t count_impl(const TCHAR* pattern) {
 	WIN32_FIND_DATA win32fdt;
 	size_t cnt = 0;
@@ -19,56 +21,56 @@ size_t count_enemy() {
 }
 /*main*/
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
-	//temp--------------------------------------------------------------------------//
-	int mousex, mousey;								/*mouse*/
-	float tmpf, tempfx, tempfy;
+	//temp----------------------------------------------------------------------------------//
+	int mousex, mousey;									/*mouse*/
+	float tmpf;
 	VECTOR tempvec[2];
-	std::array<bool, 19>keyget;							/*キー用*/
-	//変数--------------------------------------------------------------------------//
-	bool out{ false };								/*終了フラグ*/
-	std::vector<pair> pssort;							/*playerソート*/
-	std::vector<players> player;							/*player*/
-	VECTOR aims = VGet(0, 0, 0);							/*照準器座標*/
-	float aimm=0.f;									/*照準距離*/
-	float fps;									/*fps*/
-	std::uint8_t selfammo;								/*UI用*/
-	switches aim, map;								/*視点変更*/
-	float ratio, rat_r, aim_r;							/*照準視点　倍率、実倍率、距離*/
-	size_t waysel, choose = (std::numeric_limits<size_t>::max)();			/*指揮視点　指揮車両、マウス選択*/
-	std::uint8_t way = 0; //マウストリガー
-	LONGLONG old_time, waits;							/*時間取得*/
-	VECTOR campos, viewpos, uppos;							/*カメラ*/
-	MV1_COLL_RESULT_POLY HitPoly;							/*あたり判定*/
+	std::array<bool, 19>keyget;								/*キー用*/
+	//変数----------------------------------------------------------------------------------//
+	bool out{ false };									/*終了フラグ*/
+	std::vector<pair> pssort;								/*playerソート*/
+	std::vector<players> player;								/*player*/
+	VECTOR aims = VGet(0, 0, 0);								/*照準器座標*/
+	float aimm=0.f;										/*照準距離*/
+	float fps;										/*fps*/
+	std::uint8_t selfammo;									/*UI用*/
+	switches aim, map;									/*視点変更*/
+	float ratio, rat_r, aim_r;								/*照準視点　倍率、実倍率、距離*/
+	size_t waysel, choose = (std::numeric_limits<size_t>::max)();				/*指揮視点　指揮車両、マウス選択*/
+	std::uint8_t way = 0;									//マウストリガー
+	LONGLONG old_time, waits;								/*時間取得*/
+	VECTOR campos, viewpos, uppos;								/*カメラ*/
+	MV1_COLL_RESULT_POLY HitPoly;								/*あたり判定*/
 	float cpu_move;
-	char mstr[64];									/*tank*/
-	int mdata;									/*tank*/
-	//init--------------------------------------------------------------------------//
-	Myclass	parts;
-	HUMANS	humanparts(parts.get_usegrab(), parts.get_f_rate());			/*車内関係*/
-	MAPS	mapparts(parts.get_gndx(), parts.get_drawdist());			/*地形、ステージ関係*/
+	char mstr[64];										/*tank*/
+	int mdata;										/*tank*/
+	//init----------------------------------------------------------------------------------//
+	auto parts = std::make_unique<Myclass>();						/*汎用クラス*/
+	auto humanparts = std::make_unique<HUMANS>(parts->get_usegrab(), parts->get_f_rate());	/*車内関係*/
+	auto mapparts = std::make_unique<MAPS>(parts->get_gndx(), parts->get_drawdist());	/*地形、ステージ関係*/
 	auto uiparts = std::make_unique<UIS>();
-	float f_rates = parts.get_f_rate();
-	//load--------------------------------------------------------------------------//
-	parts.set_fonts(18);
+	float f_rates = parts->get_f_rate();
+	//load----------------------------------------------------------------------------------//
+	parts->set_fonts(18);
 	SetUseASyncLoadFlag(TRUE);
-		//hit-------------------------------------------------------------------//
+		//hit---------------------------------------------------------------------------//
 		const auto hit_mod = MV1ModelHandle::Load("data/hit/hit.mv1");
-		//screen----------------------------------------------------------------//
-		int minimap = MakeScreen(dispx, dispy, FALSE);				/*ミニマップ*/
-		int skyscreen = MakeScreen(dispx, dispy, FALSE);			/*空*/
-		int mainscreen = MakeScreen(dispx, dispy, FALSE);			/*遠景*/
-		int HighBrightScreen = MakeScreen(dispx, dispy, FALSE);			/*エフェクト*/
-		int GaussScreen = MakeScreen(dispx / EXTEND, dispy / EXTEND, FALSE);	/*エフェクト*/
+		//screen------------------------------------------------------------------------//
+		int minimap = MakeScreen(dispx, dispy, FALSE);					/*ミニマップ*/
+		int skyscreen = MakeScreen(dispx, dispy, FALSE);				/*空*/
+		int mainscreen = MakeScreen(dispx, dispy, FALSE);				/*遠景*/
+		int HighBrightScreen = MakeScreen(dispx, dispy, FALSE);				/*エフェクト*/
+		int GaussScreen = MakeScreen(dispx / EXTEND, dispy / EXTEND, FALSE);		/*エフェクト*/
 	SetUseASyncLoadFlag(FALSE);
 	uiparts->draw_load();//
-	if (parts.set_veh() != true) { return -1; }
+	if (!parts->set_veh()) { return -1; }
 	/*物理開始*/
-	auto world = std::make_unique<b2World>(b2Vec2(0.0f, 0.0f));			/* 剛体を保持およびシミュレートするワールドオブジェクトを構築*/
-	//これ以降繰り返しロード--------------------------------------------------------//
+	auto world = std::make_unique<b2World>(b2Vec2(0.0f, 0.0f));				/* 剛体を保持およびシミュレートするワールドオブジェクトを構築*/
+	//これ以降繰り返しロード----------------------------------------------------------------//
 	do {
-		int m = parts.window_choosev(); if (m == -1) { return 0; }		/*player指定*/
+		int m = parts->window_choosev(); if (m == -1) { return 0; }			/*player指定*/
 
-		mdata = FileRead_open("stage/data_0/main.txt", FALSE);			/*ステージ情報*/
+		mdata = FileRead_open("stage/data_0/main.txt", FALSE);				/*ステージ情報*/
 		FileRead_gets(mstr, 64, mdata);
 			const int mapc = std::stoi(getright(mstr));
 		FileRead_close(mdata);
@@ -93,7 +95,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 			mdata = FileRead_open(("stage/data_0/enemy/" + std::to_string(p_cnt) + ".txt").c_str(), FALSE);
 			FileRead_close(mdata);
 
-			player[p_cnt].use = 1;// p_cnt % parts.get_vehc();
+			player[p_cnt].use = 1;// p_cnt % parts->get_vehc();
 			player[p_cnt].pos = VGet(20.0f * (p_cnt - teamc), 0.0f, 400.0f);
 			player[p_cnt].type = ENEMY;
 		}
@@ -102,7 +104,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 			std::fill(std::begin(p.waypos), std::end(p.waypos), p.pos);
 			std::fill(std::begin(p.wayspd), std::end(p.wayspd), 2);
 			/*vehsから引き継ぎ*/
-			p.ptr = parts.get_vehicle(p.use);
+			p.ptr = parts->get_vehicle(p.use);
 		}
 		/*UI*/
 		uiparts->set_state(&player[0]);
@@ -133,12 +135,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 			}
 		SetCreate3DSoundFlag(FALSE);
 		SetUseASyncLoadFlag(FALSE);
-		mapparts.set_map_readyb(mapc);
+		mapparts->set_map_readyb(mapc);
 		uiparts->draw_load();//
 		/*human*/
-		humanparts.set_humans(player[0].ptr->inmodel);
+		humanparts->set_humans(player[0].ptr->inmodel);
 		/*map*/
-		if (mapparts.set_map_ready() != true) { break; }
+		if (!mapparts->set_map_ready()) { break; }
 		//players
 		const auto c_ffff96 = GetColor(255, 255, 150);
 		const auto c_ffc896 = GetColor(255, 200, 150);
@@ -179,10 +181,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 			//装てん
 			p.loadcnt[0] = 1;
 			//ypos反映
-			HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, VAdd(p.pos, VGet(0.0f, (float)map_x, 0.0f)), VAdd(p.pos, VGet(0.0f, -(float)map_x, 0.0f)));
+			HitPoly = mapparts->get_gnd_hit(VAdd(p.pos, VGet(0.0f, (float)map_x, 0.0f)), VAdd(p.pos, VGet(0.0f, -(float)map_x, 0.0f)));
 			if (HitPoly.HitFlag) { p.pos.y = HitPoly.HitPosition.y; }
 			for (auto&& w : p.waypos) {
-				HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, VAdd(w, VGet(0.0f, (float)map_x, 0.0f)), VAdd(w, VGet(0.0f, -(float)map_x, 0.0f)));
+				HitPoly = mapparts->get_gnd_hit(VAdd(w, VGet(0.0f, (float)map_x, 0.0f)), VAdd(w, VGet(0.0f, -(float)map_x, 0.0f)));
 				if (HitPoly.HitFlag) { w.y = HitPoly.HitPosition.y; }
 			}
 			//
@@ -208,8 +210,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 			p.playerfix = p.body->CreateFixture(&(p.fixtureDef));		// シェイプをボディに追加します。
 		}
 		/*音量調整*/
-		humanparts.set_humanvc_vol(255);
-		parts.set_se_vol(128);
+		humanparts->set_humanvc_vol(255);
+		parts->set_se_vol(128);
 		for (auto&& p : player) {
 			for (auto& s : p.se) { ChangeVolumeSoundMem(128, s.get()); }
 		}
@@ -221,12 +223,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 		rat_r = ratio;			/*照準視点　実倍率*/
 		aim_r = 100.0f;			/*照準視点　距離*/
 		waysel = 1;			/*指揮視点　指揮車両*/
-		parts.set_viewrad(VGet(0.f, player[0].yrad, 1.f));
+		parts->set_viewrad(VGet(0.f, player[0].yrad, 1.f));
 		SetCursorPos(x_r(960), y_r(540));
 		old_time = GetNowHiPerformanceCount() + (LONGLONG)(1000000.0f / f_rates);
 		for (auto& p : player) {
-			p.effcs[ef_smoke2].efhandle = parts.get_effHandle(ef_smoke2).Play3D();
-			p.effcs[ef_smoke3].efhandle = parts.get_effHandle(ef_smoke2).Play3D();
+			p.effcs[ef_smoke2].efhandle = parts->get_effHandle(ef_smoke2).Play3D();
+			p.effcs[ef_smoke3].efhandle = parts->get_effHandle(ef_smoke2).Play3D();
 			PlaySoundMem(p.se[0].get(), DX_PLAYTYPE_LOOP, TRUE);
 			PlaySoundMem(p.se[27].get(), DX_PLAYTYPE_LOOP, TRUE);
 			PlaySoundMem(p.se[28].get(), DX_PLAYTYPE_LOOP, TRUE);
@@ -336,7 +338,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 						if (keyget[5]) { aim_r += 10.0f; }
 						if (keyget[6]) { aim_r -= 10.0f; }
 					}
-					else { parts.set_view_r(); ratio = 1.0f; }
+					else { parts->set_view_r(); ratio = 1.0f; }
 				}
 				differential(rat_r, ratio, 0.1f);/*倍率、測距*/
 			}
@@ -362,7 +364,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 							if (keyget[17]) { p.move |= KEY_SHOTCAN; }
 							if (keyget[18]) { p.move |= KEY_SHOTGAN; }
 							/*変速*/
-							if (set_shift(&p)) { parts.play_sound(0); }
+							if (set_shift(&p)) { parts->play_sound(0); }
 						}
 						else {
 							//*CPU操作
@@ -410,7 +412,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 								if (cpu_move < 0) { p.move |= KEY_GOLEFT_; }
 								if (cpu_move > 0) { p.move |= KEY_GORIGHT; }
 								if (VSize(VCross(tempvec[1], tempvec[0])) < sin(deg2rad(1))) {
-									HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, MV1GetFramePosition(p.obj.get(), bone_gun1), MV1GetFramePosition(player[p.atkf.value()].obj.get(), bone_gun1));
+									HitPoly = mapparts->get_gnd_hit(MV1GetFramePosition(p.obj.get(), bone_gun1), MV1GetFramePosition(player[p.atkf.value()].obj.get(), bone_gun1));
 									if (!HitPoly.HitFlag) {
 										if (p.loadcnt[0] == 0) {
 											if ((p.move & KEY_GOFLONT) != 0) { p.move -= KEY_GOFLONT; }
@@ -464,13 +466,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 				/*共通動作*/
 				for (auto& p : player) {
 					if (p.id == 0) {
-						set_gunrad(&player[0], rat_r*((keyget[8]) ? 3.f : 1.f));//左CTRLを押すと精密エイム
+						set_gunrad(&p, rat_r*((keyget[8]) ? 3.f : 1.f));//左CTRLを押すと精密エイム
 					}
 					else {
 						set_gunrad(&p, 1.f);
 					}
-				}
-				for (auto& p : player) {
 					p.bodyDef.awake = true;
 					p.yrad = p.body->GetAngle();
 					//
@@ -492,7 +492,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 							}
 						}
 					}
-
 					{
 						float turn_bias = 1.0f;
 						if (p.HP[5] > 0 || p.HP[6] > 0) {
@@ -525,13 +524,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 							}
 						}
 					}
-
-					if (p.gear != 0) { p.speed = p.flont + p.back; }
-
-
+					p.speed = p.flont + p.back;
 					differential(p.inertia.x, (p.speed - p.speedrec), 0.02f); p.speedrec = p.speed;
 					differential(p.inertia.z, -(p.znor - p.znorrec) / 2.0f, 0.1f); p.znorrec = p.znor;
-
 					//vec
 					p.vec.x = p.speed * sin(p.yrad);
 					p.vec.z = -p.speed * cos(p.yrad);
@@ -552,33 +547,32 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 					p.body->SetAngularVelocity(p.yadd);
 				}
 				/*物理演算*/
-				world->Step(1.0f / f_rates, 1, 1);						// シミュレーションの単一ステップを実行するように世界に指示します。 一般に、タイムステップと反復を固定しておくのが最善です。
+				world->Step(1.0f / f_rates, 1, 1);	// シミュレーションの単一ステップを実行するように世界に指示します。 一般に、タイムステップと反復を固定しておくのが最善です。
 				for (auto& p : player) {
 					p.pos.x = p.body->GetPosition().x;
 					p.pos.z = p.body->GetPosition().y;
 					p.yrad = -p.body->GetAngle();
-				}//0ms
-				//0.0ms
+				}
 				/*砲撃その他*/
 				for (auto& p : player) {
 					//地形判定
-					HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, VAdd(p.pos, VGet(0.0f, 2.0f, 0.0f)), VAdd(p.pos, VGet(0.0f, -0.05f, 0.0f)));//0.3ms
+					HitPoly = mapparts->get_gnd_hit(VAdd(p.pos, VGet(0.0f, 2.0f, 0.0f)), VAdd(p.pos, VGet(0.0f, -0.05f, 0.0f)));//0.3ms
 					if (HitPoly.HitFlag) {
-						p.pos.y = HitPoly.HitPosition.y;
 						p.yace = 0.0f;
-						set_normal(&(p.xnor), &(p.znor), mapparts.get_map_handle().get(), p.pos);//0.6ms
-						p.nor = VTransform(VGet(0, 1.f, 0), MMult(MGetRotX(p.xnor), MGetRotZ(p.znor)));
-						//p.nor = VAdd(p.nor, VScale(VSub(HitPoly.Normal, p.nor), 0.1f));
+						p.pos.y = HitPoly.HitPosition.y;
+						mapparts->set_normal(&p.xnor, &p.znor, p.pos);
+						p.nor = VTransform(VGet(0, 1.f, 0), MMult(MGetRotX(p.xnor), MGetRotZ(p.znor)));//p.nor = VAdd(p.nor, VScale(VSub(HitPoly.Normal, p.nor), 0.1f));
 						/*speed*/
 						if ((p.move & KEY_GOLEFT_) == 0 && (p.move & KEY_GORIGHT) == 0) { p.yadd *= 0.9f; }
 						if (p.gear > 0 || (p.move & KEY_GOBACK_) == 0) { p.back *= 0.95f; }
 						if (p.gear == 0) { p.speed *= 0.95f; }
 						if (p.gear < 0 || (p.move & KEY_GOFLONT) == 0) { p.flont *= 0.95f; }
 						/*track*/
-						mapparts.draw_map_track(p);//0.1ms
+						mapparts->draw_map_track(p);//0.1ms
 					}
 					else {
-						p.pos.y += p.yace; p.yace += M_GR / 2.0f / fps / fps;
+						p.pos.y += p.yace;
+						p.yace += M_GR / 2.0f / fps / fps;
 					}
 					//地形判定全体=3.8ms
 					//サウンド
@@ -587,7 +581,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 					for (auto& s : p.se) { if (CheckSoundMem(s.get()) == 1) { Set3DPositionSoundMem(p.pos, s.get()); } }
 					//サウンド全体=1.7ms
 					//tree判定
-					mapparts.set_hitplayer(p.pos);
+					mapparts->set_hitplayer(p.pos);
 					//0.1ms
 					/*車体行列*/
 					p.ps_m = MMult(MMult(MMult(MMult(MGetRotAxis(VGet(cos(p.gunrad.x), 0, -sin(p.gunrad.x)), sin(deg2rad(p.firerad)) * deg2rad(5)), MGetRotAxis(VGet(cos(p.recorad), 0, -sin(p.recorad)), sin(deg2rad(p.recoall)) * deg2rad(5))), MGetRotX(atan(p.inertia.x))), MMult(MGetRotY(p.yrad), MGetRotVec2(VGet(0, 1.f, 0), p.nor))), MGetTranslate(p.pos));//MMult(MGetRotX(p.xnor), MGetRotZ(p.znor))
@@ -636,13 +630,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 								MV1ResetFrameUserLocalMatrix(p.obj.get(), i);
 								tempvec[1] = VAdd(MV1GetFramePosition(p.obj.get(), i), VScale(p.nor, 1.0f));
 								tempvec[0] = VAdd(MV1GetFramePosition(p.obj.get(), i), VScale(p.nor, -0.2f));
-								HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, tempvec[1], tempvec[0]);
+								HitPoly = mapparts->get_gnd_hit(tempvec[1], tempvec[0]);
 								if (HitPoly.HitFlag) {
-									tmpf = 1.0f - VSize(VSub(HitPoly.HitPosition, tempvec[1]));
-									p.Springs[i] += 1.0f / fps; if (p.Springs[i] >= tmpf) { p.Springs[i] = tmpf; }
+									p.Springs[i] = std::min<float>(p.Springs[i] + 1.0f / fps, 1.0f - VSize(VSub(HitPoly.HitPosition, tempvec[1])));
 								}
 								else {
-									if (p.Springs[i] > -0.2f) { p.Springs[i] += -0.2f / fps; }
+									p.Springs[i] = std::max<float>(p.Springs[i] - 0.2f / fps, -0.2f);
 								}
 								const auto mtemp = MGetTranslate(VAdd(p.ptr->loc[i], VScale(p.nor, p.Springs[i])));
 								MV1SetFrameUserLocalMatrix(p.obj.get(), i, mtemp);
@@ -676,12 +669,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 								else { p.Ammo[j].pos = MV1GetFramePosition(p.obj.get(), bone_gun); }
 								tempvec[0] = VSub(MV1GetFramePosition(p.obj.get(), bone_gun2), MV1GetFramePosition(p.obj.get(), bone_gun1));
 
-								p.Ammo[j].rad.y = atan2(tempvec[0].x, (tempvec[0].z));
-								p.Ammo[j].rad.x = atan2(-tempvec[0].y, sqrt(pow(tempvec[0].x, 2) + pow(tempvec[0].z, 2)));
-
-								tempfx = p.Ammo[j].rad.x - deg2rad((float)(-1000 + GetRand(2000)) / 10000.f);
-								tempfy = p.Ammo[j].rad.y + deg2rad((float)(-1000 + GetRand(2000)) / 10000.f);
-								p.Ammo[j].vec = VGet(cos(tempfx) * sin(tempfy), -sin(tempfx), cos(tempfx) * cos(tempfy));
+								p.Ammo[j].rad.y = atan2(tempvec[0].x, (tempvec[0].z)) + deg2rad((float)(-1000 + GetRand(2000)) / 10000.f);
+								p.Ammo[j].rad.x = atan2(-tempvec[0].y, sqrt(pow(tempvec[0].x, 2) + pow(tempvec[0].z, 2))) - deg2rad((float)(-1000 + GetRand(2000)) / 10000.f);
+								p.Ammo[j].vec = VGet(cos(p.Ammo[j].rad.x) * sin(p.Ammo[j].rad.y), -sin(p.Ammo[j].rad.x), cos(p.Ammo[j].rad.x) * cos(p.Ammo[j].rad.y));
 								p.Ammo[j].repos = p.Ammo[j].pos;
 								p.Ammo[j].cnt = 0;
 								//					       
@@ -691,7 +681,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 									set_effect(&(p.effcs[ef_fire]), MV1GetFramePosition(p.obj.get(), bone_gun2), VSub(MV1GetFramePosition(p.obj.get(), bone_gun2), MV1GetFramePosition(p.obj.get(), bone_gun1)));
 									p.fired = 0.5f;
 									p.firerad = 0;
-									if (p.id == 0) { humanparts.start_humananime(2); parts.play_sound(1 + GetRand(6)); }
+									if (p.id == 0) { humanparts->start_humananime(2); parts->play_sound(1 + GetRand(6)); }
 									PlaySoundMem(p.se[size_t(2) + GetRand(7)].get(), DX_PLAYTYPE_BACK, TRUE);
 								}
 								else {
@@ -702,13 +692,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 						}
 						else {
 							++p.loadcnt[guns];
-							if (p.loadcnt[guns] >= p.ptr->reloadtime[guns]) { p.loadcnt[guns] = 0; if (p.id == 0 && guns == 0) { parts.play_sound(8 + GetRand(4)); } }//装てん完了
+							if (p.loadcnt[guns] >= p.ptr->reloadtime[guns]) { p.loadcnt[guns] = 0; if (p.id == 0 && guns == 0) { parts->play_sound(8 + GetRand(4)); } }//装てん完了
 						}
 						for (size_t i = guns * ammoc; i < ammoc + guns * ammoc; ++i) {
 							if (p.Ammo[i].flug != 0) {
 								p.Ammo[i].repos = p.Ammo[i].pos;
 								p.Ammo[i].pos = VAdd(p.Ammo[i].pos, VScale(p.Ammo[i].vec, p.Ammo[i].speed));
-								HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, p.Ammo[i].repos, p.Ammo[i].pos);
+								HitPoly = mapparts->get_gnd_hit(p.Ammo[i].repos, p.Ammo[i].pos);
 								if (HitPoly.HitFlag) { p.Ammo[i].pos = HitPoly.HitPosition; }
 
 								bool btmp = false;
@@ -747,18 +737,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 						else { p.recoall = 0; p.recoadd = false; }
 					}
 					if (p.hitadd) {
-						if (p.id == 0) { humanparts.start_humanvoice(0); }
+						if (p.id == 0) { humanparts->start_humanvoice(0); }
 						p.hitadd = false;
 					}
 				}
 				/*轍更新*/
-				mapparts.set_map_track();
+				mapparts->set_map_track();
 				/*human*/
-				humanparts.set_humanmove(player[0], parts.get_view_r(), fps);
+				humanparts->set_humanmove(player[0], parts->get_view_r(), fps);
 				/*effect*/
 				for (auto& p : player) {
 					for (int i = 0; i < efs_user; ++i) {
-						if (i != ef_smoke2 && i != ef_smoke3) { set_pos_effect(&p.effcs[i], parts.get_effHandle(i)); }
+						if (i != ef_smoke2 && i != ef_smoke3) { set_pos_effect(&p.effcs[i], parts->get_effHandle(i)); }
 					}
 					p.effcs[ef_smoke2].efhandle.SetPos(MV1GetFramePosition(p.obj.get(), bone_smoke1));
 					//SetTargetLocation(p.effcs[ef_smoke2].efhandle, MV1GetFramePosition(p.obj.get(), bone_smoke1));
@@ -774,36 +764,32 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 				uppos = player[0].nor;
 			}
 			else {
-				if (parts.get_view_r().z != 0.1f) {
-					campos = VAdd(player[0].pos, VAdd(parts.get_view_pos(), VGet(0, 2, 0)));
+				if (parts->get_in()) {
+					campos = VAdd(player[0].pos, VAdd(parts->get_view_pos(), VGet(0, 2, 0)));
 					viewpos = VAdd(player[0].pos, VGet(0, 4, 0));
-					HitPoly = MV1CollCheck_Line(mapparts.get_map_handle().get(), 0, campos, viewpos); if (HitPoly.HitFlag) { campos = HitPoly.HitPosition; }
+					HitPoly = mapparts->get_gnd_hit(campos, viewpos); if (HitPoly.HitFlag) { campos = HitPoly.HitPosition; }
 					campos = VAdd(campos, VGet(0, 2, 0));
 					uppos = VGet(0, 1, 0);
 				}
 				else {
-					campos = humanparts.get_campos();
-					viewpos = humanparts.get_neckpos();
+					campos = humanparts->get_campos();
+					viewpos = humanparts->get_neckpos();
 					uppos = player[0].nor;
 				}
 			}
-			mapparts.set_camerapos(campos, viewpos, uppos, rat_r);
+			mapparts->set_camerapos(campos, viewpos, uppos, rat_r);
 			/*shadow*/
-			mapparts.set_map_shadow_near(parts.get_view_r().z);
+			mapparts->set_map_shadow_near(parts->get_view_r().z);
 			/*draw*/
 			/*map*/
 			if (map.flug) {
 				SetDrawScreen(minimap);
 				ClearDrawScreen();
-				DrawExtendGraph(x_r(420), y_r(0), x_r(1500), y_r(1080), mapparts.get_minmap().get(), FALSE);
+				DrawExtendGraph(x_r(420), y_r(0), x_r(1500), y_r(1080), mapparts->get_minmap().get(), FALSE);
 				for (auto& p : player) {
-					DrawCircle(x_(p.pos.x), y_(p.pos.z), 5, 
-						(p.type==TEAM) ? 
-							(p.HP[0] == 0) ? c_008000 : c_00ff00 :
-							(p.HP[0] == 0) ? c_800000 : c_ff0000
-						, 1);
+					DrawCircle(x_(p.pos.x), y_(p.pos.z), 5, (p.type == TEAM) ? (p.HP[0] == 0) ? c_008000 : c_00ff00 : (p.HP[0] == 0) ? c_800000 : c_ff0000, TRUE);
 				}
-				//teamc + enemyc
+				//進軍
 				for (size_t p_cnt = 1; p_cnt < teamc; ++p_cnt) {
 					DrawLine(x_(player[p_cnt].pos.x), y_(player[p_cnt].pos.z), x_(player[p_cnt].waypos[player[p_cnt].waynow].x), y_(player[p_cnt].waypos[player[p_cnt].waynow].z), c_ff0000, 3);
 					for (int i = int(player[p_cnt].waynow); i < waypc - 1; ++i) {
@@ -818,16 +804,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 							? c_c0ff00
 							: (player[p_cnt].HP[0] == 0) ? c_808080 : c_00ff00;
 					DrawBox(x_r(132), y_r(162 + player[p_cnt].id * 24), x_r(324), y_r(180 + player[p_cnt].id * 24), c, TRUE);
-					DrawFormatStringToHandle(x_r(132), y_r(162 + player[p_cnt].id * 24), c_ffffff, parts.get_font(0), " %s", player[p_cnt].ptr->name.c_str());
-					//進軍
+					DrawFormatStringToHandle(x_r(132), y_r(162 + player[p_cnt].id * 24), c_ffffff, parts->get_font(0), " %s", player[p_cnt].ptr->name.c_str());
+					//進軍パラメータ
 					for (size_t i = 0; i < player[p_cnt].wayselect; i++) { DrawBox(x_r(348 + i * 12), y_r(162 + player[p_cnt].id * 24), x_r(356 + i * 12), y_r(180 + player[p_cnt].id * 24), c_3232ff, TRUE); }
 				}
+				//敵
 				for (size_t p_cnt = teamc; p_cnt < playerc; ++p_cnt) {
 					DrawBox(x_r(1500), y_r(162 + (player[p_cnt].id - teamc) * 24), x_r(1692), y_r(180 + (player[p_cnt].id - teamc) * 24), (player[p_cnt].HP[0] == 0) ? c_808080 : c_ff0000, TRUE);
-					DrawFormatStringToHandle(x_r(1500), y_r(162 + (player[p_cnt].id - teamc) * 24), c_ffffff, parts.get_font(0), " %s", player[p_cnt].ptr->name.c_str());
+					DrawFormatStringToHandle(x_r(1500), y_r(162 + (player[p_cnt].id - teamc) * 24), c_ffffff, parts->get_font(0), " %s", player[p_cnt].ptr->name.c_str());
 				}
 			}
-			//0.1ms
 			/*main*/
 			else {
 				uiparts->end_way();//debug0//0
@@ -835,22 +821,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 				uiparts->end_way();//debug2//0
 
 				/*sky*/
-				if (parts.get_view_r().z != 0.1f || aim.flug) {
+				if (parts->get_in() || aim.flug) {
 					SetDrawScreen(skyscreen);
-					mapparts.draw_map_sky();
+					mapparts->draw_map_sky();
 				}
 				/*near*/
 				SetDrawScreen(mainscreen);
 				ClearDrawScreen();
 				if (aim.flug) { setcv(0.06f + rat_r / 2, 2000.0f, campos, viewpos, uppos, 45.0f / rat_r); }
-				else { setcv(0.16f + parts.get_view_r().z, 2000.0f, campos, viewpos, uppos, 45.0f / rat_r); }
+				else { setcv(0.16f + parts->get_view_r().z, 2000.0f, campos, viewpos, uppos, 45.0f / rat_r); }
 				//----------------------------------------------------------
 				if (aim.flug) {
 					tempvec[0] = MV1GetFramePosition(player[0].obj.get(), bone_gun1);
-					tmpf = player[0].ptr->gun_speed[player[0].ammotype];
-					getdist(&tempvec[0], VNorm(VSub(MV1GetFramePosition(player[0].obj.get(), bone_gun2), MV1GetFramePosition(player[0].obj.get(), bone_gun1))), &aim_r, tmpf, f_rates);
+					getdist(&tempvec[0], VNorm(VSub(MV1GetFramePosition(player[0].obj.get(), bone_gun2), MV1GetFramePosition(player[0].obj.get(), bone_gun1))), &aim_r, player[0].ptr->gun_speed[player[0].ammotype], f_rates);
 					aims = ConvWorldPosToScreenPos(tempvec[0]);
-					aimm = aim_r / 1000.0f * tmpf;
+					aimm = aim_r / 1000.0f * player[0].ptr->gun_speed[player[0].ammotype];
 				}
 				//pos
 
@@ -869,13 +854,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 				//effect
 				Effekseer_Sync3DSetting();
 				//---------------------------------------------------------------
-				if (parts.get_view_r().z != 0.1f || aim.flug) {
+				if (parts->get_in() || aim.flug) {
 					DrawGraph(0, 0, skyscreen, FALSE);//sky
 					//main
-					ShadowMap_DrawSetup(mapparts.get_map_shadow_seminear());
+					ShadowMap_DrawSetup(mapparts->get_map_shadow_seminear());
 					for (auto& tt : pssort) {
 						if (tt.second == (float)map_x) { continue; }
-						if (tt.second < (30.0f * parts.get_view_r().z + 20.0f)) { break; }
+						if (tt.second < (30.0f * parts->get_view_r().z + 20.0f)) { break; }
 						const auto j = tt.first;
 						MV1DrawMesh(player[j].farobj.get(), 0);
 						for (int i = 1; i < player[j].ptr->meshes; ++i) {
@@ -883,10 +868,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 						}
 					}
 					ShadowMap_DrawEnd();
-					ShadowMap_DrawSetup(mapparts.get_map_shadow_near());
-					humanparts.draw_human(0);
+					ShadowMap_DrawSetup(mapparts->get_map_shadow_near());
+					humanparts->draw_human(0);
 					for (auto& tt : pssort) {
-						if (tt.second > (30.0f * parts.get_view_r().z + 20.0f)) { continue; }
+						if (tt.second > (30.0f * parts->get_view_r().z + 20.0f)) { continue; }
 						const auto j = tt.first;
 						MV1DrawMesh(player[j].obj.get(), 0);
 						for (int i = 1; i < player[j].ptr->meshes; ++i) {
@@ -895,86 +880,74 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 					}
 					ShadowMap_DrawEnd();
 
-					SetUseShadowMap(0, mapparts.get_map_shadow_near());
-					SetUseShadowMap(1, mapparts.get_map_shadow_far());
-					SetUseShadowMap(2, mapparts.get_map_shadow_seminear());
-					mapparts.draw_map_model();
-					humanparts.draw_human(0);
-					for (auto& tt : pssort) {
-						if (tt.second == (float)map_x) { continue; }
-						const auto j = tt.first;
-						if (j != 0 || (j == 0 && !aim.flug)) {
-							if (tt.second < 200.f || aim.flug) {
-								MV1DrawMesh(player[j].obj.get(), 0);
-								for (int i = 1; i < player[j].ptr->meshes; ++i) {
-									if (i >= 1 && i < 3) { MV1SetFrameTextureAddressTransform(player[j].obj.get(), 0, 0.0, player[j].wheelrad[i], 1.0, 1.0, 0.5, 0.5, 0.0); }
-									if (i == 3) { MV1ResetFrameTextureAddressTransform(player[j].obj.get(), 0); }
-									if (player[j].HP[i + 4] > 0) { MV1DrawMesh(player[j].obj.get(), i); }
+					mapparts->ready_shadow();
+						mapparts->draw_map_model();
+						humanparts->draw_human(0);
+						for (auto& tt : pssort) {
+							if (tt.second == (float)map_x) { continue; }
+							const auto j = tt.first;
+							if (j != 0 || (j == 0 && !aim.flug)) {
+								if (tt.second < 200.f || aim.flug) {
+									MV1DrawMesh(player[j].obj.get(), 0);
+									for (int i = 1; i < player[j].ptr->meshes; ++i) {
+										if (i >= 1 && i < 3) { MV1SetFrameTextureAddressTransform(player[j].obj.get(), 0, 0.0, player[j].wheelrad[i], 1.0, 1.0, 0.5, 0.5, 0.0); }
+										if (i == 3) { MV1ResetFrameTextureAddressTransform(player[j].obj.get(), 0); }
+										if (player[j].HP[i + 4] > 0) { MV1DrawMesh(player[j].obj.get(), i); }
+									}
+									//MV1DrawModel(player[j].colobj.get());/*コリジョンモデルを出すとき*/
+									for (int i = 0; i < 3; ++i) {
+										MV1SetRotationZYAxis(player[j].hitpic[i].get(), VSub(MV1GetFramePosition(player[j].colobj.get(), 11 + 3 * i), MV1GetFramePosition(player[j].colobj.get(), 9 + 3 * i)), VSub(MV1GetFramePosition(player[j].colobj.get(), 10 + 3 * i), MV1GetFramePosition(player[j].colobj.get(), 9 + 3 * i)), 0.f);
+										MV1SetPosition(player[j].hitpic[i].get(), VAdd(MV1GetFramePosition(player[j].colobj.get(), 9 + 3 * i), VScale(VSub(MV1GetFramePosition(player[j].colobj.get(), 10 + 3 * i), MV1GetFramePosition(player[j].colobj.get(), 9 + 3 * i)), 0.005f)));
+										MV1DrawFrame(player[j].hitpic[i].get(), player[j].usepic[i]);
+									}
 								}
-								//MV1DrawModel(player[j].colobj.get());
-								for (int i = 0; i < 3; ++i) {
-									MV1SetRotationZYAxis(player[j].hitpic[i].get(), VSub(MV1GetFramePosition(player[j].colobj.get(), 11 + 3 * i), MV1GetFramePosition(player[j].colobj.get(), 9 + 3 * i)), VSub(MV1GetFramePosition(player[j].colobj.get(), 10 + 3 * i), MV1GetFramePosition(player[j].colobj.get(), 9 + 3 * i)), 0.f);
-									MV1SetPosition(player[j].hitpic[i].get(), VAdd(MV1GetFramePosition(player[j].colobj.get(), 9 + 3 * i), VScale(VSub(MV1GetFramePosition(player[j].colobj.get(), 10 + 3 * i), MV1GetFramePosition(player[j].colobj.get(), 9 + 3 * i)), 0.005f)));
-									MV1DrawFrame(player[j].hitpic[i].get(), player[j].usepic[i]);
-								}
-							}
-							else {
-								MV1DrawMesh(player[j].farobj.get(), 0);
-								for (int i = 1; i < player[j].ptr->meshes; ++i) {
-									if (i >= 1 && i < 3) { MV1SetFrameTextureAddressTransform(player[j].farobj.get(), 0, 0.0, player[j].wheelrad[i], 1.0, 1.0, 0.5, 0.5, 0.0); }
-									if (i == 3) { MV1ResetFrameTextureAddressTransform(player[j].farobj.get(), 0); }
-									if (player[j].HP[i + 4] > 0) { MV1DrawMesh(player[j].farobj.get(), i); }
+								else {
+									MV1DrawMesh(player[j].farobj.get(), 0);
+									for (int i = 1; i < player[j].ptr->meshes; ++i) {
+										if (i >= 1 && i < 3) { MV1SetFrameTextureAddressTransform(player[j].farobj.get(), 0, 0.0, player[j].wheelrad[i], 1.0, 1.0, 0.5, 0.5, 0.0); }
+										if (i == 3) { MV1ResetFrameTextureAddressTransform(player[j].farobj.get(), 0); }
+										if (player[j].HP[i + 4] > 0) { MV1DrawMesh(player[j].farobj.get(), i); }
+									}
 								}
 							}
 						}
-					}
-					//grass
-					if (!aim.flug) { mapparts.draw_grass(); }
-					//effect
-					DrawEffekseer3D();
-					//ammo
-					uiparts->end_way();//debug3//0
-					SetUseLighting(FALSE);
-					SetFogEnable(FALSE);
-					for (auto& p : player) {
-						for (size_t i = 0; i < ammoc; ++i) {
-							if (p.Ammo[i].flug != 0) {
-								tmpf = 4.f*p.Ammo[i].speed / (p.ptr->gun_speed[p.ammotype] / fps);
-								if (tmpf >= 1.f) { tmpf = 1.f; }
-								SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(255.f*tmpf));
-
-								DrawCapsule3D(p.Ammo[i].pos, p.Ammo[i].repos, p.ptr->ammosize*(VSize(VSub(p.Ammo[i].pos, campos)) / 65.f), 4, p.Ammo[i].color, c_ffffff, TRUE);
+						//grass
+						if (!aim.flug) { mapparts->draw_grass(); }
+						//effect
+						DrawEffekseer3D();
+						//ammo
+						uiparts->end_way();//debug3//0
+						SetUseLighting(FALSE);
+						SetFogEnable(FALSE);
+						for (auto& p : player) {
+							for (size_t i = 0; i < ammoc; ++i) {
+								if (p.Ammo[i].flug != 0) {
+									SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(255.f*std::max(1.f, 4.f*p.Ammo[i].speed / (p.ptr->gun_speed[p.ammotype] / fps))));
+									DrawCapsule3D(p.Ammo[i].pos, p.Ammo[i].repos, p.ptr->ammosize*(VSize(VSub(p.Ammo[i].pos, campos)) / 65.f), 4, p.Ammo[i].color, c_ffffff, TRUE);
+								}
+							}
+							for (size_t i = ammoc; i < ammoc * gunc; ++i) {
+								if (p.Ammo[i].flug != 0) {
+									SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(255.f*std::max(1.f, 4.f*p.Ammo[i].speed / (p.ptr->gun_speed[p.ammotype] / fps))));
+									DrawCapsule3D(p.Ammo[i].pos, p.Ammo[i].repos, 0.0075f*(VSize(VSub(p.Ammo[i].pos, campos)) / 30.f), 4, p.Ammo[i].color, c_ffffff, TRUE);
+								}
 							}
 						}
-						for (size_t i = ammoc; i < ammoc * gunc; ++i) {
-							if (p.Ammo[i].flug != 0) {
-								tmpf = 4.f*p.Ammo[i].speed / (p.ptr->gun_speed[p.ammotype] / fps);
-								if (tmpf >= 1.f) { tmpf = 1.f; }
-								SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(255.f*tmpf));
-								DrawCapsule3D(p.Ammo[i].pos, p.Ammo[i].repos, 0.0075f*(VSize(VSub(p.Ammo[i].pos, campos)) / 30.f), 4, p.Ammo[i].color, c_ffffff, TRUE);
-							}
-						}
-					}
-					SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
-					SetFogEnable(TRUE);
-					SetUseLighting(TRUE);
+						SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
+						SetFogEnable(TRUE);
+						SetUseLighting(TRUE);
 
-					//tree
-					mapparts.draw_trees();
-					DrawEffekseer3D();
+						//tree
+						mapparts->draw_trees();
+						DrawEffekseer3D();
+					mapparts->exit_shadow();
 
-					SetUseShadowMap(0, -1);
-					SetUseShadowMap(1, -1);
-					SetUseShadowMap(2, -1);
-					//カッコ内2~4ms
 					uiparts->end_way();//debug4//0
 				}
 				else {
-					humanparts.draw_humanall();
+					humanparts->draw_humanall();
 				}
-				//1.2ms
 			}
-			//2ms
 			SetDrawScreen(DX_SCREEN_BACK);
 			ClearDrawScreen();
 			if (map.flug) {
@@ -994,32 +967,33 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 				DrawExtendGraph(0, 0, dispx, dispy, GaussScreen, FALSE);
 				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 				/*UI*/
-				if (aim.flug) { uiparts->draw_sight(aims.x, aims.y, rat_r, aimm, parts.get_font(0)); }/*照準器*/
+				if (aim.flug) { uiparts->draw_sight(aims.x, aims.y, rat_r, aimm, parts->get_font(0)); }/*照準器*/
 				else {
 					for (auto& tt : pssort) {
+						if (tt.first == 0) { continue; }
 						if (tt.second == (float)map_x) { continue; }
 						const auto i = tt.first;
 						if (player[i].HP[0] != 0) {
 							if (player[i].iconpos.z > 0.0f && player[i].iconpos.z < 1.0f) {
 								DrawFormatStringToHandle(
-									(int)player[i].iconpos.x, (int)player[i].iconpos.y, (player[i].type == TEAM) ? c_00ff00 : c_ff0000, parts.get_font(0),
+									(int)player[i].iconpos.x, (int)player[i].iconpos.y, (player[i].type == TEAM) ? c_00ff00 : c_ff0000, parts->get_font(0),
 									"%dm", (int)VSize(VSub(player[i].pos, player[0].pos))
 								);
 							}
 						}
 					}
 				}/*アイコン*/
-				uiparts->draw_ui(selfammo, parts.get_view_r().y);/*main*/
+				uiparts->draw_ui(selfammo, parts->get_view_r().y);/*main*/
 			}
 			/*debug*/
-			//DrawFormatStringToHandle(x_r(18), y_r(1062), c_ffffff, parts.get_font(0), "start-stop(%.2fms)", (float)stop_w / 1000.f);
+			//DrawFormatStringToHandle(x_r(18), y_r(1062), c_ffffff, parts->get_font(0), "start-stop(%.2fms)", (float)stop_w / 1000.f);
 			uiparts->debug(fps, (float)(GetNowHiPerformanceCount() - waits) / 1000.0f);
 
-			parts.Screen_Flip(waits);
+			parts->Screen_Flip(waits);
 		}
 		//delete
-		mapparts.delete_map();
-		humanparts.delete_human();
+		mapparts->delete_map();
+		humanparts->delete_human();
 		for (auto& p : player) {
 			/*エフェクト*/
 			for (auto&& e : p.effcs) e.efhandle.Dispose();
@@ -1030,8 +1004,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 			p.obj.Dispose();
 			p.farobj.Dispose();
 			p.colobj.Dispose();
-			for (size_t i = 0; i < 3; i++) { p.hitpic[i].Dispose(); }
-			for (auto& s : p.se) { s.Dispose(); }
+			for (size_t i = 0; i < 3; i++) p.hitpic[i].Dispose();
+			for (auto& s : p.se) s.Dispose();
 			p.Ammo.clear();
 			p.Springs.clear();
 			p.HP.clear();

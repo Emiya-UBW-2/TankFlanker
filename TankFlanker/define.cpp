@@ -700,6 +700,37 @@ void MAPS::delete_map(void) {
 	grassver.clear();
 	grassind.clear();
 }
+void MAPS::ready_shadow(void){
+	SetUseShadowMap(0, shadow_near);
+	SetUseShadowMap(1, shadow_far);
+	SetUseShadowMap(2, shadow_seminear);
+}
+
+void MAPS::exit_shadow(void) {
+	SetUseShadowMap(0, -1);
+	SetUseShadowMap(1, -1);
+	SetUseShadowMap(2, -1);
+}
+
+
+void MAPS::set_normal(float * xnor, float * znor, VECTOR position){
+	const auto r0_0 = get_gnd_hit(VAdd(position, VGet(0.0f, 2.0f, -0.5f)), VAdd(position, VGet(0.0f, -2.0f, -0.5f)));
+
+	if (r0_0.HitFlag) {
+		const auto r0_1 = get_gnd_hit(VAdd(position, VGet(0.0f, 2.0f, 0.5f)), VAdd(position, VGet(0.0f, -2.0f, 0.5f)));
+		if (r0_1.HitFlag) {
+			differential(*xnor, atan2(r0_0.HitPosition.y - r0_1.HitPosition.y, 1.0f), 0.05f);/*X*/
+		}
+	}
+
+	const auto r1_0 = get_gnd_hit(VAdd(position, VGet(0.5f, 2.0f, 0.0f)), VAdd(position, VGet(0.5f, -2.0f, 0.0f)));
+	if (r1_0.HitFlag) {
+		const auto r1_1 = get_gnd_hit(VAdd(position, VGet(-0.5f, 2.0f, 0.0f)), VAdd(position, VGet(-0.5f, -2.0f, 0.0f)));
+		if (r1_1.HitFlag) {
+			differential(*znor, atan2(r1_0.HitPosition.y - r1_1.HitPosition.y, 1.0f), 0.05f);/*Z*/
+		}
+	}
+}
 //
 UIS::UIS() {
 	using namespace std::literals;
@@ -926,23 +957,6 @@ void set_pos_effect(EffectS *efh, const EffekseerEffectHandle& handle) {
 	//IsEffekseer3DEffectPlaying(player[0].effcs[i].efhandle)
 }
 //
-void set_normal(float* xnor, float* znor, int maphandle, VECTOR position) {
-	const auto r0_0 = MV1CollCheck_Line(maphandle, 0, VAdd(position, VGet(0.0f, 2.0f, -0.5f)), VAdd(position, VGet(0.0f, -2.0f, -0.5f)));
-	if (r0_0.HitFlag) {
-		const auto r0_1 = MV1CollCheck_Line(maphandle, 0, VAdd(position, VGet(0.0f, 2.0f, 0.5f)), VAdd(position, VGet(0.0f, -2.0f, 0.5f)));
-		if (r0_1.HitFlag) {
-			differential(*xnor, atan2(r0_0.HitPosition.y - r0_1.HitPosition.y, 1.0f), 0.05f);/*X*/
-		}
-	}
-
-	const auto r1_0 = MV1CollCheck_Line(maphandle, 0, VAdd(position, VGet(0.5f, 2.0f, 0.0f)), VAdd(position, VGet(0.5f, -2.0f, 0.0f)));
-	if (r1_0.HitFlag) {
-		const auto r1_1 = MV1CollCheck_Line(maphandle, 0, VAdd(position, VGet(-0.5f, 2.0f, 0.0f)), VAdd(position, VGet(-0.5f, -2.0f, 0.0f)));
-		if (r1_1.HitFlag) {
-			differential(*znor, atan2(r1_0.HitPosition.y - r1_1.HitPosition.y, 1.0f), 0.05f);/*Z*/
-		}
-	}
-}
 bool get_reco(players* play, players* tgt, size_t i, size_t gun_s) {
 	std::optional<size_t> hitnear;
 	//主砲

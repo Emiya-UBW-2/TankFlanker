@@ -28,8 +28,8 @@
 
 
 using std::size_t;
-inline const int dispx = (GetSystemMetrics(SM_CXSCREEN));				/*描画X*/
-inline const int dispy = (GetSystemMetrics(SM_CYSCREEN));				/*描画Y*/
+inline const int dispx = (GetSystemMetrics(SM_CXSCREEN));			/*描画X*/
+inline const int dispy = (GetSystemMetrics(SM_CYSCREEN));			/*描画Y*/
 constexpr float M_GR = -9.8f;							/*重力加速度*/
 constexpr size_t waypc = 4;							/*移動確保数*/
 constexpr size_t ammoc = 64;							/*砲弾確保数*/
@@ -220,7 +220,7 @@ private:
 	VECTOR view, view_r;						/*通常視点の角度、距離*/
 	std::vector<int> fonts;						/*フォント*/
 	std::array<SoundHandle, 13> se_;				/*効果音*/
-	std::array<GraphHandle, 4> ui_reload;					/*UI用*/
+	std::array<GraphHandle, 4> ui_reload;				/*UI用*/
 	EffekseerEffectHandle effHndle[effects];			/*エフェクトリソース*/
 public:
 	Myclass();
@@ -254,6 +254,7 @@ public:
 	const auto& get_ui2() const& { return ui_reload; }
 	int get_font(int p1) { return fonts[p1]; }			//フォントハンドル取り出し
 	VECTOR get_view_r(void) { return view_r; }
+	bool get_in(void) { return view_r.z != 0.1f; }
 	VECTOR get_view_pos(void) { return VScale(VGet(sin(view_r.y) * cos(view_r.x), sin(view_r.x), cos(view_r.y) * cos(view_r.x)), 15.0f * view_r.z); }
 	EffekseerEffectHandle& get_effHandle(int p1) noexcept { return effHndle[p1]; }
 	const EffekseerEffectHandle& get_effHandle(int p1) const noexcept { return effHndle[p1]; }
@@ -350,8 +351,10 @@ public:
 	void set_map_track(void);
 	void draw_map_sky(void);
 	void delete_map(void);
-	MV1ModelHandle& get_map_handle() & noexcept { return m_model; }
-	const MV1ModelHandle& get_map_handle() const & noexcept { return m_model; }
+
+	void ready_shadow(void);
+	void exit_shadow(void);
+	void set_normal(float* xnor, float* znor, VECTOR position);//地面に沿わせる
 	auto& get_minmap() & { return texp; }
 	const auto& get_minmap() const & noexcept{ return texp; }
 	int get_map_shadow_far() { return shadow_far; }
@@ -398,7 +401,6 @@ void getdist(VECTOR *startpos, VECTOR vector, float *dist, float speed, float fp
 void set_effect(EffectS *efh,VECTOR pos,VECTOR nor);
 void set_pos_effect(EffectS *efh, const EffekseerEffectHandle& handle);
 //play_class予定
-void set_normal(float* xnor, float* znor, int maphandle, VECTOR position);
 bool get_reco(players* play, players* tgt, size_t i,size_t guns);
 void set_gunrad(players *play, float rat_r);
 bool set_shift(players *play);
