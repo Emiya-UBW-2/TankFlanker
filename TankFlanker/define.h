@@ -215,6 +215,7 @@ private:
 	bool windowmode{ false };					/*ウィンドウor全画面*/
 	float drawdist{ 100.0f };					/*木の描画距離*/
 	int gndx = 8;
+	int shadex = 3;							/*影のクオリティ*/
 	/**/
 	std::vector<vehicle> vecs;					/*車輛情報*/
 	VECTOR view, view_r;						/*通常視点の角度、距離*/
@@ -226,6 +227,7 @@ public:
 	Myclass();
 	bool get_usegrab(void) { return usegrab; }
 	int get_gndx(void) { return gndx; }
+	int get_shadex(void) { return shadex; }
 	float get_drawdist(void) { return drawdist; }
 	float get_f_rate(void) { return f_rate; }
 	void write_option(void);					//未実装
@@ -304,6 +306,7 @@ private:
 	/*setting*/
 	int groundx;
 	float drawdist;
+	int shadowx;
 	/**/
 	size_t treec = 750;							/*木の数*/
 	struct trees {
@@ -341,7 +344,7 @@ private:
 	VECTOR camera, viewv, upv;						/**/
 	float rat;								/**/
 public:
-	MAPS(int map_size,float draw_dist);
+	MAPS(int map_size,float draw_dist, int shadow_size);
 	void set_map_readyb(size_t set);
 	bool set_map_ready(void);
 	void set_camerapos(VECTOR pos, VECTOR vec, VECTOR up, float ratio);

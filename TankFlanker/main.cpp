@@ -47,7 +47,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 	//init----------------------------------------------------------------------------------//
 	auto parts = std::make_unique<Myclass>();						/*汎用クラス*/
 	auto humanparts = std::make_unique<HUMANS>(parts->get_usegrab(), parts->get_f_rate());	/*車内関係*/
-	auto mapparts = std::make_unique<MAPS>(parts->get_gndx(), parts->get_drawdist());	/*地形、ステージ関係*/
+	auto mapparts = std::make_unique<MAPS>(parts->get_gndx(), parts->get_drawdist(),parts->get_shadex());	/*地形、ステージ関係*/
 	auto uiparts = std::make_unique<UIS>();
 	float f_rates = parts->get_f_rate();
 	//load----------------------------------------------------------------------------------//
@@ -507,20 +507,22 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 							}
 							turn_bias *= ((p.HP[5] > 0) + (p.HP[6] > 0)) / 2.0f;
 						}
-						if ((p.move & KEY_GOLEFT_) != 0) {
-							if (p.HP[5] == 0 && p.HP[6] == 0) {
-								p.move -= KEY_GOLEFT_;
+						if (p.yace == 0.0f) {
+							if ((p.move & KEY_GOLEFT_) != 0) {
+								if (p.HP[5] == 0 && p.HP[6] == 0) {
+									p.move -= KEY_GOLEFT_;
+								}
+								else {
+									differential(p.yadd, p.ptr->vehicle_RD * turn_bias, 0.1f);
+								}
 							}
-							else {
-								differential(p.yadd, p.ptr->vehicle_RD * turn_bias, 0.1f);
-							}
-						}
-						if ((p.move & KEY_GORIGHT) != 0) {
-							if (p.HP[5] == 0 && p.HP[6] == 0) {
-								p.move -= KEY_GORIGHT;
-							}
-							else {
-								differential(p.yadd, -p.ptr->vehicle_RD * turn_bias, 0.1f);
+							if ((p.move & KEY_GORIGHT) != 0) {
+								if (p.HP[5] == 0 && p.HP[6] == 0) {
+									p.move -= KEY_GORIGHT;
+								}
+								else {
+									differential(p.yadd, -p.ptr->vehicle_RD * turn_bias, 0.1f);
+								}
 							}
 						}
 					}
@@ -564,13 +566,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 						p.nor = VTransform(VGet(0, 1.f, 0), MMult(MGetRotX(p.xnor), MGetRotZ(p.znor)));//p.nor = VAdd(p.nor, VScale(VSub(HitPoly.Normal, p.nor), 0.1f));
 						/*speed*/
 						if ((p.move & KEY_GOLEFT_) == 0 && (p.move & KEY_GORIGHT) == 0) { p.yadd *= 0.9f; }
-						if (p.gear > 0 || (p.move & KEY_GOBACK_) == 0) { p.back *= 0.95f; }
-						if (p.gear == 0) { p.speed *= 0.95f; }
-						if (p.gear < 0 || (p.move & KEY_GOFLONT) == 0) { p.flont *= 0.95f; }
+						if (p.gear >= 0 || (p.move & KEY_GOBACK_) == 0) { p.back *= 0.95f; }
+						if (p.gear <= 0 || (p.move & KEY_GOFLONT) == 0) { p.flont *= 0.95f; }
 						/*track*/
 						mapparts->draw_map_track(p);//0.1ms
 					}
 					else {
+						p.yadd *= 0.95f;
 						p.pos.y += p.yace;
 						p.yace += M_GR / 2.0f / fps / fps;
 					}
@@ -860,7 +862,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 					ShadowMap_DrawSetup(mapparts->get_map_shadow_seminear());
 					for (auto& tt : pssort) {
 						if (tt.second == (float)map_x) { continue; }
-						if (tt.second < (30.0f * parts->get_view_r().z + 20.0f)) { break; }
+						if (tt.second < (10.0f *float(parts->get_shadex())* parts->get_view_r().z + 20.0f)) { break; }
 						const auto j = tt.first;
 						MV1DrawMesh(player[j].farobj.get(), 0);
 						for (int i = 1; i < player[j].ptr->meshes; ++i) {
@@ -871,7 +873,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 					ShadowMap_DrawSetup(mapparts->get_map_shadow_near());
 					humanparts->draw_human(0);
 					for (auto& tt : pssort) {
-						if (tt.second > (30.0f * parts->get_view_r().z + 20.0f)) { continue; }
+						if (tt.second > (10.0f *float(parts->get_shadex())* parts->get_view_r().z + 20.0f)) { continue; }
 						const auto j = tt.first;
 						MV1DrawMesh(player[j].obj.get(), 0);
 						for (int i = 1; i < player[j].ptr->meshes; ++i) {
@@ -880,9 +882,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 					}
 					ShadowMap_DrawEnd();
 
+					humanparts->draw_human(0);
+
 					mapparts->ready_shadow();
 						mapparts->draw_map_model();
-						humanparts->draw_human(0);
 						for (auto& tt : pssort) {
 							if (tt.second == (float)map_x) { continue; }
 							const auto j = tt.first;
@@ -890,7 +893,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR , int) {
 								if (tt.second < 200.f || aim.flug) {
 									MV1DrawMesh(player[j].obj.get(), 0);
 									for (int i = 1; i < player[j].ptr->meshes; ++i) {
-										if (i >= 1 && i < 3) { MV1SetFrameTextureAddressTransform(player[j].obj.get(), 0, 0.0, player[j].wheelrad[i], 1.0, 1.0, 0.5, 0.5, 0.0); }
+										if (i < 3) { MV1SetFrameTextureAddressTransform(player[j].obj.get(), 0, 0.0, player[j].wheelrad[i], 1.0, 1.0, 0.5, 0.5, 0.0); }
 										if (i == 3) { MV1ResetFrameTextureAddressTransform(player[j].obj.get(), 0); }
 										if (player[j].HP[i + 4] > 0) { MV1DrawMesh(player[j].obj.get(), i); }
 									}

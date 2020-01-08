@@ -5,3 +5,4 @@ fps=60.f
 windowmode=1
 drawdist=400
 groundx=16
+shadow(0~3)=3

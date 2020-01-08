@@ -18,6 +18,7 @@ Myclass::Myclass() {
 	FileRead_gets(mstr, 64, mdata); windowmode	= bool(std::stoul(getright(mstr)));
 	FileRead_gets(mstr, 64, mdata); drawdist	= std::stof(getright(mstr));
 	FileRead_gets(mstr, 64, mdata); gndx		= std::stoi(getright(mstr));
+	FileRead_gets(mstr, 64, mdata); shadex		= std::stoi(getright(mstr));
 	FileRead_close(mdata);
 
 	SetMainWindowText("Tank Flanker");					/*name*/
@@ -186,6 +187,7 @@ int Myclass::window_choosev(void) {
 			DrawFormatStringToHandle(x_r(0), y_r(18 * 5), c_00ff00, font18.get(), " ウィンドウor全画面   : %s", windowmode ? "TRUE" : "FALSE");
 			DrawFormatStringToHandle(x_r(0), y_r(18 * 6), c_00ff00, font18.get(), " 木の描画距離         : %5.2f m", drawdist);
 			DrawFormatStringToHandle(x_r(0), y_r(18 * 7), c_00ff00, font18.get(), " 地面のクォリティ     : x%d", gndx);
+			DrawFormatStringToHandle(x_r(0), y_r(18 * 8), c_00ff00, font18.get(), " 影のクォリティ       : x%d", shadex);
 			//
 			GetMousePoint(&mousex, &mousey);
 			if (inm(x_r(360), y_r(340), x_r(400), y_r(740))) {
@@ -438,14 +440,16 @@ void HUMANS::start_humananime(int p1) {
 	for (auto&& h : hum) { h.time.at(p1) = 0.0f; }
 }
 //
-MAPS::MAPS(int map_size, float draw_dist){
+MAPS::MAPS(int map_size, float draw_dist,int shadow_size){
 	groundx = map_size*1024;									/*ノーマルマップのサイズ*/
 	drawdist = draw_dist;										/*木の遠近*/
+	shadowx = shadow_size;
+	int shadowsize = (1 << (10 + shadowx));
 	//shadow----------------------------------------------------------------------------------------//
-	shadow_near = MakeShadowMap(8192, 8192);							/*近影*/
+	shadow_near = MakeShadowMap(shadowsize, shadowsize);						/*近影*/
 	SetShadowMapAdjustDepth(shadow_near, 0.0005f);							/*ずれを小さくするため*/
-	shadow_seminear = MakeShadowMap(8192, 8192);							/*近影*/
-	shadow_far = MakeShadowMap(8192, 8192);								/*マップ用*/
+	shadow_seminear = MakeShadowMap(shadowsize, shadowsize);					/*近影*/
+	shadow_far = MakeShadowMap(shadowsize, shadowsize);						/*マップ用*/
 	//map-------------------------------------------------------------------------------------------//
 	SetUseASyncLoadFlag(TRUE);
 	sky_sun = GraphHandle::Load("data/sun.png");							/*太陽*/
@@ -521,24 +525,14 @@ bool MAPS::set_map_ready() {
 		grassind.resize(IndexNum);						/*頂点データとインデックスデータを格納するメモリ領域の確保*/
 
 		for (int i = 0; i < grasss; ++i) {
-			const auto tmpvect = VGet((float)(-5000 + GetRand(10000)) / 10.0f, 0.0f, (float)(-5000 + GetRand(10000)) / 10.0f);
+			const auto tmpvect = VGet((float)(-map_x * 5 + GetRand(map_x * 10)) / 10.0f, 0.0f, (float)(-map_y * 5 + GetRand(map_y * 10)) / 10.0f);
 			//
 			SetDrawScreen(texp.get());
 			SetDrawBlendMode(DX_BLENDMODE_ALPHA, 64);
 			DrawRotaGraph( (int)(groundx * (0.5f + tmpvect.x / (float)map_x)), (int)(groundx * (0.5f - tmpvect.z / (float)map_y)), 8.f*groundx / 1024 / 128.0f, 0, GgHandle.get(), TRUE );
-
 			const auto HitPoly = MV1CollCheck_Line(m_model.get(), 0, VAdd(tmpvect, VGet(0.0f, (float)map_x, 0.0f)), VAdd(tmpvect, VGet(0.0f, -(float)map_x, 0.0f)));
 			if (HitPoly.HitFlag) {
-				MV1SetMatrix(
-					grass.get(),
-					MMult(
-						MGetScale(VGet((float)(200 + GetRand(400)) / 100.0f, (float)(25 + GetRand(100)) / 100.0f, (float)(200 + GetRand(400)) / 100.0f)),
-						MMult(
-							MMult( MGetRotY(deg2rad(GetRand(360))), MGetRotVec2(VGet(0, 1.f, 0), HitPoly.Normal) ),
-							MGetTranslate(HitPoly.HitPosition)
-						)
-					)
-				);
+				MV1SetMatrix(grass.get(), MMult(MGetScale(VGet((float)(200 + GetRand(400)) / 100.0f, (float)(25 + GetRand(100)) / 100.0f, (float)(200 + GetRand(400)) / 100.0f)), MMult(MMult(MGetRotY(deg2rad(GetRand(360))), MGetRotVec2(VGet(0, 1.f, 0), HitPoly.Normal)), MGetTranslate(HitPoly.HitPosition))));
 			}
 			//Question: ここより上の部分ってループ外に追い出せないのか
 			MV1RefreshReferenceMesh(grass.get(), -1, TRUE);			/*参照用メッシュの更新*/
@@ -590,7 +584,7 @@ void MAPS::set_camerapos(VECTOR pos, VECTOR vec, VECTOR up,float ratio){
 	rat = ratio;
 }
 void MAPS::set_map_shadow_near(float vier_r){
-	float shadow_dist = 30.0f * vier_r + 10.0f; if (shadow_dist <= 10.0f) { shadow_dist = 10.0f; }
+	float shadow_dist = 10.0f *float(shadowx)* vier_r + 20.0f; if (shadow_dist <= 20.0f) { shadow_dist = 20.0f; }
 	SetShadowMapDrawArea(shadow_near, VSub(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist)), VAdd(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist)));
 	SetShadowMapDrawArea(shadow_seminear, VSub(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist * 2)), VAdd(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist * 2)));
 }
