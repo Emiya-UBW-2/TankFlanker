@@ -1,0 +1,47 @@
+# Visual Studio で生成された .clang-format ファイル
+
+# このファイル内のスタイルのオプションは、[ツール] > [オプション] から
+# 現在の IDE 書式設定を複製しようとします。ただし、次のスタイルの
+# オプションを検証する必要があります:
+# AfterClass, AfterControlStatement, AfterEnum, AfterFunction, AfterNamespace, 
+# AfterStruct, AfterUnion
+
+BasedOnStyle: LLVM
+AccessModifierOffset: -8
+AlignAfterOpenBracket: DontAlign
+AllowShortBlocksOnASingleLine: true
+AllowShortFunctionsOnASingleLine: All
+BraceWrapping:
+  AfterClass: false    # TODO: 確認してください
+  AfterControlStatement: false    # TODO: 確認してください
+  AfterEnum: false    # TODO: 確認してください
+  AfterFunction: false    # TODO: 確認してください
+  AfterNamespace: false    # TODO: 確認してください
+  AfterStruct: false    # TODO: 確認してください
+  AfterUnion: false    # TODO: 確認してください
+  BeforeCatch: true
+  BeforeElse: true
+  IndentBraces: false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+BreakBeforeBraces: Custom
+ColumnLimit: 0
+Cpp11BracedListStyle: false
+DerivePointerAlignment: true
+FixNamespaceComments: false
+IndentCaseLabels: false
+IndentPPDirectives: None
+IndentWidth: 8
+MaxEmptyLinesToKeep: 10
+NamespaceIndentation: All
+SortIncludes: false
+SortUsingDeclarations: false
+SpaceAfterCStyleCast: false
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyParentheses: false
+SpacesInCStyleCastParentheses: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+TabWidth: 8
+UseTab: true
