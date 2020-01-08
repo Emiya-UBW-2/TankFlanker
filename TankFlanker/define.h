@@ -28,11 +28,11 @@
 
 
 using std::size_t;
-inline const int dispx = GetSystemMetrics(SM_CXSCREEN);				/*描画X*/
-inline const int dispy = GetSystemMetrics(SM_CYSCREEN);				/*描画Y*/
+inline const int dispx = (GetSystemMetrics(SM_CXSCREEN));				/*描画X*/
+inline const int dispy = (GetSystemMetrics(SM_CYSCREEN));				/*描画Y*/
 constexpr float M_GR = -9.8f;							/*重力加速度*/
 constexpr size_t waypc = 4;							/*移動確保数*/
-constexpr size_t ammoc = 64;						/*砲弾確保数*/
+constexpr size_t ammoc = 64;							/*砲弾確保数*/
 #define animes		4							/*人アニメーション*/
 #define voice		1							/*ボイス*/
 #define map_x		1000							/*マップサイズX*/
@@ -128,19 +128,17 @@ struct vehicle {
 	int meshes{ 0 };
 };
 static_assert(std::is_move_constructible_v<vehicle>);
-namespace std
-{
+namespace std{
 	template<>
-	struct default_delete<b2Body>
-	{
-		void operator()(b2Body* body) const
-		{
+	struct default_delete<b2Body>{
+		void operator()(b2Body* body) const{
 			body->GetWorld()->DestroyBody(body);
 		}
 	};
 };
 struct players {
 	/*情報*/
+	int id{ 0 };
 	int use{ 0 };							/*使用車両*/
 	vehicle* ptr;							/*vehicle*/
 	MV1ModelHandle obj;						/*モデル*/
@@ -148,7 +146,7 @@ struct players {
 	MV1ModelHandle colobj;						/*コリジョン*/
 	MV1ModelHandle hitpic[3];					/*弾痕モデル*/
 	char type{ 0 };							/*敵味方識別*/
-	std::array<SoundHandle, 50> se;					/*SE*/
+	std::vector<SoundHandle> se;					/*SE*/
 	/**/
 	int move{ 0 };							/*キー操作*/
 	VECTOR pos{ VGet(0, 0, 0) };					/*座標*/
@@ -359,6 +357,8 @@ public:
 	int get_map_shadow_far() { return shadow_far; }
 	int get_map_shadow_near() { return shadow_near; }
 	int get_map_shadow_seminear() { return shadow_seminear; }
+
+	MV1_COLL_RESULT_POLY get_gnd_hit(VECTOR startpos, VECTOR endpos) { return MV1CollCheck_Line(m_model.get(), 0, startpos, endpos); }
 	void set_hitplayer(VECTOR pos);
 	void draw_trees(void);
 	void draw_grass(void);
