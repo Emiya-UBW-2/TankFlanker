@@ -6,19 +6,20 @@ private:
 	int handle_;
 	constexpr GraphHandle(int h) noexcept : handle_(h) {}
 	static constexpr int invalid_handle = -1;
+
 public:
 	constexpr GraphHandle() noexcept : handle_(invalid_handle) {}
 	GraphHandle(const GraphHandle&) = delete;
-	GraphHandle(GraphHandle&& o) noexcept : handle_(o.handle_){
+	GraphHandle(GraphHandle&& o) noexcept : handle_(o.handle_) {
 		o.handle_ = invalid_handle;
 	}
 	GraphHandle& operator=(const GraphHandle&) = delete;
-	GraphHandle& operator=(GraphHandle&& o) noexcept{
+	GraphHandle& operator=(GraphHandle&& o) noexcept {
 		this->handle_ = o.handle_;
 		o.handle_ = invalid_handle;
 		return *this;
 	}
-	~GraphHandle() noexcept{
+	~GraphHandle() noexcept {
 		if (-1 != this->handle_) {
 			DeleteGraph(this->handle_);
 		}

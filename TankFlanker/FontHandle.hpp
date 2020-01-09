@@ -6,22 +6,20 @@ private:
 	int handle_;
 	constexpr FontHandle(int h) noexcept : handle_(h) {}
 	static constexpr int invalid_handle = -1;
+
 public:
 	constexpr FontHandle() noexcept : handle_(invalid_handle) {}
 	FontHandle(const FontHandle&) = delete;
-	FontHandle(FontHandle&& o) noexcept : handle_(o.handle_)
-	{
+	FontHandle(FontHandle&& o) noexcept : handle_(o.handle_) {
 		o.handle_ = invalid_handle;
 	}
 	FontHandle& operator=(const FontHandle&) = delete;
-	FontHandle& operator=(FontHandle&& o) noexcept
-	{
+	FontHandle& operator=(FontHandle&& o) noexcept {
 		this->handle_ = o.handle_;
 		o.handle_ = invalid_handle;
 		return *this;
 	}
-	~FontHandle() noexcept
-	{
+	~FontHandle() noexcept {
 		if (-1 != this->handle_) {
 			DeleteFontToHandle(this->handle_);
 		}

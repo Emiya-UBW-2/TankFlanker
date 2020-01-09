@@ -9,16 +9,15 @@ private:
 	constexpr Effekseer2DPlayingHandle(int h) noexcept : handle_(h) {}
 	friend EffekseerEffectHandle;
 	static constexpr int invalid_handle = -1;
+
 public:
 	constexpr Effekseer2DPlayingHandle() noexcept : handle_(invalid_handle) {}
 	Effekseer2DPlayingHandle(const Effekseer2DPlayingHandle&) = delete;
-	Effekseer2DPlayingHandle(Effekseer2DPlayingHandle&& o) noexcept : handle_(o.handle_)
-	{
+	Effekseer2DPlayingHandle(Effekseer2DPlayingHandle&& o) noexcept : handle_(o.handle_) {
 		o.handle_ = invalid_handle;
 	}
 	Effekseer2DPlayingHandle& operator=(const Effekseer2DPlayingHandle&) = delete;
-	Effekseer2DPlayingHandle& operator=(Effekseer2DPlayingHandle&& o) noexcept
-	{
+	Effekseer2DPlayingHandle& operator=(Effekseer2DPlayingHandle&& o) noexcept {
 		this->handle_ = o.handle_;
 		o.handle_ = invalid_handle;
 		return *this;
@@ -119,22 +118,20 @@ private:
 	constexpr Effekseer3DPlayingHandle(int h) noexcept : handle_(h) {}
 	friend EffekseerEffectHandle;
 	static constexpr int invalid_handle = -1;
+
 public:
 	constexpr Effekseer3DPlayingHandle() noexcept : handle_(invalid_handle) {}
 	Effekseer3DPlayingHandle(const Effekseer3DPlayingHandle&) = delete;
-	Effekseer3DPlayingHandle(Effekseer3DPlayingHandle&& o) noexcept : handle_(o.handle_)
-	{
+	Effekseer3DPlayingHandle(Effekseer3DPlayingHandle&& o) noexcept : handle_(o.handle_) {
 		o.handle_ = invalid_handle;
 	}
 	Effekseer3DPlayingHandle& operator=(const Effekseer3DPlayingHandle&) = delete;
-	Effekseer3DPlayingHandle& operator=(Effekseer3DPlayingHandle&& o) noexcept
-	{
+	Effekseer3DPlayingHandle& operator=(Effekseer3DPlayingHandle&& o) noexcept {
 		this->handle_ = o.handle_;
 		o.handle_ = invalid_handle;
 		return *this;
 	}
-	~Effekseer3DPlayingHandle() noexcept
-	{
+	~Effekseer3DPlayingHandle() noexcept {
 		if (-1 != this->handle_) {
 			this->Stop();
 		}
@@ -229,22 +226,20 @@ private:
 	int handle_;
 	constexpr EffekseerEffectHandle(int h) noexcept : handle_(h) {}
 	static constexpr int invalid_handle = -1;
+
 public:
 	constexpr EffekseerEffectHandle() noexcept : handle_(invalid_handle) {}
 	EffekseerEffectHandle(const EffekseerEffectHandle&) = delete;
-	EffekseerEffectHandle(EffekseerEffectHandle&& o) noexcept : handle_(o.handle_)
-	{
+	EffekseerEffectHandle(EffekseerEffectHandle&& o) noexcept : handle_(o.handle_) {
 		o.handle_ = invalid_handle;
 	}
 	EffekseerEffectHandle& operator=(const EffekseerEffectHandle&) = delete;
-	EffekseerEffectHandle& operator=(EffekseerEffectHandle&& o) noexcept
-	{
+	EffekseerEffectHandle& operator=(EffekseerEffectHandle&& o) noexcept {
 		this->handle_ = o.handle_;
 		o.handle_ = invalid_handle;
 		return *this;
 	}
-	~EffekseerEffectHandle() noexcept
-	{
+	~EffekseerEffectHandle() noexcept {
 		if (-1 != this->handle_) {
 			DeleteEffekseerEffect(this->handle_);
 		}

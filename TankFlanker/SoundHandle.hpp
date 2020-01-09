@@ -6,19 +6,20 @@ private:
 	int handle_;
 	constexpr SoundHandle(int h) noexcept : handle_(h) {}
 	static constexpr int invalid_handle = -1;
+
 public:
 	constexpr SoundHandle() noexcept : handle_(invalid_handle) {}
 	SoundHandle(const SoundHandle&) = delete;
-	SoundHandle(SoundHandle&& o) noexcept : handle_(o.handle_){
+	SoundHandle(SoundHandle&& o) noexcept : handle_(o.handle_) {
 		o.handle_ = invalid_handle;
 	}
 	SoundHandle& operator=(const SoundHandle&) = delete;
-	SoundHandle& operator=(SoundHandle&& o) noexcept{
+	SoundHandle& operator=(SoundHandle&& o) noexcept {
 		this->handle_ = o.handle_;
 		o.handle_ = invalid_handle;
 		return *this;
 	}
-	~SoundHandle() noexcept{
+	~SoundHandle() noexcept {
 		if (-1 != this->handle_) {
 			DeleteSoundMem(this->handle_);
 		}

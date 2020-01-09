@@ -36,6 +36,10 @@ public:
 
 	VECTOR frame(int p1) const noexcept { return MV1GetFramePosition(handle_, p1); }
 
+	size_t material_num(void) const noexcept { return MV1GetMaterialNum(handle_); }
+	size_t mesh_num(void) const noexcept { return MV1GetMeshNum(handle_); }
+	size_t frame_num(void) const noexcept { return MV1GetFrameNum(handle_); }
+
 	MV1ModelHandle Duplicate() const noexcept { return DxLib::MV1DuplicateModel(this->handle_); }
 	static MV1ModelHandle Load(std::basic_string_view<TCHAR> FileName) noexcept {
 		return { DxLib::MV1LoadModelWithStrLen(FileName.data(), FileName.length()) };
