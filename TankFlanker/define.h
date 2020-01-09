@@ -62,15 +62,6 @@ enum Key {
 	KEY_SHOTGAN = 0x200
 };
 enum Bone {
-	//砲塔フレーム
-	bone_trt = 2,
-	//砲フレーム
-	bone_gun1 = 3,
-	bone_gun2 = 9,
-	//エフェクト置きフレーム
-	bone_smoke1 = 6,
-	bone_smoke2 = 7,
-	bone_engine = 8,
 	//転輪、履帯用フレーム
 	bone_wheel = 11,
 	//砲塔内
@@ -118,7 +109,6 @@ struct vehicle {
 	std::string name;		     /*名前*/
 	int countryc;			     /*国*/
 	MV1ModelHandle model;		     /*モデル*/
-	MV1ModelHandle model_far;	    /*遠モデル*/
 	MV1ModelHandle colmodel;	     /*コリジョン*/
 	MV1ModelHandle inmodel;		     /*内装*/
 	std::array<float, 4> speed_flont;    /*前進*/
@@ -139,6 +129,12 @@ struct vehicle {
 	size_t colmeshes{};
 	size_t meshes{ 0 };
 	std::array<int, gunc> gunframe;
+	int turretframe;
+	std::vector<int> youdoframe;
+	std::vector<int> wheelframe;
+	std::array<int, 2> kidoframe;
+	std::array<int, 2> smokeframe;
+	int engineframe;
 };
 static_assert(std::is_move_constructible_v<vehicle>);
 namespace std {
@@ -155,7 +151,6 @@ struct players {
 	int use{ 0 };		     /*使用車両*/
 	vehicle* ptr;		     /*vehicle*/
 	MV1ModelHandle obj;	  /*モデル*/
-	MV1ModelHandle farobj;       /*モデル*/
 	MV1ModelHandle colobj;       /*コリジョン*/
 	char type{ 0 };		     /*敵味方識別*/
 	std::vector<SoundHandle> se; /*SE*/

@@ -108,7 +108,6 @@ Myclass::Myclass() {
 	SetUseASyncLoadFlag(TRUE);
 	for (auto& v : vecs) {
 		v.model = MV1ModelHandle::Load("data/tanks/" + v.name + "/model.mv1");
-		v.model_far = MV1ModelHandle::Load("data/tanks/" + v.name + "/model_far.mv1");
 		v.colmodel = MV1ModelHandle::Load("data/tanks/" + v.name + "/col.mv1");
 		v.inmodel = MV1ModelHandle::Load("data/tanks/" + v.name + "/in/model.mv1");
 	}
@@ -152,14 +151,43 @@ bool Myclass::set_veh(void) {
 		else
 			v.colmeshes = t;
 		//
-		for (int i = 0; i < v.frames; ++i)
-			v.loc.emplace_back(v.model.frame(i));
+		for (int i = 0; i < v.colmodel.frame_num(); ++i) {
+			std::string tempname = MV1GetFrameName(v.colmodel.get(), i);
+			if (tempname == "min")
+				v.coloc[0] = v.colmodel.frame(i);
+			if (tempname == "max")
+				v.coloc[2] = v.colmodel.frame(i);
+		}
 		//
-		for (int i = 0; i < std::size(v.coloc); ++i)
-			v.coloc[i] = v.colmodel.frame(5 + i);
-		//
-		v.gunframe[0] = bone_gun1;
-		v.gunframe[1] = bone_gun2;
+		{
+			int j = 0, k = 0, l = 0;
+			for (int i = 0; i < v.frames; ++i) {
+				v.loc.emplace_back(v.model.frame(i));
+				std::string tempname = MV1GetFrameName(v.model.get(), i);
+				//エフェクト用
+				if (tempname == "engine")
+					v.engineframe = i;
+				if (l < 2) {
+					if (tempname[0] == 's')
+						v.smokeframe[l++] = i;
+				}
+				//
+				if (tempname == "turret")
+					v.turretframe = i;
+				if (j < 2) {
+					if (tempname.find("gun") != std::string::npos && tempname.back() != '_') //gun
+						v.gunframe[j++] = i;
+				}
+				if (k < 2) {
+					if (tempname[0] == 'K') //起動輪
+						v.kidoframe[k++] = i;
+				}
+				if (tempname[0] == 'Y') //誘導輪
+					v.youdoframe.push_back(i);
+				if (tempname[0] == 'F') //ホイール
+					v.wheelframe.push_back(i);
+			}
+		}
 	}
 	//エフェクト------------------------------------------------------------//
 	const auto c_00ff00 = GetColor(0, 255, 0);
@@ -176,7 +204,7 @@ bool Myclass::set_veh(void) {
 				k++;
 				DrawFormatString(0, (18 * k), c_ffff00, "エフェクト読み込み成功…%d", j);
 			}
-			if (i = f_rate-1) {
+			if (i == f_rate-1) {
 				k++;
 				DrawFormatString(0, (18 * k), c_ff0000, "エフェクト読み込み失敗…%d", j);
 			}
@@ -437,27 +465,23 @@ void HUMANS::set_humanmove(const players& player, VECTOR rad) {
 	if (!first) {
 		MV1SetMatrix(inmodel_handle.get(), player.ps_m);
 	}
-	for (int i = 0; i < inflames; ++i) {
+	for (int i = 0; i < inflames; ++i)
 		pos_old[i] = inmodel_handle.frame(i);
-	}
+
 	MV1SetMatrix(inmodel_handle.get(), player.ps_m);
-	for (int i = 0; i < inflames; ++i) {
-		if (i == bone_trt) {
-			MV1SetFrameUserLocalMatrix(inmodel_handle.get(), i, player.ps_t);
-		}
-		else if (i == bone_gun1) {
-			MV1SetFrameUserLocalMatrix(inmodel_handle.get(), i, MMult(MMult(MGetRotX(player.gunrad.y), MGetTranslate(VSub(locin[i], locin[bone_trt]))), player.ps_t));
-			MV1SetFrameUserLocalMatrix(inmodel_handle.get(), i, MGetTranslate(VAdd(VSub(player.ptr->loc[i + 1], player.ptr->loc[i]), VGet(0, 0, player.fired[0]))));
-		}
+	MV1SetFrameUserLocalMatrix(inmodel_handle.get(), player.ptr->turretframe, player.ps_t);
+	MV1SetFrameUserLocalMatrix(inmodel_handle.get(), player.ptr->gunframe[0], MMult(MMult(MGetRotX(player.gunrad.y), MGetTranslate(VSub(locin[player.ptr->gunframe[0]], locin[player.ptr->turretframe]))), player.ps_t));
+	MV1SetFrameUserLocalMatrix(inmodel_handle.get(), player.ptr->gunframe[0], MGetTranslate(VAdd(VSub(player.ptr->loc[player.ptr->gunframe[0] + 1], player.ptr->loc[player.ptr->gunframe[0]]), VGet(0, 0, player.fired[0]))));
+	//
+	for (int i = bone_hatch; i < inflames; ++i) {
 		//警告	C6289	不適切な演算子です : || を使用した相互排除は常に 0 でない定数となります。 && を使用しようとしましたか ?
-		else if (i >= bone_hatch && (i != 9 || i != 10)) {
-			MV1SetFrameUserLocalMatrix(inmodel_handle.get(), i, MMult(MMult(MGetRotY(player.gunrad.x), MGetTranslate(VSub(locin[i], locin[bone_trt]))), player.ps_t));
-		}
+		if (i != 9 || i != 10)
+			MV1SetFrameUserLocalMatrix(inmodel_handle.get(), i, MMult(MMult(MGetRotY(player.gunrad.x), MGetTranslate(VSub(locin[i], locin[player.ptr->turretframe]))), player.ps_t));
 	}
 
-	if (rad.z >= 0.1f) {
+	if (rad.z >= 0.1f)
 		in_f = false;
-	}
+
 	if (rad.z == 0.1f && !in_f) {
 		for (size_t j = 1; j < hum.size(); ++j) {
 			MV1PhysicsResetState(hum[j].obj.get());
@@ -735,9 +759,9 @@ void MAPS::set_map_shadow_near(float vier_r) {
 }
 void MAPS::draw_map_track(const players& player) {
 	SetDrawScreen(texn.get());
-	for (int i = bone_wheel; i < player.ptr->frames - 4; i += 2) {
-		if (player.Springs[i] >= -0.15f) {
-			VECTOR tempvec = player.obj.frame(i);
+	for (auto& w : player.ptr->wheelframe) {
+		if (player.Springs[w] >= -0.15f) {
+			VECTOR tempvec = player.obj.frame(w);
 			DrawRotaGraph((int)(groundx * (0.5f + tempvec.x / (float)map_x)), (int)(groundx * (0.5f - tempvec.z / (float)map_y)), 1.f * groundx / 1024 / 195.0f, player.yrad, texo.get(), TRUE);
 		}
 	}
@@ -1186,8 +1210,8 @@ bool get_reco(players* play, players* tgt, size_t i, size_t gun_s) {
 			if (play->Ammo[i].pene > tgt->ptr->armer[hitnear.value()] * (1.0f / abs(VDot(VNorm(play->Ammo[i].vec), HitPoly.Normal)))) {
 				if (tgt->HP[0] != 0) {
 					PlaySoundMem(tgt->se[29 + GetRand(1)].get(), DX_PLAYTYPE_BACK, TRUE);
-					set_effect(&(play->effcs[ef_bomb]), tgt->obj.frame(bone_engine), VGet(0, 0, 0));
-					set_effect(&(play->effcs[ef_smoke1]), tgt->obj.frame(bone_engine), VGet(0, 0, 0));
+					set_effect(&(play->effcs[ef_bomb]), tgt->obj.frame(tgt->ptr->engineframe), VGet(0, 0, 0));
+					set_effect(&(play->effcs[ef_smoke1]), tgt->obj.frame(tgt->ptr->engineframe), VGet(0, 0, 0));
 					if (play->hitadd == false) {
 						play->hitadd = true;
 					}
