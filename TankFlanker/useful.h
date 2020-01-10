@@ -15,9 +15,13 @@
 #define y_r(p1) ((int)(p1)*dispy / 1080)
 //マウス判定
 #define inm(x1, y1, x2, y2) (mousex >= x1 && mousex <= x2 && mousey >= y1 && mousey <= y2)
-#define deg2rad(p1) ((p1)*DX_PI_F / 180)//角度からラジアンに
-#define rad2deg(p1) ((p1)*180 / DX_PI_F)//ラジアンから角度に
-#define differential(p1, p2, p3) p1 += ((p2)-p1) * (p3)//p2の値に近づいていく
+//その他
+#define deg2rad(p1) ((p1)*DX_PI_F / 180)		//角度からラジアンに
+#define rad2deg(p1) ((p1)*180 / DX_PI_F)		//ラジアンから角度に
+#define differential(p1, p2, p3) p1 += ((p2)-p1) * (p3) //p2の値に近づいていく
+#define cross2D(px, py, qx, qy) (qy * px - qx * py)     //2D外積
+
+
 #ifndef INCLUDED_useful_h_
 #define INCLUDED_useful_h_
 

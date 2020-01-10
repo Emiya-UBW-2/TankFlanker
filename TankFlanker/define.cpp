@@ -14,21 +14,21 @@ Myclass::Myclass() {
 
 	mdata = FileRead_open("data/setting.txt", FALSE);
 	FileRead_gets(mstr, 64, mdata);
-	usegrab = bool(std::stoul(getright(mstr)));
-	FileRead_gets(mstr, 64, mdata);
-	ANTI = unsigned char(std::stoul(getright(mstr)));
-	FileRead_gets(mstr, 64, mdata);
-	YSync = bool(std::stoul(getright(mstr)));
-	FileRead_gets(mstr, 64, mdata);
-	f_rate = (YSync) ? 60.f : std::stof(getright(mstr));
-	FileRead_gets(mstr, 64, mdata);
-	windowmode = bool(std::stoul(getright(mstr)));
-	FileRead_gets(mstr, 64, mdata);
-	drawdist = std::stof(getright(mstr));
-	FileRead_gets(mstr, 64, mdata);
-	gndx = std::stoi(getright(mstr));
-	FileRead_gets(mstr, 64, mdata);
-	shadex = std::stoi(getright(mstr));
+		usegrab = bool(std::stoul(getright(mstr)));
+		FileRead_gets(mstr, 64, mdata);
+		ANTI = unsigned char(std::stoul(getright(mstr)));
+		FileRead_gets(mstr, 64, mdata);
+		YSync = bool(std::stoul(getright(mstr)));
+		FileRead_gets(mstr, 64, mdata);
+		f_rate = (YSync) ? 60.f : std::stof(getright(mstr));
+		FileRead_gets(mstr, 64, mdata);
+		windowmode = bool(std::stoul(getright(mstr)));
+		FileRead_gets(mstr, 64, mdata);
+		drawdist = std::stof(getright(mstr));
+		FileRead_gets(mstr, 64, mdata);
+		gndx = std::stoi(getright(mstr));
+		FileRead_gets(mstr, 64, mdata);
+		shadex = std::stoi(getright(mstr));
 	FileRead_close(mdata);
 
 	SetMainWindowText("Tank Flanker"); /*name*/
@@ -94,7 +94,8 @@ Myclass::Myclass() {
 		v.reloadtime[0] = int(std::stoi(getright(mstr)) * f_rate);
 		v.reloadtime[1] = 10;
 		FileRead_gets(mstr, 64, mdata);
-		v.ammosize = std::stof(getright(mstr)) / 1000.f;
+		v.ammosize[0] = std::stof(getright(mstr)) / 1000.f;
+		v.ammosize[1] = 0.0075f;
 		for (size_t i = 0; i < std::size(v.ammotype); ++i) {
 			FileRead_gets(mstr, 64, mdata);
 			v.ammotype[i] = std::stoi(getright(mstr));
@@ -136,21 +137,6 @@ void Myclass::write_option(void) {
 bool Myclass::set_veh(void) {
 	for (auto& v : vecs) {
 		//
-		if (const auto t = v.model.frame_num(); - 1 == t)
-			throw std::runtime_error("invalid model:" + v.name);
-		else
-			v.frames = t;
-		//
-		if (const auto t = v.model.mesh_num(); - 1 == t)
-			throw std::runtime_error("invalid model:" + v.name);
-		else
-			v.meshes = t;
-		//
-		if (const auto t = v.colmodel.mesh_num(); - 1 == t)
-			throw std::runtime_error("invalid model:" + v.name);
-		else
-			v.colmeshes = t;
-		//
 		for (int i = 0; i < v.colmodel.frame_num(); ++i) {
 			std::string tempname = MV1GetFrameName(v.colmodel.get(), i);
 			if (tempname == "min")
@@ -161,14 +147,14 @@ bool Myclass::set_veh(void) {
 		//
 		{
 			int j = 0, k = 0, l = 0;
-			for (int i = 0; i < v.frames; ++i) {
+			for (int i = 0; i < v.model.frame_num(); ++i) {
 				v.loc.emplace_back(v.model.frame(i));
 				std::string tempname = MV1GetFrameName(v.model.get(), i);
 				//エフェクト用
 				if (tempname == "engine")
 					v.engineframe = i;
 				if (l < 2) {
-					if (tempname[0] == 's')
+					if (tempname.find("smoke") != std::string::npos)
 						v.smokeframe[l++] = i;
 				}
 				//
@@ -178,6 +164,7 @@ bool Myclass::set_veh(void) {
 					if (tempname.find("gun") != std::string::npos && tempname.back() != '_') //gun
 						v.gunframe[j++] = i;
 				}
+				//ホイール
 				if (k < 2) {
 					if (tempname[0] == 'K') //起動輪
 						v.kidoframe[k++] = i;
@@ -213,9 +200,9 @@ bool Myclass::set_veh(void) {
 				break;
 		}
 	}
-	for (size_t i = 0; i < f_rate && ProcessMessage() == 0; ++i) {
+	for (size_t i = 0; i < f_rate && ProcessMessage() == 0; ++i)
 		Screen_Flip(GetNowHiPerformanceCount());
-	}
+
 	return true;
 }
 int Myclass::window_choosev(void) {
@@ -224,7 +211,9 @@ int Myclass::window_choosev(void) {
 	const auto font18 = FontHandle::Create(x_r(18), y_r(18 / 3), DX_FONTTYPE_ANTIALIASING);
 	const auto font72 = FontHandle::Create(NULL, x_r(72), y_r(72 / 3), DX_FONTTYPE_ANTIALIASING);
 	int i = 0, l = 0, x = 0, y = 0;
+	int xp = 0, yp = 0;
 	unsigned int m;
+	float pert;
 	int mousex, mousey;
 	float real = 0.f, r = 5.f;
 	LONGLONG waits;
@@ -232,6 +221,7 @@ int Myclass::window_choosev(void) {
 	const auto c_ffff00 = GetColor(255, 255, 0);
 	const auto c_ff0000 = GetColor(255, 0, 0);
 	const auto c_ffffff = GetColor(255, 255, 255);
+	const auto c_808080 = GetColor(128,128,128);
 	const auto c_ffc800 = GetColor(255, 200, 0);
 	const auto c_ff6400 = GetColor(255, 100, 0);
 	while (ProcessMessage() == 0) {
@@ -250,25 +240,42 @@ int Myclass::window_choosev(void) {
 			MV1SetRotationXYZ(vecs[k].model.get(), VGet(0, deg2rad((360 * k / vecs.size() + 30)), 0));
 			MV1DrawModel(vecs[k].model.get());
 		}
+
+		pert = abs(1.0f - abs(float(real - deg2rad(360 * l / (int)vecs.size())) / deg2rad(360 / (int)vecs.size())));
+
 		font72.DrawString(x_r(960) - font72.GetDrawWidth(vecs[i].name) / 2, y_r(154), vecs[i].name, c_00ff00);
-		if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) {
-			DrawFormatStringToHandle(x_r(850), y_r(850), c_00ff00, font18.get(), "MAX SPD    : %5.2f km/h", vecs[i].speed_flont[3] * 3.6f);
-		}
-		if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) {
-			DrawFormatStringToHandle(x_r(850), y_r(870), c_00ff00, font18.get(), "BACK SPD   : %5.2f km/h", vecs[i].speed_back[3] * 3.6f);
-		}
-		if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) {
-			DrawFormatStringToHandle(x_r(1140), y_r(810), c_00ff00, font18.get(), "TURN SPEED : %5.2f deg/s", rad2deg(vecs[i].vehicle_RD));
-		}
-		if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) {
-			DrawFormatStringToHandle(x_r(1120), y_r(580), c_00ff00, font18.get(), "MAX ARMER  : %5.2f mm", vecs[i].armer[0]);
-		}
-		if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) {
-			DrawFormatStringToHandle(x_r(650), y_r(410), c_00ff00, font18.get(), "GUN RAD     : %5.2f°～%5.2f°", rad2deg(vecs[i].gun_lim_[2]), rad2deg(vecs[i].gun_lim_[3]));
-		}
-		if ((GetRand(99) + 1) > (int)abs(real - deg2rad(360 * l / vecs.size())) / DX_PI_F * 100) {
-			DrawFormatStringToHandle(x_r(650), y_r(430), c_00ff00, font18.get(), "GUN CALIBER : %05.1fmm", vecs[i].ammosize * 1000.f);
-		}
+		
+			xp = 850;
+			yp = 850;
+			DrawBox(x_r(xp - 1), y_r(yp + 18), x_r(xp + 1 + 200), y_r(yp + 19), c_808080, FALSE);
+			DrawBox(x_r(xp + 1 + 100), y_r(yp + 17), x_r(xp - 1 + 100 + 100 * (vecs[i].speed_flont[3] * 3.6f) / 100.f * pert), y_r(yp + 20), c_00ff00, TRUE);
+			DrawBox(x_r(xp + 1 + 100), y_r(yp + 17), x_r(xp - 1 + 100 - 100 * (vecs[i].speed_back[3] * -3.6f) / 50.f * pert), y_r(yp + 20), c_ff0000, TRUE);
+			DrawFormatStringToHandle(x_r(xp), y_r(850), c_00ff00, font18.get(), "SPEED : %5.2f～%5.2f km/h", vecs[i].speed_flont[3] * 3.6f, vecs[i].speed_back[3] * 3.6f);
+
+			xp = 1140;
+			yp = 810;
+			DrawBox(x_r(xp - 1), y_r(yp + 18), x_r(xp + 1 + 200), y_r(yp + 19), c_808080, FALSE);
+			DrawBox(x_r(xp + 1), y_r(yp + 17), x_r(xp - 1 + 200 * rad2deg(vecs[i].vehicle_RD) / 100.f * pert), y_r(yp + 20), c_00ff00, TRUE);
+			DrawFormatStringToHandle(x_r(xp), y_r(yp), c_00ff00, font18.get(), "TURN SPEED : %5.2f deg/s", rad2deg(vecs[i].vehicle_RD));
+
+			xp=1120;
+			yp = 580;
+			DrawBox(x_r(xp - 1), y_r(yp + 18), x_r(xp + 1 + 200), y_r(yp + 19), c_808080, FALSE);
+			DrawBox(x_r(xp + 1), y_r(yp + 17), x_r(xp - 1 + 200 * vecs[i].armer[0] / 150.f * pert), y_r(yp + 20), c_00ff00, TRUE);
+			DrawFormatStringToHandle(x_r(xp), y_r(yp), c_00ff00, font18.get(), "MAX ARMER : %5.2f mm", vecs[i].armer[0]);
+
+			xp = 650;
+			yp = 410;
+			DrawBox(x_r(xp - 1), y_r(yp + 18), x_r(xp + 1 + 200), y_r(yp + 19), c_808080, FALSE);
+			DrawBox(x_r(xp + 1 + 100), y_r(yp + 17), x_r(xp - 1 + 100 + 100 * rad2deg(vecs[i].gun_lim_[2]) / 40.f * pert), y_r(yp + 20), c_00ff00, TRUE);
+			DrawBox(x_r(xp + 1 + 100), y_r(yp + 17), x_r(xp - 1 + 100 - 100 * rad2deg(vecs[i].gun_lim_[3]) / -20.f * pert), y_r(yp + 20), c_ff0000, TRUE);
+			DrawFormatStringToHandle(x_r(xp), y_r(yp), c_00ff00, font18.get(), "GUN RAD     : %5.2f°～%5.2f°", rad2deg(vecs[i].gun_lim_[2]), rad2deg(vecs[i].gun_lim_[3]));
+
+			xp = 650;
+			yp = 430;
+			DrawBox(x_r(xp - 1), y_r(yp + 18), x_r(xp + 1 + 200), y_r(yp + 19), c_808080, FALSE);
+			DrawBox(x_r(xp + 1), y_r(yp + 17), x_r(xp - 1 + 200 * (vecs[i].ammosize[0] * 1000.f) / 200.f * pert), y_r(yp + 20), c_00ff00, TRUE);
+			DrawFormatStringToHandle(x_r(xp), y_r(yp), c_00ff00, font18.get(), "GUN CALIBER : %05.1fmm", vecs[i].ammosize[0] * 1000.f);
 		//
 		font18.DrawString(x_r(0), y_r(18 * 1), "SETTING", c_00ff00);
 		DrawFormatStringToHandle(x_r(0), y_r(18 * 2), c_00ff00, font18.get(), " 人の物理演算         : %s", usegrab ? "TRUE" : "FALSE");
@@ -371,12 +378,7 @@ void Myclass::set_view_r(void) {
 	//x_r(960), y_r(540)
 	view.y += (float)(px - dispx / 2) / dispx * dispx / 640 * 1.0f;
 	view.x += (float)(py - dispy / 2) / dispy * dispy / 480 * 1.0f;
-	if (view.x > deg2rad(35)) {
-		view.x = deg2rad(35);
-	}
-	if (view.x < deg2rad(-35)) {
-		view.x = deg2rad(-35);
-	}
+	view.x = std::min<float>(deg2rad(35), std::max<float>(deg2rad(-35), view.x));//limit
 	view_r = VAdd(view_r, VScale(VSub(view, view_r), 0.1f));
 	SetMousePoint(x_r(960), y_r(540));
 }
@@ -400,10 +402,22 @@ void Myclass::play_sound(int p1) {
 HUMANS::HUMANS(bool useg, float frates) {
 	usegrab = useg;
 	f_rate = frates;
+
+	WIN32_FIND_DATA win32fdt;
+	HANDLE hFind;
+
+	hFind = FindFirstFile("data/chara/*", &win32fdt);
+	if (hFind != INVALID_HANDLE_VALUE) {
+		do {
+			if ((win32fdt.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && (win32fdt.cFileName[0] != '.')) {
+				name.emplace_back(win32fdt.cFileName);
+			}
+		} while (FindNextFile(hFind, &win32fdt));
+	} //else{ return false; }
+	FindClose(hFind);
 }
 void HUMANS::set_humans(const MV1ModelHandle& inmod) {
 	using namespace std::literals;
-	std::array<const char*, 1> name{ "結月ゆかり" }; // TODO: 書き換える
 	//load
 	SetUseASyncLoadFlag(FALSE);
 	inmodel_handle = inmod.Duplicate();
@@ -411,12 +425,14 @@ void HUMANS::set_humans(const MV1ModelHandle& inmod) {
 	pos_old.resize(inflames);
 	hum.resize((inflames - bone_in_turret >= 1) ? inflames - bone_in_turret : 1);
 	//読み込み
+	//todo : ここでキャラ選択
+
 	for (auto&& h : hum) {
 		if (usegrab)
 			MV1SetLoadModelUsePhysicsMode(DX_LOADMODEL_PHYSICS_REALTIME);
 		else
 			MV1SetLoadModelUsePhysicsMode(DX_LOADMODEL_PHYSICS_LOADCALC);
-		h.obj = MV1ModelHandle::Load("data/chara/"s + name.at(0) + "/model.mv1");
+		h.obj = MV1ModelHandle::Load("data/chara/"s + name[0] + "/model.mv1");
 	}
 	//読み込み後の設定、読み込み
 	for (auto&& h : hum) {
@@ -438,7 +454,7 @@ void HUMANS::set_humans(const MV1ModelHandle& inmod) {
 	for (size_t i = 0; i < voice; ++i) {
 		hum[0].voices[i] = MV1AttachAnim(hum[0].obj.get(), int(animes + i), -1, TRUE);
 		hum[0].voicealltime[i] = MV1GetAttachAnimTotalTime(hum[0].obj.get(), hum[0].voices[i]);
-		hum[0].vsound[i] = SoundHandle::Load("data/chara/"s + name.at(0) + "/" + std::to_string(i) + ".wav");
+		hum[0].vsound[i] = SoundHandle::Load("data/chara/"s + name[0] + "/" + std::to_string(i) + ".wav");
 	}
 	//
 	MV1SetMatrix(inmodel_handle.get(), MGetTranslate(VGet(0, 0, 0)));
@@ -457,21 +473,19 @@ void HUMANS::set_humans(const MV1ModelHandle& inmod) {
 	return;
 }
 void HUMANS::set_humanvc_vol(unsigned char size) {
-	for (auto&& v : hum[0].vsound) {
+	for (auto&& v : hum[0].vsound)
 		ChangeVolumeSoundMem(size, v.get());
-	}
 }
 void HUMANS::set_humanmove(const players& player, VECTOR rad) {
-	if (!first) {
+	if (!first)
 		MV1SetMatrix(inmodel_handle.get(), player.ps_m);
-	}
 	for (int i = 0; i < inflames; ++i)
 		pos_old[i] = inmodel_handle.frame(i);
 
 	MV1SetMatrix(inmodel_handle.get(), player.ps_m);
 	MV1SetFrameUserLocalMatrix(inmodel_handle.get(), player.ptr->turretframe, player.ps_t);
 	MV1SetFrameUserLocalMatrix(inmodel_handle.get(), player.ptr->gunframe[0], MMult(MMult(MGetRotX(player.gunrad.y), MGetTranslate(VSub(locin[player.ptr->gunframe[0]], locin[player.ptr->turretframe]))), player.ps_t));
-	MV1SetFrameUserLocalMatrix(inmodel_handle.get(), player.ptr->gunframe[0], MGetTranslate(VAdd(VSub(player.ptr->loc[player.ptr->gunframe[0] + 1], player.ptr->loc[player.ptr->gunframe[0]]), VGet(0, 0, player.fired[0]))));
+	MV1SetFrameUserLocalMatrix(inmodel_handle.get(), player.ptr->gunframe[0], MGetTranslate(VAdd(VSub(player.ptr->loc[player.ptr->gunframe[0] + 1], player.ptr->loc[player.ptr->gunframe[0]]), VGet(0, 0, player.Gun[0].fired))));
 	//
 	for (int i = bone_hatch; i < inflames; ++i) {
 		//警告	C6289	不適切な演算子です : || を使用した相互排除は常に 0 でない定数となります。 && を使用しようとしましたか ?
@@ -594,9 +608,8 @@ void HUMANS::start_humanvoice(std::int8_t p1) {
 	hum[0].vflug = p1;
 }
 void HUMANS::start_humananime(int p1) {
-	for (auto&& h : hum) {
+	for (auto&& h : hum)
 		h.time.at(p1) = 0.0f;
-	}
 }
 //
 MAPS::MAPS(int map_size, float draw_dist, int shadow_size) {
@@ -664,26 +677,25 @@ bool MAPS::set_map_ready() {
 
 	SetDrawScreen(texp.get());
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-	for (uint8_t x = 0; x < rate; x++) {
-		for (uint8_t y = 0; y < rate; y++) {
+	for (uint8_t x = 0; x < rate; x++)
+		for (uint8_t y = 0; y < rate; y++)
 			DrawExtendGraph(groundx * x / rate, groundx * y / rate, groundx * (x + 1) / rate, groundx * (y + 1) / rate, texl.get(), FALSE);
-		}
-	}
 	MV1SetTextureGraphHandle(m_model.get(), 0, texp.get(), FALSE);
 	SetDrawScreen(texn.get());
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 	DrawBox(0, 0, groundx, groundx, GetColor(121, 121, 255), TRUE);
-	for (uint8_t x = 0; x < 32; x++) {
-		for (uint8_t y = 0; y < 32; y++) {
+	for (uint8_t x = 0; x < 32; x++)
+		for (uint8_t y = 0; y < 32; y++)
 			DrawExtendGraph(groundx * x / rate, groundx * y / rate, groundx * (x + 1) / rate, groundx * (y + 1) / rate, texm.get(), TRUE);
-		}
-	}
 	MV1SetTextureGraphHandle(m_model.get(), 1, texn.get(), FALSE);
 	/*grass*/
 	vnum = 0;
 	pnum = 0;
 	MV1SetupReferenceMesh(grass.get(), -1, TRUE);	 /*参照用メッシュの作成*/
+
 	RefMesh = MV1GetReferenceMesh(grass.get(), -1, TRUE); /*参照用メッシュの取得*/
+	/*todo : mv1にしとく*/
+
 	IndexNum = RefMesh.PolygonNum * 3 * grasss;	   /*インデックスの数を取得*/
 	VerNum = RefMesh.VertexNum * grasss;		      /*頂点の数を取得*/
 
@@ -697,9 +709,8 @@ bool MAPS::set_map_ready() {
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 64);
 		DrawRotaGraph((int)(groundx * (0.5f + tmpvect.x / (float)map_x)), (int)(groundx * (0.5f - tmpvect.z / (float)map_y)), 8.f * groundx / 1024 / 128.0f, 0, GgHandle.get(), TRUE);
 		const auto HitPoly = MV1CollCheck_Line(m_model.get(), 0, VAdd(tmpvect, VGet(0.0f, (float)map_x, 0.0f)), VAdd(tmpvect, VGet(0.0f, -(float)map_x, 0.0f)));
-		if (HitPoly.HitFlag) {
+		if (HitPoly.HitFlag)
 			MV1SetMatrix(grass.get(), MMult(MGetScale(VGet((float)(200 + GetRand(400)) / 100.0f, (float)(25 + GetRand(100)) / 100.0f, (float)(200 + GetRand(400)) / 100.0f)), MMult(MMult(MGetRotY(deg2rad(GetRand(360))), MGetRotVec2(VGet(0, 1.f, 0), HitPoly.Normal)), MGetTranslate(HitPoly.HitPosition))));
-		}
 		//上省
 		MV1RefreshReferenceMesh(grass.get(), -1, TRUE);       /*参照用メッシュの更新*/
 		RefMesh = MV1GetReferenceMesh(grass.get(), -1, TRUE); /*参照用メッシュの取得*/
@@ -729,7 +740,7 @@ bool MAPS::set_map_ready() {
 	/*tree,shadow*/
 	ShadowMap_DrawSetup(shadow_far);
 	for (size_t i = 0; i < treec; ++i) {
-		const auto tmpvect = VGet((float)(-5000 + GetRand(10000)) / 10.0f, 0.0f, (float)(-5000 + GetRand(10000)) / 10.0f);
+		const auto tmpvect = VGet((float)(-map_x * 5 + GetRand(map_x * 10)) / 10.0f, 0.0f, (float)(-map_y * 5 + GetRand(map_y * 10)) / 10.0f);
 		const auto HitPoly = MV1CollCheck_Line(m_model.get(), 0, VAdd(tmpvect, VGet(0.0f, 100.0f, 0.0f)), VAdd(tmpvect, VGet(0.0f, -100.0f, 0.0f)));
 		tree.pos[i] = (HitPoly.HitFlag) ? HitPoly.HitPosition : tmpvect;
 		tree.rad[i] = VGet(0.0f, deg2rad(GetRand(360)), 0.0f);
@@ -750,10 +761,7 @@ void MAPS::set_camerapos(VECTOR pos, VECTOR vec, VECTOR up, float ratio) {
 	rat = ratio;
 }
 void MAPS::set_map_shadow_near(float vier_r) {
-	float shadow_dist = 10.0f * float(shadowx) * vier_r + 20.0f;
-	if (shadow_dist <= 20.0f) {
-		shadow_dist = 20.0f;
-	}
+	float shadow_dist = std::max(20.f, 10.0f * float(shadowx) * vier_r + 20.0f);
 	SetShadowMapDrawArea(shadow_near, VSub(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist)), VAdd(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist)));
 	SetShadowMapDrawArea(shadow_seminear, VSub(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist * 2)), VAdd(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist * 2)));
 }
@@ -804,19 +812,16 @@ void MAPS::set_hitplayer(VECTOR pos) {
 void MAPS::draw_trees() {
 
 	for (size_t j = 0; j < treec; ++j) {
-		if (CheckCameraViewClip_Box(VAdd(tree.pos[j], VGet(-10, 0, -10)), VAdd(tree.pos[j], VGet(10, 10, 10)))) {
+		if (CheckCameraViewClip_Box(VAdd(tree.pos[j], VGet(-10, 0, -10)), VAdd(tree.pos[j], VGet(10, 10, 10))))
 			tree.treesort[j] = pair(j, (float)map_x);
-		}
-		else {
+		else
 			tree.treesort[j] = pair(j, VSize(VSub(tree.pos[j], camera)));
-		}
 	}
 	std::sort(tree.treesort.begin(), tree.treesort.end(), [](const pair& x, const pair& y) { return x.second > y.second; });
 
 	for (auto& tt : tree.treesort) {
-		if (tt.second == (float)map_x) {
+		if (tt.second == (float)map_x)
 			continue;
-		}
 		const auto k = tt.first;
 		if (tt.second > drawdist) {
 			const auto per = (tt.second < drawdist + 100) ? (tt.second - drawdist) / 100.0f : 1.f;
@@ -829,12 +834,10 @@ void MAPS::draw_trees() {
 		}
 		if (tt.second < drawdist + 100) {
 			auto per = (tt.second < 20) ? -0.5f + tt.second / 20.0f : 1.f;
-			if (tt.second > drawdist) {
+			if (tt.second > drawdist)
 				per = 1.0f - (tt.second - drawdist) / 100.0f;
-			}
-			if (per > 0) {
+			if (per > 0)
 				MV1DrawModel(tree.nears[k].get());
-			}
 		}
 	}
 }
@@ -869,30 +872,25 @@ void MAPS::ready_shadow(void) {
 	SetUseShadowMap(1, shadow_far);
 	SetUseShadowMap(2, shadow_seminear);
 }
-
 void MAPS::exit_shadow(void) {
 	SetUseShadowMap(0, -1);
 	SetUseShadowMap(1, -1);
 	SetUseShadowMap(2, -1);
 }
-
-
 void MAPS::set_normal(float* xnor, float* znor, VECTOR position) {
+	/*X*/
 	const auto r0_0 = get_gnd_hit(VAdd(position, VGet(0.0f, 2.0f, -0.5f)), VAdd(position, VGet(0.0f, -2.0f, -0.5f)));
-
 	if (r0_0.HitFlag) {
 		const auto r0_1 = get_gnd_hit(VAdd(position, VGet(0.0f, 2.0f, 0.5f)), VAdd(position, VGet(0.0f, -2.0f, 0.5f)));
-		if (r0_1.HitFlag) {
-			differential(*xnor, atan2(r0_0.HitPosition.y - r0_1.HitPosition.y, 1.0f), 0.05f); /*X*/
-		}
+		if (r0_1.HitFlag)
+			differential(*xnor, atan2(r0_0.HitPosition.y - r0_1.HitPosition.y, 1.0f), 0.05f);
 	}
-
+	/*Z*/
 	const auto r1_0 = get_gnd_hit(VAdd(position, VGet(0.5f, 2.0f, 0.0f)), VAdd(position, VGet(0.5f, -2.0f, 0.0f)));
 	if (r1_0.HitFlag) {
 		const auto r1_1 = get_gnd_hit(VAdd(position, VGet(-0.5f, 2.0f, 0.0f)), VAdd(position, VGet(-0.5f, -2.0f, 0.0f)));
-		if (r1_1.HitFlag) {
-			differential(*znor, atan2(r1_0.HitPosition.y - r1_1.HitPosition.y, 1.0f), 0.05f); /*Z*/
-		}
+		if (r1_1.HitFlag)
+			differential(*znor, atan2(r1_0.HitPosition.y - r1_1.HitPosition.y, 1.0f), 0.05f);
 	}
 }
 //
@@ -900,7 +898,7 @@ UIS::UIS() {
 	using namespace std::literals;
 	WIN32_FIND_DATA win32fdt;
 
-	countries = 1;
+	countries = 1;//国の数
 
 	UI_main.resize(countries); /*改善*/
 	SetUseASyncLoadFlag(TRUE);
@@ -1019,21 +1017,18 @@ void UIS::draw_ui(int selfammo, float y_v) {
 	}
 	/*弾*/
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
-	if (pplayer->loadcnt[0] > 0) {
-		DrawRotaGraph(x_r(2112 - (int)(384 * pplayer->loadcnt[0] / pplayer->ptr->reloadtime[0])), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[pplayer->ammotype].get(), TRUE);
-		SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(128.0f * pow(1.0f - (float)pplayer->loadcnt[0] / (float)pplayer->ptr->reloadtime[0], 10)));
-		if (selfammo == 0) {
+	if (pplayer->Gun[0].loadcnt > 0) {
+		DrawRotaGraph(x_r(2112 - (int)(384 * pplayer->Gun[0].loadcnt / pplayer->ptr->reloadtime[0])), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[pplayer->ammotype].get(), TRUE);
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(128.0f * pow(1.0f - (float)pplayer->Gun[0].loadcnt / (float)pplayer->ptr->reloadtime[0], 10)));
+		if (selfammo == 0)
 			DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[3].get(), TRUE);
-		}
-		else {
+		else 
 			DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[(pplayer->ammotype - 1) % 3].get(), TRUE);
-		}
 	}
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
-	if (pplayer->loadcnt[0] == 0) {
+	if (pplayer->Gun[0].loadcnt == 0)
 		DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[pplayer->ammotype].get(), TRUE);
-	}
-	DrawRotaGraph(x_r(1728 - (int)(192 * pplayer->loadcnt[0] / pplayer->ptr->reloadtime[0])), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[pplayer->ammotype].get(), TRUE);
+	DrawRotaGraph(x_r(1728 - (int)(192 * pplayer->Gun[0].loadcnt / pplayer->ptr->reloadtime[0])), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[pplayer->ammotype].get(), TRUE);
 	DrawRotaGraph(x_r(1760), y_r(128), (double)x_r(40) / 40.0, 0.0, ui_reload[(pplayer->ammotype + 1) % 3].get(), TRUE);
 	DrawRotaGraph(x_r(1792), y_r(192), (double)x_r(40) / 40.0, 0.0, ui_reload[(pplayer->ammotype + 2) % 3].get(), TRUE);
 	/*速度計*/
@@ -1050,32 +1045,26 @@ void UIS::draw_ui(int selfammo, float y_v) {
 
 	for (size_t i = 0; i < UI_body.size(); ++i) {
 		if (i >= 1 && i <= 2) {
-			const auto pers = 1.f - (float)pplayer->HP[5 + i - 1] / 100.f;
-			if (pers >= 0.8f) {
+			const auto pers = 1.f - (float)pplayer->HP[4 + i] / 100.f;
+			if (pers <= 0.2f)
 				SetDrawBright(50, 50, 255);
-			}
-			else {
+			else
 				SetDrawBright((int)(255.f * sin(pers * DX_PI_F / 2)), (int)(255.f * cos(pers * DX_PI_F / 2)), 0);
-			}
 		}
-		else {
+		else
 			SetDrawBright(255, 255, 255);
-		}
 		DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, double(-y_v + pplayer->yrad), UI_body[i].get(), TRUE);
 	}
 	for (int i = 0; i < UI_turret.size(); ++i) {
 		if (i == 0) {
 			const auto pers = 1.f - (float)pplayer->HP[4 + i] / 100.f;
-			if (pers >= 0.8f) {
+			if (pers <= 0.2f)
 				SetDrawBright(50, 50, 255);
-			}
-			else {
+			else
 				SetDrawBright((int)(255.f * sin(pers * DX_PI_F / 2)), (int)(255.f * cos(pers * DX_PI_F / 2)), 0);
-			}
 		}
-		else {
+		else
 			SetDrawBright(255, 255, 255);
-		}
 		DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, double(-y_v + pplayer->yrad + pplayer->gunrad.x), UI_turret[i].get(), TRUE);
 	}
 
@@ -1133,7 +1122,6 @@ void setcv(float neard, float fard, VECTOR cam, VECTOR view, VECTOR up, float fo
 	Set3DSoundListenerPosAndFrontPosAndUpVec(cam, view, up);
 }
 void getdist(VECTOR* startpos, VECTOR vector, float* dist, float speed, float fps) {
-
 	*dist = std::max(100.f, std::min(2000.f, *dist));
 	for (int z = 0; z < (int)(fps / 1000.0f * (*dist)); ++z) {
 		*startpos = VAdd(*startpos, VScale(vector, speed / fps));
@@ -1157,193 +1145,187 @@ void set_pos_effect(EffectS* efh, const EffekseerEffectHandle& handle) {
 	//IsEffekseer3DEffectPlaying(player[0].effcs[i].handle)
 }
 //
-bool get_reco(players* play, players* tgt, size_t i, size_t gun_s) {
-	std::optional<size_t> hitnear;
-	//主砲
-	if (gun_s == 0) {
-		//とりあえず当たったかどうか
-		bool is_hit = false;
-		for (size_t colmesh = 0; colmesh < tgt->ptr->colmeshes; ++colmesh) {
-			const auto HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos, int(colmesh));
-			if (HitPoly.HitFlag) {
-				tgt->hitssort[colmesh] = pair(colmesh, VSize(VSub(HitPoly.HitPosition, play->Ammo[i].repos)));
-				is_hit = true;
+bool get_reco(players& play, std::vector<players>& tgts, ammos &c, size_t gun_s) {
+	bool btmp = false;
+
+	for (auto& t : tgts) {
+		if (play.id == t.id)
+			continue;
+		std::optional<size_t> hitnear;
+
+		//主砲
+		if (gun_s == 0) {
+			//とりあえず当たったかどうか
+			bool is_hit = false;
+			for (size_t colmesh = 0; colmesh < t.hitssort.size(); ++colmesh) {
+				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, c.pos, int(colmesh));
+				if (HitPoly.HitFlag) {
+					t.hitssort[colmesh] = pair(colmesh, VSize(VSub(HitPoly.HitPosition, c.repos)));
+					is_hit = true;
+				}
+				else {
+					t.hitssort[colmesh] = pair(colmesh, 9999.f);
+				}
 			}
-			else {
-				tgt->hitssort[colmesh] = pair(colmesh, 9999.f);
+			if (!is_hit)
+				return false;
+			std::sort(t.hitssort.begin(), t.hitssort.end(), [](const pair& x, const pair& y) { return x.second < y.second; });
+			//近い順に、はじく操作のいらないメッシュに対しダメージ面に届くまで判定
+			for (auto& tt : t.hitssort) {
+				if (tt.second == 9999.f)
+					break; //装甲面に当たらなかったならスルー
+				const auto k = tt.first;
+				if (k >= 4) {
+					if (t.HP[k] > 0) {
+						if (k == 4)
+							continue; //砲身だけ処理を別にしたいので分けます
+						//空間装甲、モジュール
+						const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, c.pos, int(k));
+						if (HitPoly.HitFlag) {
+							set_effect(&play.effcs[ef_reco], HitPoly.HitPosition, HitPoly.Normal);
+							t.HP[k] = std::max<short>(t.HP[k] - 50, 0);
+							c.pene /= 2.0f;
+							c.speed /= 2.f;
+						}
+					}
+				}
+				else {
+					hitnear = k;
+					break;
+				}
+			}
+			//ダメージ面に当たった時に装甲値に勝てるかどうか
+			if (hitnear) {
+				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, c.pos, int(hitnear.value())); //当たっているものとして詳しい判定をとる
+				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 0 + 3 * t.hitbuf, MMult(MGetTranslate(HitPoly.HitPosition), MInverse(t.ps_m)));
+				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 1 + 3 * t.hitbuf, MMult(MGetTranslate(VAdd(HitPoly.Normal, HitPoly.HitPosition)), MInverse(t.ps_m)));
+				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 2 + 3 * t.hitbuf, MMult(MGetTranslate(VAdd(VCross(HitPoly.Normal, c.vec), HitPoly.HitPosition)), MInverse(t.ps_m)));
+				set_effect(&play.effcs[ef_reco], HitPoly.HitPosition, HitPoly.Normal);
+				if (c.pene > t.ptr->armer[hitnear.value()] * (1.0f / abs(VDot(VNorm(c.vec), HitPoly.Normal)))) {
+					if (t.HP[0] != 0) {
+						PlaySoundMem(t.se[29 + GetRand(1)].get(), DX_PLAYTYPE_BACK, TRUE);
+						set_effect(&play.effcs[ef_bomb], t.obj.frame(t.ptr->engineframe), VGet(0, 0, 0));
+						set_effect(&play.effcs[ef_smoke1], t.obj.frame(t.ptr->engineframe), VGet(0, 0, 0));
+						if (play.hitadd == false)
+							play.hitadd = true;
+					}
+					c.flug = false;
+					t.HP[0] = 0;
+					t.hit[t.hitbuf].use = 0;
+				}
+				else {
+					PlaySoundMem(t.se[10 + GetRand(16)].get(), DX_PLAYTYPE_BACK, TRUE);
+					if (t.recoadd == false) {
+						t.recorad = atan2(HitPoly.HitPosition.x - t.pos.x, HitPoly.HitPosition.z - t.pos.z);
+						t.recoadd = true;
+					}
+					c.vec = VAdd(c.vec, VScale(HitPoly.Normal, VDot(c.vec, HitPoly.Normal) * -2.0f));
+					c.pos = VAdd(HitPoly.HitPosition, VScale(c.vec, 0.01f));
+
+					c.pene /= 2.0f;
+					c.speed /= 2.f;
+
+					t.hit[t.hitbuf].use = 1;
+				}
+				MV1SetScale(t.hit[t.hitbuf].pic.get(), VGet(play.ptr->ammosize[gun_s] * 100.f * (1.0f / abs(VDot(VNorm(c.vec), HitPoly.Normal))), play.ptr->ammosize[gun_s] * 100.f, play.ptr->ammosize[gun_s] * 100.f)); //
+				t.hit[t.hitbuf].flug = true;
+				t.hitbuf++;
+				t.hitbuf %= 3;
 			}
 		}
-		if (!is_hit)
-			return false;
-		std::sort(tgt->hitssort.begin(), tgt->hitssort.end(), [](const pair& x, const pair& y) { return x.second < y.second; });
-		//近い順に、はじく操作のいらないメッシュに対しダメージ面に届くまで判定
-		for (auto& tt : tgt->hitssort) {
-			if (tt.second == 9999.f)
-				break; //装甲面に当たらなかったならスルー
-			const auto k = tt.first;
-			if (k >= 4) {
-				if (tgt->HP[k] > 0) {
-					if (k == 4)
-						continue; //砲身だけ処理を別にしたいので分けます
-					//空間装甲、モジュール
-					const auto HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos, int(k));
-					if (HitPoly.HitFlag) {
-						set_effect(&play->effcs[ef_reco], HitPoly.HitPosition, HitPoly.Normal);
-						tgt->HP[k] = std::max<short>(tgt->HP[k] - 50, 0);
-						play->Ammo[i].pene /= 2.0f;
-						play->Ammo[i].speed /= 2.f;
+		//同軸機銃
+		else {
+			//近い面を探す判定
+			std::array<float, 2> tmpf;
+			tmpf[0] = c.speed;
+			for (size_t colmesh = 0; colmesh < t.HP.size(); ++colmesh) {
+				if (colmesh >= 5 && t.HP[colmesh] == 0)
+					continue;
+				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, c.pos, int(colmesh));
+				if (HitPoly.HitFlag) {
+					tmpf[1] = VSize(VSub(HitPoly.HitPosition, c.repos));
+					if (tmpf[1] <= tmpf[0]) {
+						tmpf[0] = tmpf[1];
+						hitnear = colmesh;
 					}
 				}
 			}
-			else {
-				hitnear = k;
-				break;
+			//至近で弾かせる
+			if (hitnear) {
+				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, c.pos, int(hitnear.value()));
+				set_effect(&play.effcs[ef_reco2], HitPoly.HitPosition, HitPoly.Normal);
+				PlaySoundMem(t.se[10 + GetRand(16)].get(), DX_PLAYTYPE_BACK, TRUE);
+				c.vec = VAdd(c.vec, VScale(HitPoly.Normal, VDot(c.vec, HitPoly.Normal) * -2.0f));
+				c.pos = VAdd(HitPoly.HitPosition, VScale(c.vec, 0.01f));
 			}
 		}
-		//ダメージ面に当たった時に装甲値に勝てるかどうか
-		if (hitnear) {
-			const auto HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos, int(hitnear.value())); //当たっているものとして詳しい判定をとる
-			MV1SetFrameUserLocalMatrix(tgt->colobj.get(), 9 + 0 + 3 * tgt->hitbuf, MMult(MGetTranslate(HitPoly.HitPosition), MInverse(tgt->ps_m)));
-			MV1SetFrameUserLocalMatrix(tgt->colobj.get(), 9 + 1 + 3 * tgt->hitbuf, MMult(MGetTranslate(VAdd(HitPoly.Normal, HitPoly.HitPosition)), MInverse(tgt->ps_m)));
-			MV1SetFrameUserLocalMatrix(tgt->colobj.get(), 9 + 2 + 3 * tgt->hitbuf, MMult(MGetTranslate(VAdd(VCross(HitPoly.Normal, play->Ammo[i].vec), HitPoly.HitPosition)), MInverse(tgt->ps_m)));
-			set_effect(&(play->effcs[ef_reco]), HitPoly.HitPosition, HitPoly.Normal);
-			if (play->Ammo[i].pene > tgt->ptr->armer[hitnear.value()] * (1.0f / abs(VDot(VNorm(play->Ammo[i].vec), HitPoly.Normal)))) {
-				if (tgt->HP[0] != 0) {
-					PlaySoundMem(tgt->se[29 + GetRand(1)].get(), DX_PLAYTYPE_BACK, TRUE);
-					set_effect(&(play->effcs[ef_bomb]), tgt->obj.frame(tgt->ptr->engineframe), VGet(0, 0, 0));
-					set_effect(&(play->effcs[ef_smoke1]), tgt->obj.frame(tgt->ptr->engineframe), VGet(0, 0, 0));
-					if (play->hitadd == false) {
-						play->hitadd = true;
-					}
-				}
-				play->Ammo[i].flug = false;
-				tgt->HP[0] = 0;
-				tgt->hit[tgt->hitbuf].use = 0;
-			}
-			else {
-				PlaySoundMem(tgt->se[10 + GetRand(16)].get(), DX_PLAYTYPE_BACK, TRUE);
-				if (tgt->recoadd == false) {
-					tgt->recorad = atan2(HitPoly.HitPosition.x - tgt->pos.x, HitPoly.HitPosition.z - tgt->pos.z);
-					tgt->recoadd = true;
-				}
-				play->Ammo[i].vec = VAdd(play->Ammo[i].vec, VScale(HitPoly.Normal, VDot(play->Ammo[i].vec, HitPoly.Normal) * -2.0f));
-				play->Ammo[i].pos = VAdd(HitPoly.HitPosition, VScale(play->Ammo[i].vec, 0.01f));
 
-				play->Ammo[i].pene /= 2.0f;
-				play->Ammo[i].speed /= 2.f;
+		btmp = hitnear.has_value();
 
-				tgt->hit[tgt->hitbuf].use = 1;
-			}
-			MV1SetScale(tgt->hit[tgt->hitbuf].pic.get(), VGet(play->ptr->ammosize * 100.f * (1.0f / abs(VDot(VNorm(play->Ammo[i].vec), HitPoly.Normal))), play->ptr->ammosize * 100.f, play->ptr->ammosize * 100.f)); //
-			tgt->hit[tgt->hitbuf].flug = true;
-			tgt->hitbuf++;
-			tgt->hitbuf %= 3;
-		}
+		if (btmp)
+			break;
 	}
-	//同軸機銃
-	else {
-		//近い面を探す判定
-		std::array<float, 2> tmpf;
-		tmpf[0] = play->Ammo[i].speed;
-		for (size_t colmesh = 0; colmesh < tgt->ptr->colmeshes; ++colmesh) {
-			if (colmesh >= 5 && tgt->HP[colmesh] == 0)
-				continue;
-			const auto HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos, int(colmesh));
-			if (HitPoly.HitFlag) {
-				tmpf[1] = VSize(VSub(HitPoly.HitPosition, play->Ammo[i].repos));
-				if (tmpf[1] <= tmpf[0]) {
-					tmpf[0] = tmpf[1];
-					hitnear = colmesh;
-				}
-			}
-		}
-		//至近で弾かせる
-		if (hitnear) {
-			const auto HitPoly = MV1CollCheck_Line(tgt->colobj.get(), -1, play->Ammo[i].repos, play->Ammo[i].pos, int(hitnear.value()));
-			set_effect(&(play->effcs[ef_reco2]), HitPoly.HitPosition, HitPoly.Normal);
-			PlaySoundMem(tgt->se[10 + GetRand(16)].get(), DX_PLAYTYPE_BACK, TRUE);
-			play->Ammo[i].vec = VAdd(play->Ammo[i].vec, VScale(HitPoly.Normal, VDot(play->Ammo[i].vec, HitPoly.Normal) * -2.0f));
-			play->Ammo[i].pos = VAdd(HitPoly.HitPosition, VScale(play->Ammo[i].vec, 0.01f));
-		}
-	}
-	return hitnear.has_value();
+	return btmp;
 }
-void set_gunrad(players* play, float rat_r) {
+void set_gunrad(players& play, float rat_r) {
 	for (int i = 0; i < 4; ++i) {
-		if ((play->move & (KEY_TURNLFT << i)) != 0) {
+		if ((play.move & (KEY_TURNLFT << i)) != 0) {
 			switch (i) {
 			case 0:
-				play->gunrad.x -= play->ptr->gun_RD / rat_r; //
-				if (!play->ptr->gun_lim_LR) {
-					if (play->gunrad.x >= play->ptr->gun_lim_[0]) {
-						play->gunrad.x = play->ptr->gun_lim_[0];
-					}
-				}
+				play.gunrad.x -= play.ptr->gun_RD / rat_r; //
+				if (!play.ptr->gun_lim_LR)
+					play.gunrad.x = std::max<float>(play.gunrad.x, play.ptr->gun_lim_[0]);
 				break;
 			case 1:
-				play->gunrad.x += play->ptr->gun_RD / rat_r; //
-				if (!play->ptr->gun_lim_LR) {
-					if (play->gunrad.x <= play->ptr->gun_lim_[1]) {
-						play->gunrad.x = play->ptr->gun_lim_[1];
-					}
-				}
+				play.gunrad.x += play.ptr->gun_RD / rat_r; //
+				if (!play.ptr->gun_lim_LR)
+					play.gunrad.x = std::min<float>(play.gunrad.x, play.ptr->gun_lim_[1]);
 				break;
 			case 2:
-				play->gunrad.y += (play->ptr->gun_RD / 2.f) / rat_r; //
-				if (play->gunrad.y >= play->ptr->gun_lim_[2]) {
-					play->gunrad.y = play->ptr->gun_lim_[2];
-				}
+				play.gunrad.y = std::min<float>(play.gunrad.y + (play.ptr->gun_RD / 2.f) / rat_r, play.ptr->gun_lim_[2]);
 				break;
 			case 3:
-				play->gunrad.y -= (play->ptr->gun_RD / 2.f) / rat_r; //
-				if (play->gunrad.y <= play->ptr->gun_lim_[3]) {
-					play->gunrad.y = play->ptr->gun_lim_[3];
-				}
+				play.gunrad.y = std::max<float>(play.gunrad.y - (play.ptr->gun_RD / 2.f) / rat_r, play.ptr->gun_lim_[3]);
 				break;
 			}
 		}
 	}
 }
-bool set_shift(players* play) {
-	int gearrec = play->gear;
+bool set_shift(players& play) {
+	int gearrec = play.gear;
 	/*自動変速機*/
-	if (play->gear > 0 && play->gear <= 3) {
-		if (play->flont >= play->ptr->speed_flont[play->gear - 1] * 0.9) {
-			++play->gear;
-		}
-	}
-	if (play->gear < 0 && play->gear >= -3) {
-		if (play->back <= play->ptr->speed_back[-play->gear - 1] * 0.9) {
-			--play->gear;
-		}
-	}
-	if ((play->move & KEY_GOFLONT) == 0 && play->gear > 0) {
-		--play->gear;
-	}
-	else if ((play->move & KEY_GOBACK_) == 0 && play->gear < 0) {
-		++play->gear;
-	}
+	if (play.gear > 0 && play.gear <= 3)
+		if (play.flont >= play.ptr->speed_flont[play.gear - 1] * 0.9)
+			++play.gear;
+	if (play.gear < 0 && play.gear >= -3)
+		if (play.back <= play.ptr->speed_back[-play.gear - 1] * 0.9)
+			--play.gear;
+
+	if ((play.move & KEY_GOFLONT) == 0 && play.gear > 0)
+		--play.gear;
+	else if ((play.move & KEY_GOBACK_) == 0 && play.gear < 0)
+		++play.gear;
 	/*変速*/
 	/*
-	if (play->gear > 0 && play->gear <= 3) {
-		if (CheckHitKey(KEY_INPUT_R) != 0) { ++play->gearu; if (play->gearu == 1) { ++play->gear; } }
-		else { play->gearu = 0; }
+	if (play.gear > 0 && play.gear <= 3) {
+		if (CheckHitKey(KEY_INPUT_R) != 0) { ++play.gearu; if (play.gearu == 1) { ++play.gear; } }
+		else { play.gearu = 0; }
 	}
-	if (play->gear < 0 && play->gear >= -3) {
-		if (CheckHitKey(KEY_INPUT_F) != 0) { ++play->geard; if (play->geard == 1) { --play->gear; } }
-		else { play->geard = 0; }
+	if (play.gear < 0 && play.gear >= -3) {
+		if (CheckHitKey(KEY_INPUT_F) != 0) { ++play.geard; if (play.geard == 1) { --play.gear; } }
+		else { play.geard = 0; }
 	}
 	*/
 	/**/
-	if (play->gear == 0) {
-		if ((play->move & KEY_GOFLONT) != 0) {
-			++play->gear;
+	if (play.gear == 0) {
+		if ((play.move & KEY_GOFLONT) != 0) {
+			++play.gear;
 		}
-		if ((play->move & KEY_GOBACK_) != 0) {
-			--play->gear;
+		if ((play.move & KEY_GOBACK_) != 0) {
+			--play.gear;
 		}
 	}
-	if (play->gear != gearrec) {
+	if (play.gear != gearrec) {
 		return true;
 	}
 	return false;

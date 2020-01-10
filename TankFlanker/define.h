@@ -106,30 +106,27 @@ struct switches {
 	uint8_t cnt{ 0 };
 };
 struct vehicle {
-	std::string name;		     /*名前*/
-	int countryc;			     /*国*/
-	MV1ModelHandle model;		     /*モデル*/
-	MV1ModelHandle colmodel;	     /*コリジョン*/
-	MV1ModelHandle inmodel;		     /*内装*/
-	std::array<float, 4> speed_flont;    /*前進*/
-	std::array<float, 4> speed_back;     /*後退*/
-	float vehicle_RD = 0.0f;	     /*旋回速度*/
-	float armer[4] = { 0 };		     /*装甲*/
-	bool gun_lim_LR = 0;		     /*砲塔限定旋回の有無*/
-	float gun_lim_[4] = { 0.f };	 /*砲塔旋回制限*/
-	float gun_RD = 0.0f;		     /*砲塔旋回速度*/
-	int reloadtime[gunc]{ 0 };	   /*リロードタイム*/
-	float ammosize = 0.0f;		     /*砲口径*/
-	float gun_speed[3] = { 0.0f };       /*弾速*/
-	float pene[3] = { 0.0f };	    /*貫通*/
-	int ammotype[3] = { 0 };	     /*弾種*/
-	std::vector<VECTOR> loc;	     /*フレームの元座標*/
-	std::array<VECTOR, 4> coloc; /*box2D用フレーム*/
-	size_t frames{ 0 };
-	size_t colmeshes{};
-	size_t meshes{ 0 };
-	std::array<int, gunc> gunframe;
-	int turretframe;
+	std::string name;		  /*名前*/
+	int countryc;			  /*国*/
+	MV1ModelHandle model;		  /*モデル*/
+	MV1ModelHandle colmodel;	  /*コリジョン*/
+	MV1ModelHandle inmodel;		  /*内装*/
+	std::array<float, 4> speed_flont; /*前進*/
+	std::array<float, 4> speed_back;  /*後退*/
+	float vehicle_RD = 0.0f;	  /*旋回速度*/
+	float armer[4] = { 0 };		  /*装甲*/
+	bool gun_lim_LR = 0;		  /*砲塔限定旋回の有無*/
+	float gun_lim_[4] = { 0.f };      /*砲塔旋回制限*/
+	float gun_RD = 0.0f;		  /*砲塔旋回速度*/
+	float gun_speed[3] = { 0.0f };    /*弾速*/
+	float pene[3] = { 0.0f };	  /*貫通*/
+	int ammotype[3] = { 0 };	  /*弾種*/
+	std::vector<VECTOR> loc;	  /*フレームの元座標*/
+	std::array<VECTOR, 4> coloc;      /*box2D用フレーム*/
+	int turretframe;		  /*砲塔フレーム*/
+	std::array<int, gunc> gunframe;   /*銃フレーム*/
+	std::array<int, gunc> reloadtime; /*リロードタイム*/
+	std::array<float, gunc> ammosize; /*砲口径*/
 	std::vector<int> youdoframe;
 	std::vector<int> wheelframe;
 	std::array<int, 2> kidoframe;
@@ -178,26 +175,33 @@ struct players {
 	int wayspd[waypc]{ 0 };		       /*速度指定*/
 	int state{ 0 };			       /*ステータス*/
 	/**/
-	std::vector<ammos> Ammo;    /*確保する弾(arrayでもいい？)*/
-	std::vector<float> Springs; /*スプリング*/
-	std::vector<short> HP;      /*ライフ*/
-	std::vector<pair> hitssort; /*当たった順番*/
-	/**/
+	struct Guns {
+		std::vector<ammos> Ammo;    /*確保する弾(arrayでもいい？)*/
+		int loadcnt{ 0 };	    /*装てんカウンター*/
+		size_t useammo{};	    /*使用弾*/
+		float fired{ 0.f };	    /*駐退*/
+	} Gun[gunc];
+
+//	std::vector<ammos> Ammo;    /*確保する弾(arrayでもいい？)*/
+//	float fired[gunc]{ 0.f };   /*駐退*/
+//	int loadcnt[gunc]{ 0 };     /*装てんカウンター*/
+//	size_t useammo[gunc]{};     /*使用弾*/
+    /**/
 	int gear{ 0 };			 /*変速*/
 	unsigned int gearu{ 0 };	 /*キー*/
 	unsigned int geard{ 0 };	 /*キー*/
 	VECTOR inertia{ VGet(0, 0, 0) }; /*慣性*/
 	float wheelrad[3]{ 0.f };	/*履帯の送り、転輪旋回*/
 	VECTOR gunrad{ 0.f };		 /*砲角度*/
-	float fired[gunc]{ 0.f };	/*駐退*/
 	/*弾関連*/
 	int ammotype{ 0 };		 /*弾種*/
-	int loadcnt[gunc]{ 0 };		 /*装てんカウンター*/
-	size_t useammo[gunc]{};		 /*使用弾*/
 	bool recoadd{ false };		 /*弾きフラグ*/
 	bool hitadd{ false };		 /*命中フラグ*/
 	VECTOR iconpos{ VGet(0, 0, 0) }; /*UI用*/
 	EffectS effcs[efs_user];	 /*effect*/
+	std::vector<float> Springs;      /*スプリング*/
+	std::vector<short> HP;		 /*ライフ*/
+	std::vector<pair> hitssort;      /*当たった順番*/
 	/*弾痕*/
 	int hitbuf; /*使用弾痕*/
 	std::array<Hit, 3> hit;
@@ -212,14 +216,14 @@ struct players {
 class Myclass {
 private:
 	/*setting*/
-	bool usegrab{ false };    /*人の物理演算のオフ、オン、一人だけオン*/
+	bool usegrab{ false };    /*人の物理演算のオフ、オン*/
 	unsigned char ANTI{ 1 };  /*アンチエイリアス倍率*/
 	bool YSync{ true };       /*垂直同期*/
 	float f_rate{ 60.f };     /*fps*/
 	bool windowmode{ false }; /*ウィンドウor全画面*/
 	float drawdist{ 100.0f }; /*木の描画距離*/
-	int gndx = 8;
-	int shadex = 3; /*影のクオリティ*/
+	int gndx = 8;		  /*地面のクオリティ*/
+	int shadex = 3;		  /*影のクオリティ*/
 	/**/
 	std::vector<vehicle> vecs;		 /*車輛情報*/
 	VECTOR view, view_r;			 /*通常視点の角度、距離*/
@@ -239,8 +243,7 @@ public:
 	template <typename... Args>
 	void set_fonts(Args&&... args) {
 		SetUseASyncLoadFlag(true);
-		//C++17: fold expression
-		//ref:
+		//自分にはオバテク...
 		// - https://cpprefjp.github.io/lang/cpp17/folding_expressions.html
 		// - https://stackoverflow.com/questions/45519117/using-fold-expression-to-merge-multiple-vector
 		(this->fonts.emplace(this->fonts.end(), DxLib::CreateFontToHandle(NULL, x_r(args), y_r(args / 3), DX_FONTTYPE_ANTIALIASING_EDGE)), ...);
@@ -259,7 +262,7 @@ public:
 	const auto& get_ui2() const& { return ui_reload; }
 	int get_font(int p1) { return fonts[p1]; } //フォントハンドル取り出し
 	VECTOR get_view_r(void) { return view_r; }
-	bool get_in(void) { return view_r.z != 0.1f; }
+	const auto get_in(void) { return view_r.z != 0.1f; }
 	VECTOR get_view_pos(void) { return VScale(VGet(sin(view_r.y) * cos(view_r.x), sin(view_r.x), cos(view_r.y) * cos(view_r.x)), 15.0f * view_r.z); }
 	EffekseerEffectHandle& get_effHandle(int p1) noexcept { return effHndle[p1]; }
 	const EffekseerEffectHandle& get_effHandle(int p1) const noexcept { return effHndle[p1]; }
@@ -281,15 +284,15 @@ private:
 		int voices[voice]{ 0 };
 		std::array<SoundHandle, voice> vsound;
 	};
-	bool usegrab{ false }; /*人の物理演算のオフ、オン、一人だけオン*/
-	float f_rate{ 60.f };  /*fps*/
-
+	bool usegrab{ false };	       /*人の物理演算のオフ、オン*/
+	float f_rate{ 60.f };	       /*fps*/
 	MV1ModelHandle inmodel_handle; //中モデル
-	bool in_f{ false };	    //中描画スイッチ
+	bool in_f{ false };	       //中描画スイッチ
 	size_t inflames;	       //inmodelのフレーム数
 	std::vector<humans> hum;       /**/
 	std::vector<VECTOR> locin;     /*inmodelのフレーム*/
 	std::vector<VECTOR> pos_old;   /*inmodelの前回のフレーム*/
+	std::vector<std::string> name; /**/
 	bool first;		       //初回フラグ
 public:
 	HUMANS(bool useg, float frates);
@@ -332,16 +335,16 @@ private:
 	GraphHandle sky_sun;			  /*sunpic*/
 	VECTOR lightvec;			  /*light方向*/
 	/*grass*/
-	int grasss = 50000; /*grassの数*/
-	std::vector<VERTEX3D> grassver;
-	std::vector<DWORD> grassind;
-	int VerBuf, IndexBuf;	/**/
-	MV1ModelHandle grass;	/*grassモデル*/
-	GraphHandle graph;	   /*画像ハンドル*/
-	int IndexNum, VerNum;	/**/
-	GraphHandle GgHandle;	/**/
-	int vnum, pnum;		     /**/
-	MV1_REF_POLYGONLIST RefMesh; /**/
+	int grasss = 50000;		/*grassの数*/
+	std::vector<VERTEX3D> grassver; /**/
+	std::vector<DWORD> grassind;    /**/
+	int VerBuf, IndexBuf;		/**/
+	MV1ModelHandle grass;		/*grassモデル*/
+	GraphHandle graph;		/*画像ハンドル*/
+	int IndexNum, VerNum;		/**/
+	GraphHandle GgHandle;		/**/
+	int vnum, pnum;			/**/
+	MV1_REF_POLYGONLIST RefMesh;    /**/
 	//campos
 	VECTOR camera, viewv, upv; /**/
 	float rat;		   /**/
@@ -362,7 +365,7 @@ public:
 	void set_normal(float* xnor, float* znor, VECTOR position); //地面に沿わせる
 	auto& get_minmap() & { return texp; }
 	const auto& get_minmap() const& noexcept { return texp; }
-	int get_map_shadow_far() { return shadow_far; }
+
 	int get_map_shadow_near() { return shadow_near; }
 	int get_map_shadow_seminear() { return shadow_seminear; }
 
@@ -373,18 +376,19 @@ public:
 };
 class UIS {
 private:
+	struct country {
+		std::array<GraphHandle, 8> ui_sight;
+	};
 	/**/
 	std::array<GraphHandle, 4> ui_reload; /*弾UI*/
 	std::vector<GraphHandle> UI_body;     /*弾UI*/
 	std::vector<GraphHandle> UI_turret;   /*弾UI*/
-	struct country {
-		std::array<GraphHandle, 8> ui_sight;
-	};			      /*改善*/
-	std::vector<country> UI_main; /*国別UI*/
-	size_t countries = 1;	 /*国数*/
-	float gearf = 0.f;	    /*変速*/
-	float recs = 0.f;	     /*跳弾表現用*/
-	players* pplayer;	     /*playerdata*/
+	std::vector<country> UI_main;	      /*国別UI*/
+	size_t countries = 1;		      /*国数*/
+	float gearf = 0.f;		      /*変速*/
+	float recs = 0.f;		      /*跳弾表現用*/
+	players* pplayer;		      /*playerdata*/
+
 	/*debug*/
 	float deb[60][6 + 1]{ 0.f };
 	LONGLONG waypoint{ 0 }; /*時間取得*/
@@ -398,9 +402,9 @@ public:
 	void set_reco(void);							    /*反射スイッチ*/
 	void draw_sight(float posx, float posy, float ratio, float dist, int font); /*照準UI*/
 	void draw_ui(int selfammo, float y_v);					    /*メインUI*/
+	/*debug*/
 	void put_way(void);
 	void end_way(void);
-	/*debug*/
 	void debug(float fps, float time);
 };
 /**/
@@ -410,8 +414,8 @@ void getdist(VECTOR* startpos, VECTOR vector, float* dist, float speed, float fp
 void set_effect(EffectS* efh, VECTOR pos, VECTOR nor);
 void set_pos_effect(EffectS* efh, const EffekseerEffectHandle& handle);
 //play_class予定
-bool get_reco(players* play, players* tgt, size_t i, size_t guns);
-void set_gunrad(players* play, float rat_r);
-bool set_shift(players* play);
+bool get_reco(players& play, std::vector<players>& tgts, ammos &c, size_t gun_s);
+void set_gunrad(players& play, float rat_r);
+bool set_shift(players& play);
 //
 #endif
