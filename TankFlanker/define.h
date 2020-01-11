@@ -65,7 +65,7 @@ enum Bone {
 	//転輪、履帯用フレーム
 	bone_wheel = 11,
 	//砲塔内
-	bone_hatch = 5,    //カメラ
+	bone_hatch = 5,	   //カメラ
 	bone_in_turret = 6 //人配置フレーム
 };
 enum Effect {
@@ -93,12 +93,12 @@ struct ammos {
 struct EffectS {
 	bool flug{ false };		 /**/
 	Effekseer3DPlayingHandle handle; /**/
-	VECTOR pos{ VGet(0, 0, 0) };     /**/
-	VECTOR nor{ VGet(0, 0, 0) };     /**/
+	VECTOR pos{ VGet(0, 0, 0) };	 /**/
+	VECTOR nor{ VGet(0, 0, 0) };	 /**/
 };
 struct Hit {
 	bool flug{ false }; /**/
-	int use{ 0 };       /*使用フレーム*/
+	int use{ 0 };	    /*使用フレーム*/
 	MV1ModelHandle pic; /*弾痕モデル*/
 };
 struct switches {
@@ -116,21 +116,22 @@ struct vehicle {
 	float vehicle_RD = 0.0f;	  /*旋回速度*/
 	float armer[4] = { 0 };		  /*装甲*/
 	bool gun_lim_LR = 0;		  /*砲塔限定旋回の有無*/
-	float gun_lim_[4] = { 0.f };      /*砲塔旋回制限*/
+	float gun_lim_[4] = { 0.f };	  /*砲塔旋回制限*/
 	float gun_RD = 0.0f;		  /*砲塔旋回速度*/
-	float gun_speed[3] = { 0.0f };    /*弾速*/
+	float gun_speed[3] = { 0.0f };	  /*弾速*/
 	float pene[3] = { 0.0f };	  /*貫通*/
 	int ammotype[3] = { 0 };	  /*弾種*/
 	std::vector<VECTOR> loc;	  /*フレームの元座標*/
-	std::array<VECTOR, 4> coloc;      /*box2D用フレーム*/
+	std::array<VECTOR, 4> coloc;	  /*box2D用フレーム*/
 	int turretframe;		  /*砲塔フレーム*/
-	std::array<int, gunc> gunframe;   /*銃フレーム*/
+	std::array<int, gunc> gunframe;	  /*銃フレーム*/
 	std::array<int, gunc> reloadtime; /*リロードタイム*/
 	std::array<float, gunc> ammosize; /*砲口径*/
 	std::vector<int> youdoframe;
 	std::vector<int> wheelframe;
 	std::array<int, 2> kidoframe;
 	std::array<int, 2> smokeframe;
+	std::vector<int> upsizeframe;
 	int engineframe;
 };
 static_assert(std::is_move_constructible_v<vehicle>);
@@ -147,8 +148,8 @@ struct players {
 	int id{ 0 };
 	int use{ 0 };		     /*使用車両*/
 	vehicle* ptr;		     /*vehicle*/
-	MV1ModelHandle obj;	  /*モデル*/
-	MV1ModelHandle colobj;       /*コリジョン*/
+	MV1ModelHandle obj;	     /*モデル*/
+	MV1ModelHandle colobj;	     /*コリジョン*/
 	char type{ 0 };		     /*敵味方識別*/
 	std::vector<SoundHandle> se; /*SE*/
 	/**/
@@ -168,7 +169,7 @@ struct players {
 	int firerad{ 0 };						/*反動角度*/
 	float recorad{ 0.f };						/*弾き反動*/
 	/*cpu関連*/
-	std::optional<size_t> atkf;	    /*cpuのヘイト*/
+	std::optional<size_t> atkf;	       /*cpuのヘイト*/
 	int aim{ 0 };			       /*ヘイトの変更カウント*/
 	size_t wayselect{ 0 }, waynow{ 0 };    /**/
 	VECTOR waypos[waypc]{ VGet(0, 0, 0) }; /*ウェイポイント*/
@@ -176,22 +177,17 @@ struct players {
 	int state{ 0 };			       /*ステータス*/
 	/**/
 	struct Guns {
-		std::vector<ammos> Ammo;    /*確保する弾(arrayでもいい？)*/
-		int loadcnt{ 0 };	    /*装てんカウンター*/
-		size_t useammo{};	    /*使用弾*/
-		float fired{ 0.f };	    /*駐退*/
+		std::vector<ammos> Ammo; /*確保する弾(arrayでもいい？)*/
+		int loadcnt{ 0 };	 /*装てんカウンター*/
+		size_t useammo{};	 /*使用弾*/
+		float fired{ 0.f };	 /*駐退*/
 	} Gun[gunc];
-
-//	std::vector<ammos> Ammo;    /*確保する弾(arrayでもいい？)*/
-//	float fired[gunc]{ 0.f };   /*駐退*/
-//	int loadcnt[gunc]{ 0 };     /*装てんカウンター*/
-//	size_t useammo[gunc]{};     /*使用弾*/
-    /**/
+	/**/
 	int gear{ 0 };			 /*変速*/
 	unsigned int gearu{ 0 };	 /*キー*/
 	unsigned int geard{ 0 };	 /*キー*/
 	VECTOR inertia{ VGet(0, 0, 0) }; /*慣性*/
-	float wheelrad[3]{ 0.f };	/*履帯の送り、転輪旋回*/
+	float wheelrad[3]{ 0.f };	 /*履帯の送り、転輪旋回*/
 	VECTOR gunrad{ 0.f };		 /*砲角度*/
 	/*弾関連*/
 	int ammotype{ 0 };		 /*弾種*/
@@ -199,9 +195,9 @@ struct players {
 	bool hitadd{ false };		 /*命中フラグ*/
 	VECTOR iconpos{ VGet(0, 0, 0) }; /*UI用*/
 	EffectS effcs[efs_user];	 /*effect*/
-	std::vector<float> Springs;      /*スプリング*/
+	std::vector<float> Springs;	 /*スプリング*/
 	std::vector<short> HP;		 /*ライフ*/
-	std::vector<pair> hitssort;      /*当たった順番*/
+	std::vector<pair> hitssort;	 /*当たった順番*/
 	/*弾痕*/
 	int hitbuf; /*使用弾痕*/
 	std::array<Hit, 3> hit;
@@ -209,17 +205,40 @@ struct players {
 	std::unique_ptr<b2Body> body; /**/
 	b2FixtureDef fixtureDef;      /*動的ボディフィクスチャを定義します。*/
 	b2PolygonShape dynamicBox;    /*ダイナミックボディに別のボックスシェイプを定義します。*/
-	b2Fixture* playerfix;	 /**/
-	b2BodyDef bodyDef;	    /*ダイナミックボディを定義します。その位置を設定し、ボディファクトリを呼び出します。*/
+	b2Fixture* playerfix;	      /**/
+	b2BodyDef bodyDef;	      /*ダイナミックボディを定義します。その位置を設定し、ボディファクトリを呼び出します。*/
+	/*足物理*/
+	b2World* foot[2];
+
+	struct Foots {
+		std::unique_ptr<b2Body> f_body; /**/
+		b2Fixture* f_playerfix;		/**/
+		VECTOR f_p;			/**/
+	};
+	std::vector<Foots> Foot[2];	/**/
+	b2FixtureDef f_fixtureDef[2];	/*動的ボディフィクスチャを定義します。*/
+	b2PolygonShape f_dynamicBox[2]; /*ダイナミックボディに別のボックスシェイプを定義します。*/
+	b2BodyDef f_bodyDef[2];		/*ダイナミックボディを定義します。その位置を設定し、ボディファクトリを呼び出します。*/
+	b2RevoluteJointDef f_jointDef[2];
+
+	struct Fwheels {
+		std::unique_ptr<b2Body> fw_body; /**/
+		b2Fixture* fw_playerfix;	 /**/
+		VECTOR fw_p;			 /**/
+	};
+	std::vector<Fwheels> Fwheel[2];	 /**/
+	b2FixtureDef fw_fixtureDef[2];	 /*動的ボディフィクスチャを定義します。*/
+	b2PolygonShape fw_dynamicBox[2]; /*ダイナミックボディに別のボックスシェイプを定義します。*/
+	b2BodyDef fw_bodyDef[2];	 /*ダイナミックボディを定義します。その位置を設定し、ボディファクトリを呼び出します。*/
 };
 /*CLASS*/
 class Myclass {
 private:
 	/*setting*/
-	bool usegrab{ false };    /*人の物理演算のオフ、オン*/
+	bool usegrab{ false };	  /*人の物理演算のオフ、オン*/
 	unsigned char ANTI{ 1 };  /*アンチエイリアス倍率*/
-	bool YSync{ true };       /*垂直同期*/
-	float f_rate{ 60.f };     /*fps*/
+	bool YSync{ true };	  /*垂直同期*/
+	float f_rate{ 60.f };	  /*fps*/
 	bool windowmode{ false }; /*ウィンドウor全画面*/
 	float drawdist{ 100.0f }; /*木の描画距離*/
 	int gndx = 8;		  /*地面のクオリティ*/
@@ -229,7 +248,7 @@ private:
 	VECTOR view, view_r;			 /*通常視点の角度、距離*/
 	std::vector<int> fonts;			 /*フォント*/
 	std::array<SoundHandle, 13> se_;	 /*効果音*/
-	std::array<GraphHandle, 4> ui_reload;    /*UI用*/
+	std::array<GraphHandle, 4> ui_reload;	 /*UI用*/
 	EffekseerEffectHandle effHndle[effects]; /*エフェクトリソース*/
 public:
 	Myclass();
@@ -337,14 +356,14 @@ private:
 	/*grass*/
 	int grasss = 50000;		/*grassの数*/
 	std::vector<VERTEX3D> grassver; /**/
-	std::vector<DWORD> grassind;    /**/
+	std::vector<DWORD> grassind;	/**/
 	int VerBuf, IndexBuf;		/**/
 	MV1ModelHandle grass;		/*grassモデル*/
 	GraphHandle graph;		/*画像ハンドル*/
 	int IndexNum, VerNum;		/**/
 	GraphHandle GgHandle;		/**/
 	int vnum, pnum;			/**/
-	MV1_REF_POLYGONLIST RefMesh;    /**/
+	MV1_REF_POLYGONLIST RefMesh;	/**/
 	//campos
 	VECTOR camera, viewv, upv; /**/
 	float rat;		   /**/
@@ -414,7 +433,7 @@ void getdist(VECTOR* startpos, VECTOR vector, float* dist, float speed, float fp
 void set_effect(EffectS* efh, VECTOR pos, VECTOR nor);
 void set_pos_effect(EffectS* efh, const EffekseerEffectHandle& handle);
 //play_class予定
-bool get_reco(players& play, std::vector<players>& tgts, ammos &c, size_t gun_s);
+bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s);
 void set_gunrad(players& play, float rat_r);
 bool set_shift(players& play);
 //

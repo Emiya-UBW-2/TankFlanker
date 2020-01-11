@@ -173,6 +173,8 @@ bool Myclass::set_veh(void) {
 					v.youdoframe.push_back(i);
 				if (tempname[0] == 'F') //ホイール
 					v.wheelframe.push_back(i);
+				if (tempname[0] == 'U') //ホイール
+					v.upsizeframe.push_back(i);
 			}
 		}
 	}
@@ -632,7 +634,7 @@ MAPS::MAPS(int map_size, float draw_dist, int shadow_size) {
 }
 void MAPS::set_map_readyb(size_t set) {
 	using namespace std::literals;
-	lightvec = VGet(0.5f, -0.5f, 0.5f);
+	lightvec = VGet(0.5f, -0.2f, 0.5f);
 	std::array<const char*, 2> mapper{ "map", "map" }; // TODO: 書き換える
 	SetUseASyncLoadFlag(TRUE);
 	tree.mnear = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/tree/model.mv1");     /*近木*/
@@ -642,7 +644,7 @@ void MAPS::set_map_readyb(size_t set) {
 	m_model = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/map.mv1");		      /*map*/
 	sky_model = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/sky/model_sky.mv1");   /*sky*/
 	graph = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/grass.png");	    /*grass*/
-	grass = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/grass/grass.mqo");	 /*grass*/
+	grass = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/grass/grass.mv1");	 /*grass*/
 	GgHandle = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/gg.png");	    /*地面草*/
 	SetUseASyncLoadFlag(FALSE);
 	return;
@@ -1147,28 +1149,30 @@ void set_pos_effect(EffectS* efh, const EffekseerEffectHandle& handle) {
 //
 bool get_reco(players& play, std::vector<players>& tgts, ammos &c, size_t gun_s) {
 	bool btmp = false;
+	bool is_hit;
+	std::optional<size_t> hitnear;
 
 	for (auto& t : tgts) {
 		if (play.id == t.id)
 			continue;
-		std::optional<size_t> hitnear;
-
+		hitnear.reset();
 		//主砲
 		if (gun_s == 0) {
 			//とりあえず当たったかどうか
-			bool is_hit = false;
+
+			is_hit = false;
 			for (size_t colmesh = 0; colmesh < t.hitssort.size(); ++colmesh) {
 				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, c.pos, int(colmesh));
 				if (HitPoly.HitFlag) {
 					t.hitssort[colmesh] = pair(colmesh, VSize(VSub(HitPoly.HitPosition, c.repos)));
 					is_hit = true;
 				}
-				else {
+				else
 					t.hitssort[colmesh] = pair(colmesh, 9999.f);
-				}
 			}
 			if (!is_hit)
-				return false;
+				continue;
+
 			std::sort(t.hitssort.begin(), t.hitssort.end(), [](const pair& x, const pair& y) { return x.second < y.second; });
 			//近い順に、はじく操作のいらないメッシュに対しダメージ面に届くまで判定
 			for (auto& tt : t.hitssort) {
@@ -1196,7 +1200,7 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos &c, size_t gun_s)
 			}
 			//ダメージ面に当たった時に装甲値に勝てるかどうか
 			if (hitnear) {
-				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, c.pos, int(hitnear.value())); //当たっているものとして詳しい判定をとる
+ 				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, c.pos, int(hitnear.value())); //当たっているものとして詳しい判定をとる
 				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 0 + 3 * t.hitbuf, MMult(MGetTranslate(HitPoly.HitPosition), MInverse(t.ps_m)));
 				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 1 + 3 * t.hitbuf, MMult(MGetTranslate(VAdd(HitPoly.Normal, HitPoly.HitPosition)), MInverse(t.ps_m)));
 				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 2 + 3 * t.hitbuf, MMult(MGetTranslate(VAdd(VCross(HitPoly.Normal, c.vec), HitPoly.HitPosition)), MInverse(t.ps_m)));
@@ -1262,7 +1266,7 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos &c, size_t gun_s)
 
 		btmp = hitnear.has_value();
 
-		if (btmp)
+		if (hitnear.has_value())
 			break;
 	}
 	return btmp;
