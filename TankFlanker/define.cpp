@@ -1,7 +1,7 @@
 ﻿#define NOMINMAX
 #include "define.h"
-#include "FontHandle.hpp"
-#include <fstream>
+//#include "FontHandle.hpp"
+//#include <fstream>
 //
 Myclass::Myclass() {
 	using namespace std::literals;
@@ -14,21 +14,21 @@ Myclass::Myclass() {
 
 	mdata = FileRead_open("data/setting.txt", FALSE);
 	FileRead_gets(mstr, 64, mdata);
-		usegrab = bool(std::stoul(getright(mstr)));
-		FileRead_gets(mstr, 64, mdata);
-		ANTI = unsigned char(std::stoul(getright(mstr)));
-		FileRead_gets(mstr, 64, mdata);
-		YSync = bool(std::stoul(getright(mstr)));
-		FileRead_gets(mstr, 64, mdata);
-		f_rate = (YSync) ? 60.f : std::stof(getright(mstr));
-		FileRead_gets(mstr, 64, mdata);
-		windowmode = bool(std::stoul(getright(mstr)));
-		FileRead_gets(mstr, 64, mdata);
-		drawdist = std::stof(getright(mstr));
-		FileRead_gets(mstr, 64, mdata);
-		gndx = std::stoi(getright(mstr));
-		FileRead_gets(mstr, 64, mdata);
-		shadex = std::stoi(getright(mstr));
+	usegrab = bool(std::stoul(getright(mstr)));
+	FileRead_gets(mstr, 64, mdata);
+	ANTI = unsigned char(std::stoul(getright(mstr)));
+	FileRead_gets(mstr, 64, mdata);
+	YSync = bool(std::stoul(getright(mstr)));
+	FileRead_gets(mstr, 64, mdata);
+	f_rate = (YSync) ? 60.f : std::stof(getright(mstr));
+	FileRead_gets(mstr, 64, mdata);
+	windowmode = bool(std::stoul(getright(mstr)));
+	FileRead_gets(mstr, 64, mdata);
+	drawdist = std::stof(getright(mstr));
+	FileRead_gets(mstr, 64, mdata);
+	gndx = std::stoi(getright(mstr));
+	FileRead_gets(mstr, 64, mdata);
+	shadex = std::stoi(getright(mstr));
 	FileRead_close(mdata);
 
 	SetMainWindowText("Tank Flanker"); /*name*/
@@ -50,7 +50,7 @@ Myclass::Myclass() {
 	SetAlwaysRunFlag(TRUE);			  /*background*/
 	SetUseZBuffer3D(TRUE);			  /*zbufuse*/
 	SetWriteZBuffer3D(TRUE);		  /*zbufwrite*/
-	MV1SetLoadModelReMakeNormal(TRUE);	/*法線*/
+	MV1SetLoadModelReMakeNormal(TRUE);	  /*法線*/
 	MV1SetLoadModelPhysicsWorldGravity(M_GR); /*重力*/
 	//車両数取得
 	hFind = FindFirstFile("data/tanks/*", &win32fdt);
@@ -193,7 +193,7 @@ bool Myclass::set_veh(void) {
 				k++;
 				DrawFormatString(0, (18 * k), c_ffff00, "エフェクト読み込み成功…%d", j);
 			}
-			if (i == f_rate-1) {
+			if (i == f_rate - 1) {
 				k++;
 				DrawFormatString(0, (18 * k), c_ff0000, "エフェクト読み込み失敗…%d", j);
 			}
@@ -223,7 +223,7 @@ int Myclass::window_choosev(void) {
 	const auto c_ffff00 = GetColor(255, 255, 0);
 	const auto c_ff0000 = GetColor(255, 0, 0);
 	const auto c_ffffff = GetColor(255, 255, 255);
-	const auto c_808080 = GetColor(128,128,128);
+	const auto c_808080 = GetColor(128, 128, 128);
 	const auto c_ffc800 = GetColor(255, 200, 0);
 	const auto c_ff6400 = GetColor(255, 100, 0);
 	while (ProcessMessage() == 0) {
@@ -246,38 +246,38 @@ int Myclass::window_choosev(void) {
 		pert = abs(1.0f - abs(float(real - deg2rad(360 * l / (int)vecs.size())) / deg2rad(360 / (int)vecs.size())));
 
 		font72.DrawString(x_r(960) - font72.GetDrawWidth(vecs[i].name) / 2, y_r(154), vecs[i].name, c_00ff00);
-		
-			xp = 850;
-			yp = 850;
-			DrawBox(x_r(xp - 1), y_r(yp + 18), x_r(xp + 1 + 200), y_r(yp + 19), c_808080, FALSE);
-			DrawBox(x_r(xp + 1 + 100), y_r(yp + 17), x_r(xp - 1 + 100 + 100 * (vecs[i].speed_flont[3] * 3.6f) / 100.f * pert), y_r(yp + 20), c_00ff00, TRUE);
-			DrawBox(x_r(xp + 1 + 100), y_r(yp + 17), x_r(xp - 1 + 100 - 100 * (vecs[i].speed_back[3] * -3.6f) / 50.f * pert), y_r(yp + 20), c_ff0000, TRUE);
-			DrawFormatStringToHandle(x_r(xp), y_r(850), c_00ff00, font18.get(), "SPEED : %5.2f～%5.2f km/h", vecs[i].speed_flont[3] * 3.6f, vecs[i].speed_back[3] * 3.6f);
 
-			xp = 1140;
-			yp = 810;
-			DrawBox(x_r(xp - 1), y_r(yp + 18), x_r(xp + 1 + 200), y_r(yp + 19), c_808080, FALSE);
-			DrawBox(x_r(xp + 1), y_r(yp + 17), x_r(xp - 1 + 200 * rad2deg(vecs[i].vehicle_RD) / 100.f * pert), y_r(yp + 20), c_00ff00, TRUE);
-			DrawFormatStringToHandle(x_r(xp), y_r(yp), c_00ff00, font18.get(), "TURN SPEED : %5.2f deg/s", rad2deg(vecs[i].vehicle_RD));
+		xp = 850;
+		yp = 850;
+		DrawBox(x_r(xp - 1), y_r(yp + 18), x_r(xp + 1 + 200), y_r(yp + 19), c_808080, FALSE);
+		DrawBox(x_r(xp + 1 + 100), y_r(yp + 17), x_r(xp - 1 + 100 + 100 * (vecs[i].speed_flont[3] * 3.6f) / 100.f * pert), y_r(yp + 20), c_00ff00, TRUE);
+		DrawBox(x_r(xp + 1 + 100), y_r(yp + 17), x_r(xp - 1 + 100 - 100 * (vecs[i].speed_back[3] * -3.6f) / 50.f * pert), y_r(yp + 20), c_ff0000, TRUE);
+		DrawFormatStringToHandle(x_r(xp), y_r(850), c_00ff00, font18.get(), "SPEED : %5.2f～%5.2f km/h", vecs[i].speed_flont[3] * 3.6f, vecs[i].speed_back[3] * 3.6f);
 
-			xp=1120;
-			yp = 580;
-			DrawBox(x_r(xp - 1), y_r(yp + 18), x_r(xp + 1 + 200), y_r(yp + 19), c_808080, FALSE);
-			DrawBox(x_r(xp + 1), y_r(yp + 17), x_r(xp - 1 + 200 * vecs[i].armer[0] / 150.f * pert), y_r(yp + 20), c_00ff00, TRUE);
-			DrawFormatStringToHandle(x_r(xp), y_r(yp), c_00ff00, font18.get(), "MAX ARMER : %5.2f mm", vecs[i].armer[0]);
+		xp = 1140;
+		yp = 810;
+		DrawBox(x_r(xp - 1), y_r(yp + 18), x_r(xp + 1 + 200), y_r(yp + 19), c_808080, FALSE);
+		DrawBox(x_r(xp + 1), y_r(yp + 17), x_r(xp - 1 + 200 * rad2deg(vecs[i].vehicle_RD) / 100.f * pert), y_r(yp + 20), c_00ff00, TRUE);
+		DrawFormatStringToHandle(x_r(xp), y_r(yp), c_00ff00, font18.get(), "TURN SPEED : %5.2f deg/s", rad2deg(vecs[i].vehicle_RD));
 
-			xp = 650;
-			yp = 410;
-			DrawBox(x_r(xp - 1), y_r(yp + 18), x_r(xp + 1 + 200), y_r(yp + 19), c_808080, FALSE);
-			DrawBox(x_r(xp + 1 + 100), y_r(yp + 17), x_r(xp - 1 + 100 + 100 * rad2deg(vecs[i].gun_lim_[2]) / 40.f * pert), y_r(yp + 20), c_00ff00, TRUE);
-			DrawBox(x_r(xp + 1 + 100), y_r(yp + 17), x_r(xp - 1 + 100 - 100 * rad2deg(vecs[i].gun_lim_[3]) / -20.f * pert), y_r(yp + 20), c_ff0000, TRUE);
-			DrawFormatStringToHandle(x_r(xp), y_r(yp), c_00ff00, font18.get(), "GUN RAD     : %5.2f°～%5.2f°", rad2deg(vecs[i].gun_lim_[2]), rad2deg(vecs[i].gun_lim_[3]));
+		xp = 1120;
+		yp = 580;
+		DrawBox(x_r(xp - 1), y_r(yp + 18), x_r(xp + 1 + 200), y_r(yp + 19), c_808080, FALSE);
+		DrawBox(x_r(xp + 1), y_r(yp + 17), x_r(xp - 1 + 200 * vecs[i].armer[0] / 150.f * pert), y_r(yp + 20), c_00ff00, TRUE);
+		DrawFormatStringToHandle(x_r(xp), y_r(yp), c_00ff00, font18.get(), "MAX ARMER : %5.2f mm", vecs[i].armer[0]);
 
-			xp = 650;
-			yp = 430;
-			DrawBox(x_r(xp - 1), y_r(yp + 18), x_r(xp + 1 + 200), y_r(yp + 19), c_808080, FALSE);
-			DrawBox(x_r(xp + 1), y_r(yp + 17), x_r(xp - 1 + 200 * (vecs[i].ammosize[0] * 1000.f) / 200.f * pert), y_r(yp + 20), c_00ff00, TRUE);
-			DrawFormatStringToHandle(x_r(xp), y_r(yp), c_00ff00, font18.get(), "GUN CALIBER : %05.1fmm", vecs[i].ammosize[0] * 1000.f);
+		xp = 650;
+		yp = 410;
+		DrawBox(x_r(xp - 1), y_r(yp + 18), x_r(xp + 1 + 200), y_r(yp + 19), c_808080, FALSE);
+		DrawBox(x_r(xp + 1 + 100), y_r(yp + 17), x_r(xp - 1 + 100 + 100 * rad2deg(vecs[i].gun_lim_[2]) / 40.f * pert), y_r(yp + 20), c_00ff00, TRUE);
+		DrawBox(x_r(xp + 1 + 100), y_r(yp + 17), x_r(xp - 1 + 100 - 100 * rad2deg(vecs[i].gun_lim_[3]) / -20.f * pert), y_r(yp + 20), c_ff0000, TRUE);
+		DrawFormatStringToHandle(x_r(xp), y_r(yp), c_00ff00, font18.get(), "GUN RAD     : %5.2f°～%5.2f°", rad2deg(vecs[i].gun_lim_[2]), rad2deg(vecs[i].gun_lim_[3]));
+
+		xp = 650;
+		yp = 430;
+		DrawBox(x_r(xp - 1), y_r(yp + 18), x_r(xp + 1 + 200), y_r(yp + 19), c_808080, FALSE);
+		DrawBox(x_r(xp + 1), y_r(yp + 17), x_r(xp - 1 + 200 * (vecs[i].ammosize[0] * 1000.f) / 200.f * pert), y_r(yp + 20), c_00ff00, TRUE);
+		DrawFormatStringToHandle(x_r(xp), y_r(yp), c_00ff00, font18.get(), "GUN CALIBER : %05.1fmm", vecs[i].ammosize[0] * 1000.f);
 		//
 		font18.DrawString(x_r(0), y_r(18 * 1), "SETTING", c_00ff00);
 		DrawFormatStringToHandle(x_r(0), y_r(18 * 2), c_00ff00, font18.get(), " 人の物理演算         : %s", usegrab ? "TRUE" : "FALSE");
@@ -380,7 +380,7 @@ void Myclass::set_view_r(void) {
 	//x_r(960), y_r(540)
 	view.y += (float)(px - dispx / 2) / dispx * dispx / 640 * 1.0f;
 	view.x += (float)(py - dispy / 2) / dispy * dispy / 480 * 1.0f;
-	view.x = std::min<float>(deg2rad(35), std::max<float>(deg2rad(-35), view.x));//limit
+	view.x = std::min<float>(deg2rad(35), std::max<float>(deg2rad(-35), view.x)); //limit
 	view_r = VAdd(view_r, VScale(VSub(view, view_r), 0.1f));
 	SetMousePoint(x_r(960), y_r(540));
 }
@@ -616,17 +616,17 @@ void HUMANS::start_humananime(int p1) {
 //
 MAPS::MAPS(int map_size, float draw_dist, int shadow_size) {
 	groundx = map_size * 1024; /*ノーマルマップのサイズ*/
-	drawdist = draw_dist;      /*木の遠近*/
+	drawdist = draw_dist;	   /*木の遠近*/
 	shadowx = shadow_size;
 	int shadowsize = (1 << (10 + shadowx));
 	//shadow----------------------------------------------------------------------------------------//
-	shadow_near = MakeShadowMap(shadowsize, shadowsize);     /*近影*/
+	shadow_near = MakeShadowMap(shadowsize, shadowsize);	 /*近影*/
 	SetShadowMapAdjustDepth(shadow_near, 0.0005f);		 /*ずれを小さくするため*/
 	shadow_seminear = MakeShadowMap(shadowsize, shadowsize); /*近影*/
-	shadow_far = MakeShadowMap(shadowsize, shadowsize);      /*マップ用*/
+	shadow_far = MakeShadowMap(shadowsize, shadowsize);	 /*マップ用*/
 	//map-------------------------------------------------------------------------------------------//
 	SetUseASyncLoadFlag(TRUE);
-	sky_sun = GraphHandle::Load("data/sun.png");       /*太陽*/
+	sky_sun = GraphHandle::Load("data/sun.png");	   /*太陽*/
 	texo = GraphHandle::Load("data/nm.png");	   /*轍*/
 	texp = GraphHandle::Make(groundx, groundx, FALSE); /*ノーマルマップ*/
 	texn = GraphHandle::Make(groundx, groundx, FALSE); /*実マップ*/
@@ -634,7 +634,7 @@ MAPS::MAPS(int map_size, float draw_dist, int shadow_size) {
 }
 void MAPS::set_map_readyb(size_t set) {
 	using namespace std::literals;
-	lightvec = VGet(0.5f, -0.2f, 0.5f);
+	lightvec = VGet(0.5f, -0.2f, -0.5f);
 	std::array<const char*, 2> mapper{ "map", "map" }; // TODO: 書き換える
 	SetUseASyncLoadFlag(TRUE);
 	tree.mnear = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/tree/model.mv1");     /*近木*/
@@ -643,9 +643,9 @@ void MAPS::set_map_readyb(size_t set) {
 	texm = GraphHandle::Load("data/"s + mapper.at(set) + "/SandDesert_04_00344_NM.png");  /*nor*/
 	m_model = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/map.mv1");		      /*map*/
 	sky_model = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/sky/model_sky.mv1");   /*sky*/
-	graph = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/grass.png");	    /*grass*/
-	grass = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/grass/grass.mv1");	 /*grass*/
-	GgHandle = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/gg.png");	    /*地面草*/
+	graph = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/grass.png");	      /*grass*/
+	grass = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/grass/grass.mv1");	      /*grass*/
+	GgHandle = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/gg.png");	      /*地面草*/
 	SetUseASyncLoadFlag(FALSE);
 	return;
 }
@@ -668,7 +668,7 @@ bool MAPS::set_map_ready() {
 
 	MV1SetupCollInfo(m_model.get(), 0, map_x / 5, map_x / 5, map_y / 5);
 	SetFogStartEnd(10.0f, 1400.0f); /*fog*/
-	SetFogColor(150, 150, 175);     /*fog*/
+	SetFogColor(150, 150, 175);	/*fog*/
 	SetLightDirection(lightvec);
 	SetShadowMapLightDirection(shadow_near, lightvec);
 	SetShadowMapLightDirection(shadow_seminear, lightvec);
@@ -693,13 +693,13 @@ bool MAPS::set_map_ready() {
 	/*grass*/
 	vnum = 0;
 	pnum = 0;
-	MV1SetupReferenceMesh(grass.get(), -1, TRUE);	 /*参照用メッシュの作成*/
+	MV1SetupReferenceMesh(grass.get(), -1, TRUE); /*参照用メッシュの作成*/
 
 	RefMesh = MV1GetReferenceMesh(grass.get(), -1, TRUE); /*参照用メッシュの取得*/
 	/*todo : mv1にしとく*/
 
-	IndexNum = RefMesh.PolygonNum * 3 * grasss;	   /*インデックスの数を取得*/
-	VerNum = RefMesh.VertexNum * grasss;		      /*頂点の数を取得*/
+	IndexNum = RefMesh.PolygonNum * 3 * grasss; /*インデックスの数を取得*/
+	VerNum = RefMesh.VertexNum * grasss;	    /*頂点の数を取得*/
 
 	grassver.resize(VerNum);   /*頂点データとインデックスデータを格納するメモリ領域の確保*/
 	grassind.resize(IndexNum); /*頂点データとインデックスデータを格納するメモリ領域の確保*/
@@ -714,7 +714,7 @@ bool MAPS::set_map_ready() {
 		if (HitPoly.HitFlag)
 			MV1SetMatrix(grass.get(), MMult(MGetScale(VGet((float)(200 + GetRand(400)) / 100.0f, (float)(25 + GetRand(100)) / 100.0f, (float)(200 + GetRand(400)) / 100.0f)), MMult(MMult(MGetRotY(deg2rad(GetRand(360))), MGetRotVec2(VGet(0, 1.f, 0), HitPoly.Normal)), MGetTranslate(HitPoly.HitPosition))));
 		//上省
-		MV1RefreshReferenceMesh(grass.get(), -1, TRUE);       /*参照用メッシュの更新*/
+		MV1RefreshReferenceMesh(grass.get(), -1, TRUE);	      /*参照用メッシュの更新*/
 		RefMesh = MV1GetReferenceMesh(grass.get(), -1, TRUE); /*参照用メッシュの取得*/
 		for (size_t j = 0; j < size_t(RefMesh.VertexNum); ++j) {
 			grassver[j + vnum].pos = RefMesh.Vertexs[j].Position;
@@ -900,14 +900,15 @@ UIS::UIS() {
 	using namespace std::literals;
 	WIN32_FIND_DATA win32fdt;
 
-	countries = 1;//国の数
+	countries = 1; //国の数
 
 	UI_main.resize(countries); /*改善*/
 	SetUseASyncLoadFlag(TRUE);
-	for (size_t j = 0; j < std::size(ui_reload); ++j) {
-		ui_reload[j] = GraphHandle::Load("data/ui/ammo_" + std::to_string(j) + ".bmp");
-	} /*弾0,弾1,弾2,空弾*/
-	const auto hFind = FindFirstFile("data/ui/body/*.png", &win32fdt);
+	for (size_t j = 0; j < std::size(ui_reload); ++j)
+		ui_reload[j] = GraphHandle::Load("data/ui/ammo_" + std::to_string(j) + ".bmp");/*弾0,弾1,弾2,空弾*/
+	//
+	ui_compass = GraphHandle::Load("data/ui/compass.png");
+ 	const auto hFind = FindFirstFile("data/ui/body/*.png", &win32fdt);
 	if (hFind != INVALID_HANDLE_VALUE) {
 		do {
 			if (win32fdt.cFileName[0] == 'B') {
@@ -919,6 +920,7 @@ UIS::UIS() {
 		} while (FindNextFile(hFind, &win32fdt));
 	} //else{ return false; }
 	FindClose(hFind);
+	//
 	for (size_t j = 0; j < countries; ++j) {
 		// TODO: Germanの部分は可変になる
 		for (size_t i = 0; i < 8; ++i) {
@@ -1002,6 +1004,11 @@ void UIS::set_state(players* play) {
 void UIS::set_reco(void) {
 	recs = 1.f;
 }
+
+void UIS::draw_drive() {
+	DrawExtendGraph(0, 0, dispx, dispy, UI_main[pplayer->ptr->countryc].ui_sight[7].get(), TRUE);
+}
+
 void UIS::draw_sight(float posx, float posy, float ratio, float dist, int font) {
 	DrawRotaGraph(x_r(960), y_r(540), (float)y_r(2), deg2rad(-dist / 20), UI_main[pplayer->ptr->countryc].ui_sight[1].get(), TRUE);
 	DrawRotaGraph((int)posx, (int)posy, (float)y_r(2) * ratio / 4.0f, 0, UI_main[pplayer->ptr->countryc].ui_sight[2].get(), TRUE);
@@ -1024,7 +1031,7 @@ void UIS::draw_ui(int selfammo, float y_v) {
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(128.0f * pow(1.0f - (float)pplayer->Gun[0].loadcnt / (float)pplayer->ptr->reloadtime[0], 10)));
 		if (selfammo == 0)
 			DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[3].get(), TRUE);
-		else 
+		else
 			DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[(pplayer->ammotype - 1) % 3].get(), TRUE);
 	}
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
@@ -1044,6 +1051,10 @@ void UIS::draw_ui(int selfammo, float y_v) {
 
 	DrawExtendGraph(x_r(192), y_r(892 - 4), x_r(232), y_r(950), UI_main[pplayer->ptr->countryc].ui_sight[6].get(), TRUE);
 	differential(gearf, (float)pplayer->gear, 0.1f);
+
+
+	
+	DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, double(-y_v), ui_compass.get(), TRUE);
 
 	for (size_t i = 0; i < UI_body.size(); ++i) {
 		if (i >= 1 && i <= 2) {
@@ -1069,10 +1080,6 @@ void UIS::draw_ui(int selfammo, float y_v) {
 			SetDrawBright(255, 255, 255);
 		DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, double(-y_v + pplayer->yrad + pplayer->gunrad.x), UI_turret[i].get(), TRUE);
 	}
-
-	const auto c_ff0000 = GetColor(255, 0, 0);
-	DrawLine(x_r(392), y_r(980), x_r(392 - int(100.f * sin(y_v))), y_r(980 - int(100.f * cos(y_v))), c_ff0000);
-
 	//DrawFormatString(x_r(1056), y_r(594), GetColor(255, 255, 255), "[%03d][%03d]", UI_body.size(),UI_turret.size());
 }
 /*debug*/
@@ -1147,7 +1154,7 @@ void set_pos_effect(EffectS* efh, const EffekseerEffectHandle& handle) {
 	//IsEffekseer3DEffectPlaying(player[0].effcs[i].handle)
 }
 //
-bool get_reco(players& play, std::vector<players>& tgts, ammos &c, size_t gun_s) {
+bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s) {
 	bool btmp = false;
 	bool is_hit;
 	std::optional<size_t> hitnear;
@@ -1200,7 +1207,7 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos &c, size_t gun_s)
 			}
 			//ダメージ面に当たった時に装甲値に勝てるかどうか
 			if (hitnear) {
- 				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, c.pos, int(hitnear.value())); //当たっているものとして詳しい判定をとる
+				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, c.pos, int(hitnear.value())); //当たっているものとして詳しい判定をとる
 				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 0 + 3 * t.hitbuf, MMult(MGetTranslate(HitPoly.HitPosition), MInverse(t.ps_m)));
 				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 1 + 3 * t.hitbuf, MMult(MGetTranslate(VAdd(HitPoly.Normal, HitPoly.HitPosition)), MInverse(t.ps_m)));
 				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 2 + 3 * t.hitbuf, MMult(MGetTranslate(VAdd(VCross(HitPoly.Normal, c.vec), HitPoly.HitPosition)), MInverse(t.ps_m)));

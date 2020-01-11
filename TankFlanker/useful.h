@@ -19,7 +19,7 @@
 #define deg2rad(p1) ((p1)*DX_PI_F / 180)		//角度からラジアンに
 #define rad2deg(p1) ((p1)*180 / DX_PI_F)		//ラジアンから角度に
 #define differential(p1, p2, p3) p1 += ((p2)-p1) * (p3) //p2の値に近づいていく
-#define cross2D(px, py, qx, qy) (qy * px - qx * py)     //2D外積
+#define cross2D(px, py, qx, qy) (qy * px - qx * py)	//2D外積
 
 
 #ifndef INCLUDED_useful_h_

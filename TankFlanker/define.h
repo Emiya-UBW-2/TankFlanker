@@ -12,6 +12,7 @@
 #include "useful.h"
 #include <array>
 #include <algorithm>
+#include <memory>
 #include <vector>
 #include <cstring>
 #include <string_view>
@@ -25,6 +26,7 @@
 #include "EffekseerEffectHandle.hpp"
 #include "SoundHandle.hpp"
 #include "GraphHandle.hpp"
+#include "FontHandle.hpp"
 
 
 using std::size_t;
@@ -281,7 +283,7 @@ public:
 	const auto& get_ui2() const& { return ui_reload; }
 	int get_font(int p1) { return fonts[p1]; } //フォントハンドル取り出し
 	VECTOR get_view_r(void) { return view_r; }
-	const auto get_in(void) { return view_r.z != 0.1f; }
+	const auto get_in(void) { return view_r.z == 0.1f; }
 	VECTOR get_view_pos(void) { return VScale(VGet(sin(view_r.y) * cos(view_r.x), sin(view_r.x), cos(view_r.y) * cos(view_r.x)), 15.0f * view_r.z); }
 	EffekseerEffectHandle& get_effHandle(int p1) noexcept { return effHndle[p1]; }
 	const EffekseerEffectHandle& get_effHandle(int p1) const noexcept { return effHndle[p1]; }
@@ -400,6 +402,7 @@ private:
 	};
 	/**/
 	std::array<GraphHandle, 4> ui_reload; /*弾UI*/
+	GraphHandle ui_compass;
 	std::vector<GraphHandle> UI_body;     /*弾UI*/
 	std::vector<GraphHandle> UI_turret;   /*弾UI*/
 	std::vector<country> UI_main;	      /*国別UI*/
@@ -419,6 +422,7 @@ public:
 	void draw_load(void);							    /*ロード画面*/
 	void set_state(players* play);						    /*使用するポインタの指定*/
 	void set_reco(void);							    /*反射スイッチ*/
+	void draw_drive();
 	void draw_sight(float posx, float posy, float ratio, float dist, int font); /*照準UI*/
 	void draw_ui(int selfammo, float y_v);					    /*メインUI*/
 	/*debug*/
