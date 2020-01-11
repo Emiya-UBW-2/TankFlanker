@@ -901,31 +901,28 @@ UIS::UIS() {
 	WIN32_FIND_DATA win32fdt;
 
 	countries = 1; //国の数
+	std::array<const char*, 1> country{ "German" }; // TODO: 書き換える		// TODO: Germanの部分は可変になる
 
 	UI_main.resize(countries); /*改善*/
 	SetUseASyncLoadFlag(TRUE);
 	for (size_t j = 0; j < std::size(ui_reload); ++j)
-		ui_reload[j] = GraphHandle::Load("data/ui/ammo_" + std::to_string(j) + ".bmp");/*弾0,弾1,弾2,空弾*/
+		ui_reload[j] = GraphHandle::Load("data/ui/ammo_" + std::to_string(j) + ".bmp"); /*弾0,弾1,弾2,空弾*/
 	//
 	ui_compass = GraphHandle::Load("data/ui/compass.png");
- 	const auto hFind = FindFirstFile("data/ui/body/*.png", &win32fdt);
+	const auto hFind = FindFirstFile("data/ui/body/*.png", &win32fdt);
 	if (hFind != INVALID_HANDLE_VALUE) {
 		do {
-			if (win32fdt.cFileName[0] == 'B') {
+			if (win32fdt.cFileName[0] == 'B')
 				UI_body.emplace_back(GraphHandle::Load(("data/ui/body/"s + win32fdt.cFileName).c_str()));
-			}
-			if (win32fdt.cFileName[0] == 'T') {
+			if (win32fdt.cFileName[0] == 'T')
 				UI_turret.emplace_back(GraphHandle::Load(("data/ui/body/"s + win32fdt.cFileName).c_str()));
-			}
 		} while (FindNextFile(hFind, &win32fdt));
 	} //else{ return false; }
 	FindClose(hFind);
 	//
 	for (size_t j = 0; j < countries; ++j) {
-		// TODO: Germanの部分は可変になる
-		for (size_t i = 0; i < 8; ++i) {
-			UI_main[j].ui_sight[i] = GraphHandle::Load("data/ui/German/" + std::to_string(i) + ".png");
-		}
+		for (size_t i = 0; i < 8; ++i)
+			UI_main[j].ui_sight[i] = GraphHandle::Load("data/ui/"s + country[j] + "/" + std::to_string(i) + ".png");
 	}
 	SetUseASyncLoadFlag(FALSE);
 }
@@ -973,6 +970,8 @@ void UIS::draw_load(void) {
 		i += 18;
 		font18.DrawString(x_r(1367), y_r(401 + i), "左shift : 照準", c_ff6400);
 		i += 18;
+		font18.DrawString(x_r(1367), y_r(401 + i), "右CTRL : ドライバー視点", c_ff6400);
+		i += 18;
 		font18.DrawString(x_r(1367), y_r(401 + i), "Z : レティクル上昇", c_ff6400);
 		i += 18;
 		font18.DrawString(x_r(1367), y_r(401 + i), "X : レティクル下降", c_ff6400);
@@ -1007,6 +1006,15 @@ void UIS::set_reco(void) {
 
 void UIS::draw_drive() {
 	DrawExtendGraph(0, 0, dispx, dispy, UI_main[pplayer->ptr->countryc].ui_sight[7].get(), TRUE);
+}
+
+void UIS::draw_icon(players& p, int font) {
+	const auto c_00ff00 = GetColor(0, 255, 0);
+	const auto c_ff0000 = GetColor(255, 0, 0);
+
+	if (p.HP[0] != 0)
+		if (p.iconpos.z > 0.0f && p.iconpos.z < 1.0f)
+			DrawFormatStringToHandle((int)p.iconpos.x, (int)p.iconpos.y, (p.type == TEAM) ? c_00ff00 : c_ff0000, font, "%dm", (int)VSize(VSub(p.pos, pplayer->pos)));
 }
 
 void UIS::draw_sight(float posx, float posy, float ratio, float dist, int font) {
@@ -1053,7 +1061,7 @@ void UIS::draw_ui(int selfammo, float y_v) {
 	differential(gearf, (float)pplayer->gear, 0.1f);
 
 
-	
+
 	DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, double(-y_v), ui_compass.get(), TRUE);
 
 	for (size_t i = 0; i < UI_body.size(); ++i) {

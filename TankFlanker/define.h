@@ -356,7 +356,7 @@ private:
 	GraphHandle sky_sun;			  /*sunpic*/
 	VECTOR lightvec;			  /*light方向*/
 	/*grass*/
-	int grasss = 50000;		/*grassの数*/
+	int grasss = 10000;		/*grassの数*/
 	std::vector<VERTEX3D> grassver; /**/
 	std::vector<DWORD> grassind;	/**/
 	int VerBuf, IndexBuf;		/**/
@@ -402,9 +402,9 @@ private:
 	};
 	/**/
 	std::array<GraphHandle, 4> ui_reload; /*弾UI*/
-	GraphHandle ui_compass;
-	std::vector<GraphHandle> UI_body;     /*弾UI*/
-	std::vector<GraphHandle> UI_turret;   /*弾UI*/
+	GraphHandle ui_compass;		      /*UI*/
+	std::vector<GraphHandle> UI_body;     /*UI*/
+	std::vector<GraphHandle> UI_turret;   /*UI*/
 	std::vector<country> UI_main;	      /*国別UI*/
 	size_t countries = 1;		      /*国数*/
 	float gearf = 0.f;		      /*変速*/
@@ -423,6 +423,7 @@ public:
 	void set_state(players* play);						    /*使用するポインタの指定*/
 	void set_reco(void);							    /*反射スイッチ*/
 	void draw_drive();
+	void draw_icon(players& p, int font);
 	void draw_sight(float posx, float posy, float ratio, float dist, int font); /*照準UI*/
 	void draw_ui(int selfammo, float y_v);					    /*メインUI*/
 	/*debug*/

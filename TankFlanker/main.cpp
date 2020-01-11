@@ -214,57 +214,53 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			for (size_t LR = 0; LR < 2; ++LR) {
 				p.foot[LR] = new b2World(b2Vec2(0.0f, 0.0f));
 				{
+					b2Body* ground = NULL;
 					{
-						b2Body* ground = NULL;
-						{
-							b2BodyDef bd;
-							ground = p.foot[LR]->CreateBody(&bd);
-							b2EdgeShape shape;
-							shape.Set(b2Vec2(-40.0f, -10.0f), b2Vec2(40.0f, -10.0f));
-							ground->CreateFixture(&shape, 0.0f);
-						}
-						b2Body* prevBody = ground;
-						int i = 0;
-						VECTOR vects = VGet(0, 0, 0);
-						for (auto& w : p.ptr->upsizeframe) {
-							vects = VTransform(VGet(0, 0, 0), MV1GetFrameLocalMatrix(p.obj.get(), w));
-							if (vects.x * ((LR == 0) ? 1.f : -1.f) > 0) {
-								p.Foot[LR].resize(i + 1);
-								p.f_dynamicBox[LR].SetAsBox(0.1f, 0.125f);
-								p.f_fixtureDef[LR].shape = &p.f_dynamicBox[LR];
-								p.f_fixtureDef[LR].density = 20.0f;
-								p.f_fixtureDef[LR].friction = 0.2f;
-								p.f_bodyDef[LR].type = b2_dynamicBody;
-								p.f_bodyDef[LR].position.Set(vects.z, vects.y);
-								p.Foot[LR][i].f_body.reset(p.foot[LR]->CreateBody(&p.f_bodyDef[LR]));
-								p.Foot[LR][i].f_playerfix = p.Foot[LR][i].f_body->CreateFixture(&p.f_fixtureDef[LR]); // シェイプをボディに追加します。
-								p.f_jointDef[LR].Initialize(prevBody, p.Foot[LR][i].f_body.get(), b2Vec2(vects.z, vects.y));
-								p.foot[LR]->CreateJoint(&p.f_jointDef[LR]);
-								prevBody = p.Foot[LR][i].f_body.get();
-								++i;
-							}
-						}
-						p.f_jointDef[LR].Initialize(prevBody, ground, b2Vec2(vects.z, vects.y));
-						p.foot[LR]->CreateJoint(&p.f_jointDef[LR]);
+						b2BodyDef bd;
+						ground = p.foot[LR]->CreateBody(&bd);
+						b2EdgeShape shape;
+						shape.Set(b2Vec2(-40.0f, -10.0f), b2Vec2(40.0f, -10.0f));
+						ground->CreateFixture(&shape, 0.0f);
 					}
-					{
-						int i = 0;
-						for (auto& w : p.ptr->wheelframe) {
-							VECTOR vects = VAdd(
-							    VTransform(VGet(0, 0, 0), MV1GetFrameLocalMatrix(player[0].obj.get(), w + 1)),
-							    VTransform(VGet(0, 0, 0), MV1GetFrameLocalMatrix(player[0].obj.get(), w)));
-							if (vects.x * ((LR == 0) ? 1.f : -1.f) > 0) {
-								p.Fwheel[LR].resize(i + 1);
-								b2CircleShape shape;
-								shape.m_radius = VSize(VTransform(VGet(0, 0, 0), MV1GetFrameLocalMatrix(p.obj.get(), w + 1))) - 0.1f;
-								p.fw_fixtureDef[LR].shape = &shape;
-								p.fw_fixtureDef[LR].density = 1.0f;
-								p.fw_bodyDef[LR].type = b2_kinematicBody;
-								p.fw_bodyDef[LR].position.Set(vects.z, vects.y);
-								p.Fwheel[LR][i].fw_body.reset(p.foot[LR]->CreateBody(&p.fw_bodyDef[LR]));
-								p.playerfix = p.Fwheel[LR][i].fw_body->CreateFixture(&p.fw_fixtureDef[LR]);
-								++i;
-							}
+					b2Body* prevBody = ground;
+					int i = 0;
+					VECTOR vects = VGet(0, 0, 0);
+					for (auto& w : p.ptr->upsizeframe) {
+						vects = VTransform(VGet(0, 0, 0), MV1GetFrameLocalMatrix(p.obj.get(), w));
+						if (vects.x * ((LR == 0) ? 1.f : -1.f) > 0) {
+							p.Foot[LR].resize(i + 1);
+							p.f_dynamicBox[LR].SetAsBox(0.1f, 0.125f);
+							p.f_fixtureDef[LR].shape = &p.f_dynamicBox[LR];
+							p.f_fixtureDef[LR].density = 20.0f;
+							p.f_fixtureDef[LR].friction = 0.2f;
+							p.f_bodyDef[LR].type = b2_dynamicBody;
+							p.f_bodyDef[LR].position.Set(vects.z, vects.y);
+							p.Foot[LR][i].f_body.reset(p.foot[LR]->CreateBody(&p.f_bodyDef[LR]));
+							p.Foot[LR][i].f_playerfix = p.Foot[LR][i].f_body->CreateFixture(&p.f_fixtureDef[LR]); // シェイプをボディに追加します。
+							p.f_jointDef[LR].Initialize(prevBody, p.Foot[LR][i].f_body.get(), b2Vec2(vects.z, vects.y));
+							p.foot[LR]->CreateJoint(&p.f_jointDef[LR]);
+							prevBody = p.Foot[LR][i].f_body.get();
+							++i;
+						}
+					}
+					p.f_jointDef[LR].Initialize(prevBody, ground, b2Vec2(vects.z, vects.y));
+					p.foot[LR]->CreateJoint(&p.f_jointDef[LR]);
+					i = 0;
+					for (auto& w : p.ptr->wheelframe) {
+						vects = VAdd(
+						    VTransform(VGet(0, 0, 0), MV1GetFrameLocalMatrix(player[0].obj.get(), w + 1)),
+						    VTransform(VGet(0, 0, 0), MV1GetFrameLocalMatrix(player[0].obj.get(), w)));
+						if (vects.x * ((LR == 0) ? 1.f : -1.f) > 0) {
+							p.Fwheel[LR].resize(i + 1);
+							b2CircleShape shape;
+							shape.m_radius = VSize(VTransform(VGet(0, 0, 0), MV1GetFrameLocalMatrix(p.obj.get(), w + 1))) - 0.1f;
+							p.fw_fixtureDef[LR].shape = &shape;
+							p.fw_fixtureDef[LR].density = 1.0f;
+							p.fw_bodyDef[LR].type = b2_kinematicBody;
+							p.fw_bodyDef[LR].position.Set(vects.z, vects.y);
+							p.Fwheel[LR][i].fw_body.reset(p.foot[LR]->CreateBody(&p.fw_bodyDef[LR]));
+							p.playerfix = p.Fwheel[LR][i].fw_body->CreateFixture(&p.fw_fixtureDef[LR]);
+							++i;
 						}
 					}
 				}
@@ -844,8 +840,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 								a.cnt = 0;
 
 								tempvec[0] = VSub(p.obj.frame(p.ptr->gunframe[guns] + 1), a.pos);
-								const auto y = atan2(tempvec[0].x, tempvec[0].z) + deg2rad((float)(-1000 + GetRand(2000)) / 10000.f);				 //ばらつき±0.1°
-								const auto x = atan2(-tempvec[0].y, std::hypot(tempvec[0].x, tempvec[0].z)) - deg2rad((float)(-1000 + GetRand(2000)) / 10000.f); //ばらつき±0.1°
+//								const auto y = atan2(tempvec[0].x, tempvec[0].z) + deg2rad((float)(-1000 + GetRand(2000)) / 10000.f);				 //ばらつき±0.1°
+//								const auto x = atan2(-tempvec[0].y, std::hypot(tempvec[0].x, tempvec[0].z)) - deg2rad((float)(-1000 + GetRand(2000)) / 10000.f); //ばらつき±0.1°
+
+								const auto y = atan2(tempvec[0].x, tempvec[0].z);
+								const auto x = atan2(-tempvec[0].y, std::hypot(tempvec[0].x, tempvec[0].z));
 								a.vec = VGet(cos(x) * sin(y), -sin(x), cos(x) * cos(y));
 								//
 								p.Gun[guns].useammo++;
@@ -1170,31 +1169,23 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 				/*UI*/
 				if (aim.flug)
-					uiparts->draw_sight(aims.x, aims.y, rat_r, aimm, parts->get_font(0));/*照準器*/
-				else {
+					uiparts->draw_sight(aims.x, aims.y, rat_r, aimm, parts->get_font(0)); /*照準器*/
+				else
+					/*アイコン*/
 					for (auto& tt : pssort) {
 						if (tt.first == 0 || tt.second == (float)map_x)
 							continue;
-						if (player[tt.first].HP[0] != 0) {
-							if (player[tt.first].iconpos.z > 0.0f && player[tt.first].iconpos.z < 1.0f) {
-								DrawFormatStringToHandle(
-								    (int)player[tt.first].iconpos.x, (int)player[tt.first].iconpos.y, (player[tt.first].type == TEAM) ? c_00ff00 : c_ff0000, parts->get_font(0),
-								    "%dm", (int)VSize(VSub(player[tt.first].pos, player[0].pos)));
-							}
-						}
+						uiparts->draw_icon(player[tt.first], parts->get_font(0));
 					}
-				}						   /*アイコン*/
-
 				if (keyget[19])
 					uiparts->draw_drive(); /*ドライバー視点*/
 
 				uiparts->draw_ui(selfammo, parts->get_view_r().y); /*main*/
-
 			}
 			/*debug*/
 			//DrawFormatStringToHandle(x_r(18), y_r(1062), c_ffffff, parts->get_font(0), "start-stop(%.2fms)", (float)stop_w / 1000.f);
 			uiparts->debug(fps, (float)(GetNowHiPerformanceCount() - waits) / 1000.0f);
-
+			//
 			parts->Screen_Flip(waits);
 		}
 		//delete
