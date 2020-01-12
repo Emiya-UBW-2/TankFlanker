@@ -380,7 +380,7 @@ void Myclass::set_view_r(void) {
 	//x_r(960), y_r(540)
 	view.y += (float)(px - dispx / 2) / dispx * dispx / 640 * 1.0f;
 	view.x += (float)(py - dispy / 2) / dispy * dispy / 480 * 1.0f;
-	view.x = std::min<float>(deg2rad(35), std::max<float>(deg2rad(-35), view.x)); //limit
+	view.x = std::clamp(view.x, deg2rad(-35), deg2rad(35));
 	view_r = VAdd(view_r, VScale(VSub(view, view_r), 0.1f));
 	SetMousePoint(x_r(960), y_r(540));
 }
@@ -500,53 +500,42 @@ void HUMANS::set_humanmove(const players& player, VECTOR rad) {
 
 	if (rad.z > 0.1f)
 		in_f = false;
-
 	if (rad.z == 0.1f && !in_f) {
 		in_f = true;
 		physicsReset = true;
 	}
 	{
 		auto& h = hum.front();
+		/*座る*/
 		h.per[0] = 0.f;
-		if (player.speed >= 30.f / 3.6f) {
-			h.per[1] += (1.0f - h.per[1]) * 0.1f;
-		}
-		else {
+		if (player.speed >= 30.f / 3.6f)
+			differential(h.per[1], 1.f, 0.1f);
+		else
 			h.per[1] *= 0.9f;
-		} /*座る*/
+		//voice
 		h.per[2] = 1.f;
-		if (h.vflug == -1) {
+		if (h.vflug == -1)
 			h.per[3] *= 0.9f;
-		}
-		else {
-			h.per[3] += (1.0f - h.per[3]) * 0.1f;
-		}
-		h.per[0] = 1.0f - h.per[3]; /*無線*/
+		else
+			differential(h.per[3], 1.f, 0.1f);
+		h.per[0] = 1.0f - h.per[3];
 	}
 	std::for_each(hum.begin() + 1, hum.end(), [](HUMANS::humans& e) { e.per = { 1, 1, 1, 0 }; });
 	//反映
 	for (int k = 0; k < divi; ++k) {
-		for (size_t i = 0; i < hum.size(); ++i) {
-			auto& h = hum[i];
+		int fnum = bone_in_turret;
+		for (auto& h : hum) {
 			MV1SetMatrix(
 			    h.obj.get(),
 			    MMult(
 				MMult(
-				    MGetRotY(player.yrad + player.gunrad.x),
-				    MGetRotVec2(VGet(0, 1.f, 0), player.nor)),
+				    MGetRotY(player.yrad + player.gunrad.x), MGetRotVec2(VGet(0, 1.f, 0), player.nor)),
 				MGetTranslate(
-				    VAdd(
-					pos_old[bone_in_turret + i],
-					VScale(
-					    VSub(
-						inmodel_handle.frame(int(bone_in_turret + i)),
-						pos_old[bone_in_turret + i]),
-					    (float)(1 + k) / divi))))); //MMult(MGetRotX(player.xnor), MGetRotZ(player.znor))
-			if (i == 0) {
+				    VAdd(pos_old[fnum], VScale(VSub(inmodel_handle.frame(fnum), pos_old[fnum]), (float)(1 + k) / divi)))));
+			if (fnum == bone_in_turret) {
 				/*首振り*/
 				MV1SetFrameUserLocalMatrix(
-				    h.obj.get(),
-				    h.neck,
+				    h.obj.get(), h.neck,
 				    MMult(
 					MGetTranslate(h.nvec),
 					MMult(
@@ -555,9 +544,8 @@ void HUMANS::set_humanmove(const players& player, VECTOR rad) {
 				//voice
 				if (h.vflug != -1) {
 					if (h.voicetime < h.voicealltime[h.vflug]) {
-						if (h.voicetime == 0.0f) {
+						if (h.voicetime == 0.0f)
 							PlaySoundMem(h.vsound[h.vflug].get(), DX_PLAYTYPE_BACK, TRUE);
-						}
 						MV1SetAttachAnimTime(h.obj.get(), h.voices[h.vflug], h.voicetime);
 						h.voicetime += 60.0f / divi / f_rate; //
 					}
@@ -571,23 +559,20 @@ void HUMANS::set_humanmove(const players& player, VECTOR rad) {
 				MV1SetAttachAnimBlendRate(h.obj.get(), h.amine[j], h.per[j]);
 				MV1SetAttachAnimTime(h.obj.get(), h.amine[j], h.time[j]);
 				h.time[j] += 30.0f / divi / f_rate; //
-				if (j != 2 && h.time[j] >= h.alltime[j]) {
+				if (j != 2 && h.time[j] >= h.alltime[j])
 					h.time[j] = 0.0f;
-				}
 			}
 			//
 			if (usegrab) {
-				if (!first || physicsReset) {
+				if (!first || physicsReset)
 					MV1PhysicsResetState(h.obj.get());
-				}
-				else {
+				else
 					MV1PhysicsCalculation(h.obj.get(), 1000.0f / divi / f_rate);
-				}
 			}
 			//
-			if (i == 0 && !in_f) {
+			if (fnum == bone_in_turret && !in_f)
 				break;
-			}
+			fnum++;
 		}
 	}
 	first = true;
@@ -1141,13 +1126,16 @@ void setcv(float neard, float fard, VECTOR cam, VECTOR view, VECTOR up, float fo
 	SetupCamera_Perspective(deg2rad(fov));
 	Set3DSoundListenerPosAndFrontPosAndUpVec(cam, view, up);
 }
-void getdist(VECTOR* startpos, VECTOR vector, float* dist, float speed, float fps) {
-	*dist = std::max(100.f, std::min(2000.f, *dist));
-	for (int z = 0; z < (int)(fps / 1000.0f * (*dist)); ++z) {
-		*startpos = VAdd(*startpos, VScale(vector, speed / fps));
+void getdist(VECTOR* startpos, VECTOR vector, float& dist, float& getdists, float speed, float fps) {
+	dist = std::clamp(dist, 100.f, 2000.f);
+	speed /= fps;
+	const auto endpos = *startpos;
+	for (int z = 0; z < (int)(fps / 1000.0f * dist); ++z) {
+		*startpos = VAdd(*startpos, VScale(vector, speed));
 		vector.y += M_GR / 2.0f / fps / fps;
 		speed -= 5.f / fps;
 	}
+	getdists = VSize(VSub(endpos, *startpos));
 }
 //
 void set_effect(EffectS* efh, VECTOR pos, VECTOR nor) {
@@ -1167,12 +1155,12 @@ void set_pos_effect(EffectS* efh, const EffekseerEffectHandle& handle) {
 //
 bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s) {
 	bool is_hit;
-	std::optional<size_t> hitnear;
+	signed char hitnear;
 
 	for (auto& t : tgts) {
 		if (play.id == t.id)
 			continue;
-		hitnear.reset();
+		hitnear = -1;
 		//主砲
 		if (gun_s == 0) {
 			//とりあえず当たったかどうか
@@ -1189,7 +1177,6 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 			}
 			if (!is_hit)
 				continue;
-
 			std::sort(t.hitssort.begin(), t.hitssort.end(), [](const pair& x, const pair& y) { return x.second < y.second; });
 			//近い順に、はじく操作のいらないメッシュに対しダメージ面に届くまで判定
 			for (auto& tt : t.hitssort) {
@@ -1197,17 +1184,16 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 					break; //装甲面に当たらなかったならスルー
 				const auto k = tt.first;
 				if (k >= 4) {
-					if (t.HP[k] > 0) {
+					if (t.HP[k] > 0)
 						if (k == 4)
 							continue; //砲身だけ処理を別にしたいので分けます
-						//空間装甲、モジュール
-						const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, VAdd(c.pos, VScale(c.vec, 0.01f)), int(k));
-						if (HitPoly.HitFlag) {
-							set_effect(&play.effcs[ef_reco], HitPoly.HitPosition, HitPoly.Normal);
-							t.HP[k] = std::max<short>(t.HP[k] - 50, 0);
-							c.pene /= 2.0f;
-							c.speed /= 2.f;
-						}
+					//空間装甲、モジュール
+					const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, VAdd(c.pos, VScale(c.vec, 0.1f)), int(k));
+					if (HitPoly.HitFlag) {
+						set_effect(&play.effcs[ef_reco], HitPoly.HitPosition, HitPoly.Normal);
+						t.HP[k] = std::max<short>(t.HP[k] - 50, 0);
+						c.pene /= 2.0f;
+						c.speed /= 2.f;
 					}
 				}
 				else {
@@ -1216,20 +1202,17 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 				}
 			}
 			//ダメージ面に当たった時に装甲値に勝てるかどうか
-			if (hitnear.has_value()) {
-				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, VAdd(c.pos, VScale(c.vec, 0.01f)), int(hitnear.value())); //当たっているものとして詳しい判定をとる
+			if (hitnear != -1) {
+				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, VAdd(c.pos, VScale(c.vec, 0.1f)), int(hitnear)); //当たっているものとして詳しい判定をとる
 				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 0 + 3 * t.hitbuf, MMult(MGetTranslate(HitPoly.HitPosition), MInverse(t.ps_m)));
 				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 1 + 3 * t.hitbuf, MMult(MGetTranslate(VAdd(HitPoly.Normal, HitPoly.HitPosition)), MInverse(t.ps_m)));
 				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 2 + 3 * t.hitbuf, MMult(MGetTranslate(VAdd(VCross(HitPoly.Normal, c.vec), HitPoly.HitPosition)), MInverse(t.ps_m)));
 				set_effect(&play.effcs[ef_reco], HitPoly.HitPosition, HitPoly.Normal);
-				if (c.pene > t.ptr->armer[hitnear.value()] * (1.0f / abs(VDot(VNorm(c.vec), HitPoly.Normal)))) {
+				if (c.pene > t.ptr->armer[hitnear] * (1.0f / abs(VDot(VNorm(c.vec), HitPoly.Normal)))) {
 					if (t.HP[0] != 0) {
 						PlaySoundMem(t.se[29 + GetRand(1)].get(), DX_PLAYTYPE_BACK, TRUE);
 						set_effect(&t.effcs[ef_bomb], t.obj.frame(t.ptr->engineframe), VGet(0, 0, 0));
 
-
-
-						set_effect(&play.effcs[ef_smoke1], t.obj.frame(t.ptr->engineframe), VGet(0, 0, 0));
 						if (play.hitadd == false) {
 							play.hitadd = true;
 							play.hitid = t.id;
@@ -1246,7 +1229,7 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 						t.recoadd = true;
 					}
 					c.vec = VAdd(c.vec, VScale(HitPoly.Normal, VDot(c.vec, HitPoly.Normal) * -2.0f));
-					c.pos = VAdd(HitPoly.HitPosition, VScale(c.vec, 0.01f));
+					c.pos = VAdd(HitPoly.HitPosition, VScale(c.vec, 0.1f));
 
 					c.pene /= 2.0f;
 					c.speed /= 2.f;
@@ -1267,7 +1250,7 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 			for (size_t colmesh = 0; colmesh < t.HP.size(); ++colmesh) {
 				if (colmesh >= 5 && t.HP[colmesh] == 0)
 					continue;
-				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, VAdd(c.pos, VScale(c.vec, 0.01f)), int(colmesh));
+				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, VAdd(c.pos, VScale(c.vec, 0.1f)), int(colmesh));
 				if (HitPoly.HitFlag) {
 					tmpf[1] = VSize(VSub(HitPoly.HitPosition, c.repos));
 					if (tmpf[1] <= tmpf[0]) {
@@ -1277,18 +1260,18 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 				}
 			}
 			//至近で弾かせる
-			if (hitnear.has_value()) {
-				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, VAdd(c.pos, VScale(c.vec, 0.01f)), int(hitnear.value()));
+			if (hitnear != -1) {
+				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, VAdd(c.pos, VScale(c.vec, 0.1f)), int(hitnear));
 				set_effect(&play.effcs[ef_reco2], HitPoly.HitPosition, HitPoly.Normal);
 				PlaySoundMem(t.se[10 + GetRand(16)].get(), DX_PLAYTYPE_BACK, TRUE);
 				c.vec = VAdd(c.vec, VScale(HitPoly.Normal, VDot(c.vec, HitPoly.Normal) * -2.0f));
-				c.pos = VAdd(HitPoly.HitPosition, VScale(c.vec, 0.01f));
+				c.pos = VAdd(HitPoly.HitPosition, VScale(c.vec, 0.1f));
 			}
 		}
-		if (hitnear.has_value())
+		if (hitnear != -1)
 			break;
 	}
-	return hitnear.has_value();
+	return (hitnear != -1);
 }
 void set_gunrad(players& play, float rat_r) {
 	for (int i = 0; i < 4; ++i) {

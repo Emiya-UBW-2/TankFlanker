@@ -434,7 +434,7 @@ public:
 };
 /**/
 void setcv(float neard, float fard, VECTOR cam, VECTOR view, VECTOR up, float fov); //カメラ情報指定
-void getdist(VECTOR* startpos, VECTOR vector, float* dist, float speed, float fps); //startposに測距情報を出力
+void getdist(VECTOR* startpos, VECTOR vector, float& dist, float& getdists, float speed, float fps); //startposに測距情報を出力
 //effect
 void set_effect(EffectS* efh, VECTOR pos, VECTOR nor);
 void set_pos_effect(EffectS* efh, const EffekseerEffectHandle& handle);

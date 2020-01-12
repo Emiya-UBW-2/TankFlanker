@@ -519,8 +519,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 								{
 									tempvec[1] = p.obj.frame(p.ptr->gunframe[0]);									 //*元のベクトル
 									tempvec[0] = VNorm(VSub(player[p.atkf.value()].obj.frame(player[p.atkf.value()].ptr->gunframe[0]), tempvec[1])); //*向くベクトル
-									float tmpf = VSize(VSub(player[p.atkf.value()].obj.frame(player[p.atkf.value()].ptr->gunframe[0]), tempvec[1]));
-									getdist(&tempvec[1], VNorm(VSub(p.obj.frame(p.ptr->gunframe[0] + 1), tempvec[1])), &tmpf, p.ptr->gun_speed[p.ammotype], f_rates);
+									float tmpf = VSize(VSub(player[p.atkf.value()].obj.frame(player[p.atkf.value()].ptr->gunframe[0]), tempvec[1]))
+										,tmpf2;
+									getdist(&tempvec[1], VNorm(VSub(p.obj.frame(p.ptr->gunframe[0] + 1), tempvec[1])), tmpf, tmpf2, p.ptr->gun_speed[p.ammotype], f_rates);
 									tempvec[1] = VNorm(VSub(tempvec[1], p.obj.frame(p.ptr->gunframe[0])));
 								}
 								if (cross2D(
@@ -898,14 +899,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					for (int i = 0; i < efs_user; ++i)
 						if (i != ef_smoke1 && i != ef_smoke2 && i != ef_smoke3)
 							set_pos_effect(&p.effcs[i], parts->get_effHandle(i));
-
 					p.effcs[ef_smoke1].handle.SetPos(p.obj.frame(p.ptr->engineframe));
-
-
 					p.effcs[ef_smoke2].handle.SetPos(p.obj.frame(p.ptr->smokeframe[0]));
-					//SetTargetLocation(p.effcs[ef_smoke2].handle, p.obj.frame(p.ptr->smokeframe[0]));
 					p.effcs[ef_smoke3].handle.SetPos(p.obj.frame(p.ptr->smokeframe[1]));
-					//SetTargetLocation(p.effcs[ef_smoke3].handle, p.obj.frame(p.ptr->smokeframe[1]));
 				}
 				UpdateEffekseer3D();
 			}
@@ -913,7 +909,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			if (aim.flug) {
 				campos = player[0].obj.frame(player[0].ptr->gunframe[0]);
 				viewpos = player[0].obj.frame(player[0].ptr->gunframe[0]);
-				getdist(&viewpos, VNorm(VSub(player[0].obj.frame(player[0].ptr->gunframe[0] + 1), player[0].obj.frame(player[0].ptr->gunframe[0]))), &aim_r, player[0].ptr->gun_speed[player[0].ammotype], f_rates);
+				float getdists;
+				getdist(&viewpos, VNorm(VSub(player[0].obj.frame(player[0].ptr->gunframe[0] + 1), player[0].obj.frame(player[0].ptr->gunframe[0]))), aim_r,getdists, player[0].ptr->gun_speed[player[0].ammotype], f_rates);
 				uppos = player[0].nor;
 			}
 			else {
@@ -1007,10 +1004,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				}
 				//----------------------------------------------------------
 				if (aim.flug) {
-					tempvec[0] = player[0].obj.frame(player[0].ptr->gunframe[0]);
-					getdist(&tempvec[0], VNorm(VSub(player[0].obj.frame(player[0].ptr->gunframe[0] + 1), tempvec[0])), &aim_r, player[0].ptr->gun_speed[player[0].ammotype], f_rates);
+					auto& p = player[0];
+					tempvec[0] = p.obj.frame(p.ptr->gunframe[0]);
+					getdist(&tempvec[0], VNorm(VSub(p.obj.frame(p.ptr->gunframe[0] + 1), tempvec[0])), aim_r, aimm, p.ptr->gun_speed[p.ammotype], f_rates);
 					aims = ConvWorldPosToScreenPos(tempvec[0]);
-					aimm = aim_r / 1000.0f * player[0].ptr->gun_speed[player[0].ammotype];
 				}
 				//pos
 
