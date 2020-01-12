@@ -96,6 +96,9 @@ Myclass::Myclass() {
 		FileRead_gets(mstr, 64, mdata);
 		v.ammosize[0] = std::stof(getright(mstr)) / 1000.f;
 		v.ammosize[1] = 0.0075f;
+		FileRead_gets(mstr, 64, mdata);
+		v.accuracy[0] = int(std::stof(getright(mstr)));
+		v.accuracy[1] = int(std::stof(getright(mstr))); //
 		for (size_t i = 0; i < std::size(v.ammotype); ++i) {
 			FileRead_gets(mstr, 64, mdata);
 			v.ammotype[i] = std::stoi(getright(mstr));
@@ -211,7 +214,7 @@ int Myclass::window_choosev(void) {
 	SetMousePoint(x_r(960), y_r(969));
 	SetMouseDispFlag(TRUE);
 	const auto font18 = FontHandle::Create(x_r(18), y_r(18 / 3), DX_FONTTYPE_ANTIALIASING);
-	const auto font72 = FontHandle::Create(NULL, x_r(72), y_r(72 / 3), DX_FONTTYPE_ANTIALIASING);
+	const auto font72 = FontHandle::Create(x_r(72), y_r(72 / 3), DX_FONTTYPE_ANTIALIASING);
 	int i = 0, l = 0, x = 0, y = 0;
 	int xp = 0, yp = 0;
 	unsigned int m;
@@ -266,18 +269,30 @@ int Myclass::window_choosev(void) {
 		DrawBox(x_r(xp + 1), y_r(yp + 17), x_r(xp - 1 + 200 * vecs[i].armer[0] / 150.f * pert), y_r(yp + 20), c_00ff00, TRUE);
 		DrawFormatStringToHandle(x_r(xp), y_r(yp), c_00ff00, font18.get(), "MAX ARMER : %5.2f mm", vecs[i].armer[0]);
 
-		xp = 650;
-		yp = 410;
+		xp = 450;
+		yp = 510;
 		DrawBox(x_r(xp - 1), y_r(yp + 18), x_r(xp + 1 + 200), y_r(yp + 19), c_808080, FALSE);
 		DrawBox(x_r(xp + 1 + 100), y_r(yp + 17), x_r(xp - 1 + 100 + 100 * rad2deg(vecs[i].gun_lim_[2]) / 40.f * pert), y_r(yp + 20), c_00ff00, TRUE);
 		DrawBox(x_r(xp + 1 + 100), y_r(yp + 17), x_r(xp - 1 + 100 - 100 * rad2deg(vecs[i].gun_lim_[3]) / -20.f * pert), y_r(yp + 20), c_ff0000, TRUE);
 		DrawFormatStringToHandle(x_r(xp), y_r(yp), c_00ff00, font18.get(), "GUN RAD     : %5.2f°～%5.2f°", rad2deg(vecs[i].gun_lim_[2]), rad2deg(vecs[i].gun_lim_[3]));
 
-		xp = 650;
-		yp = 430;
-		DrawBox(x_r(xp - 1), y_r(yp + 18), x_r(xp + 1 + 200), y_r(yp + 19), c_808080, FALSE);
-		DrawBox(x_r(xp + 1), y_r(yp + 17), x_r(xp - 1 + 200 * (vecs[i].ammosize[0] * 1000.f) / 200.f * pert), y_r(yp + 20), c_00ff00, TRUE);
-		DrawFormatStringToHandle(x_r(xp), y_r(yp), c_00ff00, font18.get(), "GUN CALIBER : %05.1fmm", vecs[i].ammosize[0] * 1000.f);
+		yp = 530;
+		DrawBox(x_r(xp + 10), y_r(yp + 10), x_r(xp + 90), y_r(yp + 90), c_808080, FALSE);
+		DrawBox(
+		    x_r(xp + 50 - int(float(vecs[i].accuracy[0]) / 100.f * pert)),
+		    y_r(yp + 50 - int(float(vecs[i].accuracy[0]) / 100.f * pert)),
+		    x_r(xp + 50 + int(float(vecs[i].accuracy[0]) / 100.f * pert)),
+		    y_r(yp + 50 + int(float(vecs[i].accuracy[0]) / 100.f * pert)),
+		    c_ffff00, FALSE);
+		DrawLine(x_r(xp + 50), y_r(yp + 50), x_r(xp + 140), y_r(yp + 28), c_00ff00);
+
+		DrawCircle(x_r(xp + 120), y_r(yp + 70), y_r(200 / 2 / 5), c_808080, FALSE);
+		DrawCircle(x_r(xp + 120), y_r(yp + 70), y_r(int(vecs[i].ammosize[0] * 1000.f * pert) / 2 / 5), c_00ff00, FALSE);
+		DrawLine(x_r(xp + 120), y_r(yp + 70), x_r(xp + 140), y_r(yp + 46), c_00ff00);
+
+		DrawFormatStringToHandle(x_r(xp + 140), y_r(yp + 10), c_00ff00, font18.get(), "ACCURACY    : ±%05.1f°", float(vecs[i].accuracy[0]) / 10000.f);
+		DrawFormatStringToHandle(x_r(xp + 140), y_r(yp + 28), c_00ff00, font18.get(), "GUN CALIBER : %03.1fmm", vecs[i].ammosize[0] * 1000.f);
+
 		//
 		font18.DrawString(x_r(0), y_r(18 * 1), "SETTING", c_00ff00);
 		DrawFormatStringToHandle(x_r(0), y_r(18 * 2), c_00ff00, font18.get(), " 人の物理演算         : %s", usegrab ? "TRUE" : "FALSE");
@@ -297,18 +312,14 @@ int Myclass::window_choosev(void) {
 				if (x == 1) {
 					l++;
 					i++;
-					if (i > vecs.size() - 1) {
-						i = 0;
-					}
+					i %= vecs.size();
 				}
 			}
-			else {
+			else
 				x = 0;
-			}
 		}
-		else {
+		else
 			m = c_00ff00;
-		}
 		DrawBox(x_r(360), y_r(340), x_r(400), y_r(740), m, FALSE);
 		font18.DrawString(x_r(396) - font18.GetDrawWidth("<"), y_r(531), "<", c_ffffff);
 		//
@@ -320,30 +331,25 @@ int Myclass::window_choosev(void) {
 				if (y == 1) {
 					l--;
 					i--;
-					if (i < 0) {
+					if (i < 0)
 						i = int(vecs.size() - 1);
-					}
 				}
 			}
-			else {
+			else
 				y = 0;
-			}
 		}
-		else {
+		else
 			m = c_00ff00;
-		}
 		DrawBox(x_r(1520), y_r(340), x_r(1560), y_r(740), m, FALSE);
 		font18.DrawString(x_r(1524), y_r(531), ">", c_ffffff);
 		//
 		if (inm(x_r(760), y_r(960), x_r(1160), y_r(996))) {
 			m = c_ffc800;
-			if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0) {
+			if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0)
 				break;
-			}
 		}
-		else {
+		else
 			m = c_ff6400;
-		}
 		DrawBox(x_r(760), y_r(960), x_r(1160), y_r(996), m, FALSE);
 		font18.DrawString(x_r(960) - font18.GetDrawWidth("戦闘開始") / 2, y_r(969), "戦闘開始", c_ffffff);
 		Screen_Flip(waits);
@@ -445,7 +451,7 @@ void HUMANS::set_humans(const MV1ModelHandle& inmod) {
 			MV1SetMaterialSpcPower(h.obj.get(), j, 1.0f);
 		}
 		//アニメーション
-		for (size_t j = 0; j < animes; ++j) {
+		for (size_t j = 0; j < ANIME_out; ++j) {
 			h.amine[j] = MV1AttachAnim(h.obj.get(), int(j), -1, TRUE);
 			h.time[j] = 0.0f;
 			h.alltime[j] = MV1GetAttachAnimTotalTime(h.obj.get(), h.amine[j]);
@@ -453,10 +459,10 @@ void HUMANS::set_humans(const MV1ModelHandle& inmod) {
 		}
 	}
 	//車長にはボイスと口パクアニメーション
-	for (size_t i = 0; i < voice; ++i) {
-		hum[0].voices[i] = MV1AttachAnim(hum[0].obj.get(), int(animes + i), -1, TRUE);
+	for (size_t i = 0; i < ANIME_voice; ++i) {
+		hum[0].voices[i] = MV1AttachAnim(hum[0].obj.get(), int(ANIME_out + i), -1, TRUE);
 		hum[0].voicealltime[i] = MV1GetAttachAnimTotalTime(hum[0].obj.get(), hum[0].voices[i]);
-		hum[0].vsound[i] = SoundHandle::Load("data/chara/"s + name[0] + "/" + std::to_string(i) + ".wav");
+		hum[0].vsound[i] = SoundHandle::Load("data/chara/"s + name[0] + "/voice/" + std::to_string(i) + ".wav");
 	}
 	//
 	MV1SetMatrix(inmodel_handle.get(), MGetTranslate(VGet(0, 0, 0)));
@@ -507,18 +513,17 @@ void HUMANS::set_humanmove(const players& player, VECTOR rad) {
 	{
 		auto& h = hum.front();
 		/*座る*/
-		h.per[0] = 0.f;
 		if (player.speed >= 30.f / 3.6f)
-			differential(h.per[1], 1.f, 0.1f);
+			differential(h.per[ANIME_sit], 1.f, 0.1f);
 		else
-			h.per[1] *= 0.9f;
+			h.per[ANIME_sit] *= 0.9f;
 		//voice
-		h.per[2] = 1.f;
+		h.per[ANIME_eye] = 1.f;
 		if (h.vflug == -1)
-			h.per[3] *= 0.9f;
+			h.per[ANIME_voi] *= 0.9f;
 		else
-			differential(h.per[3], 1.f, 0.1f);
-		h.per[0] = 1.0f - h.per[3];
+			differential(h.per[ANIME_voi], 1.f, 0.1f);
+		h.per[ANIME_nom] = 1.0f - h.per[ANIME_voi];
 	}
 	std::for_each(hum.begin() + 1, hum.end(), [](HUMANS::humans& e) { e.per = { 1, 1, 1, 0 }; });
 	//反映
@@ -547,7 +552,7 @@ void HUMANS::set_humanmove(const players& player, VECTOR rad) {
 						if (h.voicetime == 0.0f)
 							PlaySoundMem(h.vsound[h.vflug].get(), DX_PLAYTYPE_BACK, TRUE);
 						MV1SetAttachAnimTime(h.obj.get(), h.voices[h.vflug], h.voicetime);
-						h.voicetime += 60.0f / divi / f_rate; //
+						h.voicetime += 30.0f / divi / f_rate; //
 					}
 					else {
 						h.vflug = -1;
@@ -555,7 +560,7 @@ void HUMANS::set_humanmove(const players& player, VECTOR rad) {
 					}
 				}
 			}
-			for (size_t j = 0; j < animes; ++j) {
+			for (size_t j = 0; j < ANIME_out; ++j) {
 				MV1SetAttachAnimBlendRate(h.obj.get(), h.amine[j], h.per[j]);
 				MV1SetAttachAnimTime(h.obj.get(), h.amine[j], h.time[j]);
 				h.time[j] += 30.0f / divi / f_rate; //
@@ -1155,16 +1160,15 @@ void set_pos_effect(EffectS* efh, const EffekseerEffectHandle& handle) {
 //
 bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s) {
 	bool is_hit;
-	signed char hitnear;
+	std::optional<size_t> hitnear;
 
 	for (auto& t : tgts) {
 		if (play.id == t.id)
 			continue;
-		hitnear = -1;
+		hitnear.reset();
 		//主砲
 		if (gun_s == 0) {
-			//とりあえず当たったかどうか
-
+			//とりあえず当たったかどうか探してソート
 			is_hit = false;
 			for (size_t colmesh = 0; colmesh < t.hitssort.size(); ++colmesh) {
 				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, VAdd(c.pos, VScale(VSub(c.pos, c.repos), 0.1f)), int(colmesh));
@@ -1202,13 +1206,13 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 				}
 			}
 			//ダメージ面に当たった時に装甲値に勝てるかどうか
-			if (hitnear != -1) {
-				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, VAdd(c.pos, VScale(c.vec, 0.1f)), int(hitnear)); //当たっているものとして詳しい判定をとる
+			if (hitnear) {
+				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, VAdd(c.pos, VScale(c.vec, 0.1f)), int(hitnear.value())); //当たっているものとして詳しい判定をとる
 				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 0 + 3 * t.hitbuf, MMult(MGetTranslate(HitPoly.HitPosition), MInverse(t.ps_m)));
 				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 1 + 3 * t.hitbuf, MMult(MGetTranslate(VAdd(HitPoly.Normal, HitPoly.HitPosition)), MInverse(t.ps_m)));
 				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 2 + 3 * t.hitbuf, MMult(MGetTranslate(VAdd(VCross(HitPoly.Normal, c.vec), HitPoly.HitPosition)), MInverse(t.ps_m)));
 				set_effect(&play.effcs[ef_reco], HitPoly.HitPosition, HitPoly.Normal);
-				if (c.pene > t.ptr->armer[hitnear] * (1.0f / abs(VDot(VNorm(c.vec), HitPoly.Normal)))) {
+				if (c.pene > t.ptr->armer[hitnear.value()] * (1.0f / abs(VDot(VNorm(c.vec), HitPoly.Normal)))) {
 					if (t.HP[0] != 0) {
 						PlaySoundMem(t.se[29 + GetRand(1)].get(), DX_PLAYTYPE_BACK, TRUE);
 						set_effect(&t.effcs[ef_bomb], t.obj.frame(t.ptr->engineframe), VGet(0, 0, 0));
@@ -1260,18 +1264,18 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 				}
 			}
 			//至近で弾かせる
-			if (hitnear != -1) {
-				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, VAdd(c.pos, VScale(c.vec, 0.1f)), int(hitnear));
+			if (hitnear) {
+				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, VAdd(c.pos, VScale(c.vec, 0.1f)), int(hitnear.value()));
 				set_effect(&play.effcs[ef_reco2], HitPoly.HitPosition, HitPoly.Normal);
 				PlaySoundMem(t.se[10 + GetRand(16)].get(), DX_PLAYTYPE_BACK, TRUE);
 				c.vec = VAdd(c.vec, VScale(HitPoly.Normal, VDot(c.vec, HitPoly.Normal) * -2.0f));
 				c.pos = VAdd(HitPoly.HitPosition, VScale(c.vec, 0.1f));
 			}
 		}
-		if (hitnear != -1)
+		if (hitnear)
 			break;
 	}
-	return (hitnear != -1);
+	return (hitnear.has_value());
 }
 void set_gunrad(players& play, float rat_r) {
 	for (int i = 0; i < 4; ++i) {

@@ -36,8 +36,6 @@ inline const int dispy = (GetSystemMetrics(SM_CYSCREEN)); /*描画Y*/
 constexpr float M_GR = -9.8f;				  /*重力加速度*/
 constexpr size_t waypc = 4;				  /*移動確保数*/
 constexpr size_t ammoc = 64;				  /*砲弾確保数*/
-#define animes 4					  /*人アニメーション*/
-#define voice 1						  /*ボイス*/
 #define map_x 1000					  /*マップサイズX*/
 #define map_y 1000					  /*マップサイズY*/
 #define TEAM 1						  /*味方ID*/
@@ -47,6 +45,14 @@ constexpr size_t gunc = 2;				  /*銃、砲の数*/
 #define divi 2						  /*人の物理処理*/
 
 /*構造体*/
+enum animeid {
+	ANIME_nom = 0,
+	ANIME_sit = 1,
+	ANIME_eye = 2,
+	ANIME_voi = 3,
+	ANIME_out = 4,
+	ANIME_voice = 2
+};
 enum cpu {
 	CPU_NOMAL = 0,
 	CPU_CHARGE = 1
@@ -129,6 +135,7 @@ struct vehicle {
 	std::array<int, gunc> gunframe;	  /*銃フレーム*/
 	std::array<int, gunc> reloadtime; /*リロードタイム*/
 	std::array<float, gunc> ammosize; /*砲口径*/
+	std::array<int, gunc> accuracy;	  /*砲精度*/
 	std::vector<int> youdoframe;
 	std::vector<int> wheelframe;
 	std::array<int, 2> kidoframe;
@@ -190,11 +197,13 @@ struct players {
 	unsigned int geard{ 0 };	 /*キー*/
 	VECTOR inertia{ VGet(0, 0, 0) }; /*慣性*/
 	float wheelrad[3]{ 0.f };	 /*履帯の送り、転輪旋回*/
-	VECTOR gunrad{ 0.f };		 /*砲角度*/
+	VECTOR gunrad{ 0 };		 /*砲角度*/
+	VECTOR gunrad_rec{ 0 };		 /*砲角度*/
+	float gun_turn{ 0.f };
 	/*弾関連*/
-	int ammotype{ 0 };		 /*弾種*/
-	bool recoadd{ false };		 /*弾きフラグ*/
-	bool hitadd{ false };		 /*命中フラグ*/
+	int ammotype{ 0 };     /*弾種*/
+	bool recoadd{ false }; /*弾きフラグ*/
+	bool hitadd{ false };  /*命中フラグ*/
 	size_t hitid{ 0 };
 	VECTOR iconpos{ VGet(0, 0, 0) }; /*UI用*/
 	EffectS effcs[efs_user];	 /*effect*/
@@ -214,9 +223,9 @@ struct players {
 	b2World* foot[2];
 
 	struct Foots {
-		std::unique_ptr<b2Body> f_body; /**/
-		b2Fixture* f_playerfix;		/**/
-		VECTOR f_p;			/**/
+		std::unique_ptr<b2Body> body; /**/
+		b2Fixture* fplayerfix;	      /**/
+		VECTOR p;		      /**/
 	};
 	std::vector<Foots> Foot[2];	/**/
 	b2FixtureDef f_fixtureDef[2];	/*動的ボディフィクスチャを定義します。*/
@@ -224,15 +233,15 @@ struct players {
 	b2BodyDef f_bodyDef[2];		/*ダイナミックボディを定義します。その位置を設定し、ボディファクトリを呼び出します。*/
 	b2RevoluteJointDef f_jointDef[2];
 
-	struct Fwheels {
-		std::unique_ptr<b2Body> fw_body; /**/
-		b2Fixture* fw_playerfix;	 /**/
-		VECTOR fw_p;			 /**/
-	};
-	std::vector<Fwheels> Fwheel[2];	 /**/
+	std::vector<Foots> Fwheel[2];	 /**/
 	b2FixtureDef fw_fixtureDef[2];	 /*動的ボディフィクスチャを定義します。*/
 	b2PolygonShape fw_dynamicBox[2]; /*ダイナミックボディに別のボックスシェイプを定義します。*/
 	b2BodyDef fw_bodyDef[2];	 /*ダイナミックボディを定義します。その位置を設定し、ボディファクトリを呼び出します。*/
+
+	std::vector<Foots> Fyudo[2];	 /**/
+	b2FixtureDef fy_fixtureDef[2];	 /*動的ボディフィクスチャを定義します。*/
+	b2PolygonShape fy_dynamicBox[2]; /*ダイナミックボディに別のボックスシェイプを定義します。*/
+	b2BodyDef fy_bodyDef[2];	 /*ダイナミックボディを定義します。その位置を設定し、ボディファクトリを呼び出します。*/
 };
 /*CLASS*/
 class Myclass {
@@ -297,14 +306,14 @@ private:
 		MV1ModelHandle obj;
 		int neck{ 0 };
 		VECTOR nvec{ VGet(0, 0, 0) };
-		int amine[animes]{ 0 };
-		std::array<float, animes> time{};
-		float alltime[animes]{ 0.f };
-		std::array<float, animes> per{};
+		int amine[ANIME_out]{ 0 };
+		std::array<float, ANIME_out> time{};
+		float alltime[ANIME_out]{ 0.f };
+		std::array<float, ANIME_out> per{};
 		float voicetime{ 0.f };
-		float voicealltime[voice]{ 0 };
-		int voices[voice]{ 0 };
-		std::array<SoundHandle, voice> vsound;
+		float voicealltime[ANIME_voice]{ 0 };
+		int voices[ANIME_voice]{ 0 };
+		std::array<SoundHandle, ANIME_voice> vsound;
 	};
 	bool usegrab{ false };	       /*人の物理演算のオフ、オン*/
 	float f_rate{ 60.f };	       /*fps*/
@@ -420,9 +429,9 @@ private:
 
 public:
 	UIS();
-	void draw_load(void);							    /*ロード画面*/
-	void set_state(players* play);						    /*使用するポインタの指定*/
-	void set_reco(void);							    /*反射スイッチ*/
+	void draw_load(void);	       /*ロード画面*/
+	void set_state(players* play); /*使用するポインタの指定*/
+	void set_reco(void);	       /*反射スイッチ*/
 	void draw_drive();
 	void draw_icon(players& p, int font);
 	void draw_sight(float posx, float posy, float ratio, float dist, int font); /*照準UI*/
@@ -433,7 +442,7 @@ public:
 	void debug(float fps, float time);
 };
 /**/
-void setcv(float neard, float fard, VECTOR cam, VECTOR view, VECTOR up, float fov); //カメラ情報指定
+void setcv(float neard, float fard, VECTOR cam, VECTOR view, VECTOR up, float fov);		     //カメラ情報指定
 void getdist(VECTOR* startpos, VECTOR vector, float& dist, float& getdists, float speed, float fps); //startposに測距情報を出力
 //effect
 void set_effect(EffectS* efh, VECTOR pos, VECTOR nor);
