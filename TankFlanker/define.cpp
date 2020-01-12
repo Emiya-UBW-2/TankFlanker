@@ -495,14 +495,15 @@ void HUMANS::set_humanmove(const players& player, VECTOR rad) {
 			MV1SetFrameUserLocalMatrix(inmodel_handle.get(), i, MMult(MMult(MGetRotY(player.gunrad.x), MGetTranslate(VSub(locin[i], locin[player.ptr->turretframe]))), player.ps_t));
 	}
 
-	if (rad.z >= 0.1f)
+	bool physicsReset;
+	physicsReset = false;
+
+	if (rad.z > 0.1f)
 		in_f = false;
 
 	if (rad.z == 0.1f && !in_f) {
-		for (size_t j = 1; j < hum.size(); ++j) {
-			MV1PhysicsResetState(hum[j].obj.get());
-		}
 		in_f = true;
+		physicsReset = true;
 	}
 	{
 		auto& h = hum.front();
@@ -576,7 +577,7 @@ void HUMANS::set_humanmove(const players& player, VECTOR rad) {
 			}
 			//
 			if (usegrab) {
-				if (!first) {
+				if (!first || physicsReset) {
 					MV1PhysicsResetState(h.obj.get());
 				}
 				else {
@@ -686,9 +687,11 @@ bool MAPS::set_map_ready() {
 	SetDrawScreen(texn.get());
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 	DrawBox(0, 0, groundx, groundx, GetColor(121, 121, 255), TRUE);
-	for (uint8_t x = 0; x < 32; x++)
-		for (uint8_t y = 0; y < 32; y++)
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 64);
+	for (uint8_t x = 0; x < rate; x++)
+		for (uint8_t y = 0; y < rate; y++)
 			DrawExtendGraph(groundx * x / rate, groundx * y / rate, groundx * (x + 1) / rate, groundx * (y + 1) / rate, texm.get(), TRUE);
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 	MV1SetTextureGraphHandle(m_model.get(), 1, texn.get(), FALSE);
 	/*grass*/
 	vnum = 0;
@@ -900,7 +903,7 @@ UIS::UIS() {
 	using namespace std::literals;
 	WIN32_FIND_DATA win32fdt;
 
-	countries = 1; //国の数
+	countries = 1;					//国の数
 	std::array<const char*, 1> country{ "German" }; // TODO: 書き換える		// TODO: Germanの部分は可変になる
 
 	UI_main.resize(countries); /*改善*/
@@ -1163,7 +1166,6 @@ void set_pos_effect(EffectS* efh, const EffekseerEffectHandle& handle) {
 }
 //
 bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s) {
-	bool btmp = false;
 	bool is_hit;
 	std::optional<size_t> hitnear;
 
@@ -1177,7 +1179,7 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 
 			is_hit = false;
 			for (size_t colmesh = 0; colmesh < t.hitssort.size(); ++colmesh) {
-				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, c.pos, int(colmesh));
+				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, VAdd(c.pos, VScale(VSub(c.pos, c.repos), 0.1f)), int(colmesh));
 				if (HitPoly.HitFlag) {
 					t.hitssort[colmesh] = pair(colmesh, VSize(VSub(HitPoly.HitPosition, c.repos)));
 					is_hit = true;
@@ -1199,7 +1201,7 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 						if (k == 4)
 							continue; //砲身だけ処理を別にしたいので分けます
 						//空間装甲、モジュール
-						const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, c.pos, int(k));
+						const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, VAdd(c.pos, VScale(c.vec, 0.01f)), int(k));
 						if (HitPoly.HitFlag) {
 							set_effect(&play.effcs[ef_reco], HitPoly.HitPosition, HitPoly.Normal);
 							t.HP[k] = std::max<short>(t.HP[k] - 50, 0);
@@ -1214,8 +1216,8 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 				}
 			}
 			//ダメージ面に当たった時に装甲値に勝てるかどうか
-			if (hitnear) {
-				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, c.pos, int(hitnear.value())); //当たっているものとして詳しい判定をとる
+			if (hitnear.has_value()) {
+				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, VAdd(c.pos, VScale(c.vec, 0.01f)), int(hitnear.value())); //当たっているものとして詳しい判定をとる
 				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 0 + 3 * t.hitbuf, MMult(MGetTranslate(HitPoly.HitPosition), MInverse(t.ps_m)));
 				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 1 + 3 * t.hitbuf, MMult(MGetTranslate(VAdd(HitPoly.Normal, HitPoly.HitPosition)), MInverse(t.ps_m)));
 				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 2 + 3 * t.hitbuf, MMult(MGetTranslate(VAdd(VCross(HitPoly.Normal, c.vec), HitPoly.HitPosition)), MInverse(t.ps_m)));
@@ -1223,10 +1225,15 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 				if (c.pene > t.ptr->armer[hitnear.value()] * (1.0f / abs(VDot(VNorm(c.vec), HitPoly.Normal)))) {
 					if (t.HP[0] != 0) {
 						PlaySoundMem(t.se[29 + GetRand(1)].get(), DX_PLAYTYPE_BACK, TRUE);
-						set_effect(&play.effcs[ef_bomb], t.obj.frame(t.ptr->engineframe), VGet(0, 0, 0));
+						set_effect(&t.effcs[ef_bomb], t.obj.frame(t.ptr->engineframe), VGet(0, 0, 0));
+
+
+
 						set_effect(&play.effcs[ef_smoke1], t.obj.frame(t.ptr->engineframe), VGet(0, 0, 0));
-						if (play.hitadd == false)
+						if (play.hitadd == false) {
 							play.hitadd = true;
+							play.hitid = t.id;
+						}
 					}
 					c.flug = false;
 					t.HP[0] = 0;
@@ -1260,7 +1267,7 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 			for (size_t colmesh = 0; colmesh < t.HP.size(); ++colmesh) {
 				if (colmesh >= 5 && t.HP[colmesh] == 0)
 					continue;
-				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, c.pos, int(colmesh));
+				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, VAdd(c.pos, VScale(c.vec, 0.01f)), int(colmesh));
 				if (HitPoly.HitFlag) {
 					tmpf[1] = VSize(VSub(HitPoly.HitPosition, c.repos));
 					if (tmpf[1] <= tmpf[0]) {
@@ -1270,21 +1277,18 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 				}
 			}
 			//至近で弾かせる
-			if (hitnear) {
-				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, c.pos, int(hitnear.value()));
+			if (hitnear.has_value()) {
+				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, VAdd(c.pos, VScale(c.vec, 0.01f)), int(hitnear.value()));
 				set_effect(&play.effcs[ef_reco2], HitPoly.HitPosition, HitPoly.Normal);
 				PlaySoundMem(t.se[10 + GetRand(16)].get(), DX_PLAYTYPE_BACK, TRUE);
 				c.vec = VAdd(c.vec, VScale(HitPoly.Normal, VDot(c.vec, HitPoly.Normal) * -2.0f));
 				c.pos = VAdd(HitPoly.HitPosition, VScale(c.vec, 0.01f));
 			}
 		}
-
-		btmp = hitnear.has_value();
-
 		if (hitnear.has_value())
 			break;
 	}
-	return btmp;
+	return hitnear.has_value();
 }
 void set_gunrad(players& play, float rat_r) {
 	for (int i = 0; i < 4; ++i) {

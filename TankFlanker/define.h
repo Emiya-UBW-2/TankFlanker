@@ -195,6 +195,7 @@ struct players {
 	int ammotype{ 0 };		 /*弾種*/
 	bool recoadd{ false };		 /*弾きフラグ*/
 	bool hitadd{ false };		 /*命中フラグ*/
+	size_t hitid{ 0 };
 	VECTOR iconpos{ VGet(0, 0, 0) }; /*UI用*/
 	EffectS effcs[efs_user];	 /*effect*/
 	std::vector<float> Springs;	 /*スプリング*/
