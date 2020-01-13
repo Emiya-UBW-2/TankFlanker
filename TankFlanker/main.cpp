@@ -540,13 +540,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 							}
 							else {
 								{
+									auto& t = player[p.atkf.value()];
 									VECTOR_ref tempvec[2];
 									p.gear = 1; //*変速
 									{
 										tempvec[1] = p.obj.frame(p.ptr->gunframe[0]);								      //*元のベクトル
-										tempvec[0] = (player[p.atkf.value()].obj.frame(player[p.atkf.value()].ptr->gunframe[0]) - tempvec[1]).Norm(); //*向くベクトル
+										tempvec[0] = (t.obj.frame(t.ptr->gunframe[0]) - tempvec[1]).Norm(); //*向くベクトル
 
-										float tmpf = (player[p.atkf.value()].obj.frame(player[p.atkf.value()].ptr->gunframe[0]) - tempvec[1]).size();
+										float tmpf = (t.obj.frame(t.ptr->gunframe[0]) - tempvec[1]).size();
 										float tmpf2;
 
 										getdist(tempvec[1], (p.obj.frame(p.ptr->gunframe[0] + 1) - tempvec[1]).Norm(), tmpf, tmpf2, p.ptr->gun_speed[p.ammotype], f_rates);
@@ -568,7 +569,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 										p.move |= KEY_GORIGHT; //
 									}
 									if ((tempvec[1] * tempvec[0]).size() < sin(deg2rad(1))) {
-										const auto HitPoly = mapparts->get_gnd_hit(p.obj.frame(p.ptr->gunframe[0]), player[p.atkf.value()].obj.frame(player[p.atkf.value()].ptr->gunframe[0]));
+										const auto HitPoly = mapparts->get_gnd_hit(p.obj.frame(p.ptr->gunframe[0]), t.obj.frame(t.ptr->gunframe[0]));
 										if (!HitPoly.HitFlag) {
 											if (p.Gun[0].loadcnt == 0) {
 												p.move &= ~KEY_GOFLONT;
@@ -582,7 +583,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 												p.move |= KEY_SHOTGAN;
 										}
 									}
-									if (player[p.atkf.value()].HP[0] == 0 || p.aim > 5) {
+									if (t.HP[0] == 0 || p.aim > 5) {
 										p.aim = int(p.atkf.value());
 										p.atkf = std::nullopt;
 									}
@@ -694,11 +695,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					p.body->SetAngularVelocity(p.yadd);
 				}
 				/*物理演算*/
-				world->Step(1.0f / f_rates, 1, 1); // シミュレーションの単一ステップを実行するように世界に指示します。 一般に、タイムステップと反復を固定しておくのが最善です。
+				world->Step(1.0f / f_rates, 1, 1);
 				for (auto& p : player) {
-					p.pos = VGet(p.body->GetPosition().x, p.pos.y(), p.body->GetPosition().y);
 					p.yrad = -p.body->GetAngle();
-					p.vec = VGet(p.body->GetLinearVelocity().x, p.vec.y(), p.body->GetLinearVelocity().y);
+					//p.vec = VGet(p.body->GetLinearVelocity().x, p.vec.y(), p.body->GetLinearVelocity().y);//使ってない
 
 					b2Vec2 tmpb2 = b2Vec2(VDot(VGet(0, -1.f, 0), (p.obj.frame(7 + 1) - p.obj.frame(7)).Norm()), p.nor ^ VGet(0, 1.f, 0));
 					tmpb2 *= (M_GR / 10.f);
@@ -737,7 +737,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						const auto HitPoly = mapparts->get_gnd_hit(p.pos + VGet(0.0f, 2.0f, 0.0f), p.pos + VGet(0.0f, -0.05f, 0.0f));
 						if (HitPoly.HitFlag) {
 							p.yace = 0.0f;
-							p.pos = VGet(p.pos.x(), HitPoly.HitPosition.y, p.pos.z());
+							p.pos = VGet(p.body->GetPosition().x, HitPoly.HitPosition.y, p.body->GetPosition().y);
 							mapparts->set_normal(&p.xnor, &p.znor, p.pos);
 							p.nor = VTransform(VGet(0, 1.f, 0), MMult(MGetRotX(p.xnor), MGetRotZ(p.znor)));
 							/*speed*/
@@ -753,7 +753,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						}
 						else {
 							p.yadd *= 0.95f;
-							p.pos = VGet(p.pos.x(), p.pos.y() + p.yace, p.pos.z());
+							p.pos = VGet(p.body->GetPosition().x, p.pos.y() + p.yace, p.body->GetPosition().y);
 							p.yace += M_GR / 2.0f / f_rates / f_rates;
 						}
 					}
