@@ -29,7 +29,10 @@ Myclass::Myclass() {
 	gndx = std::stoi(getright(mstr));
 	FileRead_gets(mstr, 64, mdata);
 	shadex = std::stoi(getright(mstr));
+	FileRead_gets(mstr, 64, mdata);
+	USEHOST = bool(std::stoul(getright(mstr)));
 	FileRead_close(mdata);
+
 
 	SetMainWindowText("Tank Flanker"); /*name*/
 	//SetWindowStyleMode(4);			    /**/
@@ -135,6 +138,7 @@ void Myclass::write_option(void) {
 	outputfile << "drawdist(100~400)=" + std::to_string(drawdist) + "\n";
 	outputfile << "groundx(1~16)=" + std::to_string(gndx) + "\n";
 	outputfile << "shadow(0~3)=" + std::to_string(shadex) + "\n";
+	outputfile << "hostpass(1or0)=" + std::to_string(USEHOST) + "\n";
 	outputfile.close();
 }
 bool Myclass::set_veh(void) {
@@ -173,11 +177,11 @@ bool Myclass::set_veh(void) {
 						v.kidoframe[k++] = i;
 				}
 				if (tempname[0] == 'Y') //誘導輪
-					v.youdoframe.push_back(i);
+					v.youdoframe.emplace_back(i);
 				if (tempname[0] == 'F') //ホイール
-					v.wheelframe.push_back(i);
+					v.wheelframe.emplace_back(i);
 				if (tempname[0] == 'U') //ホイール
-					v.upsizeframe.push_back(i);
+					v.upsizeframe.emplace_back(i);
 			}
 		}
 	}
@@ -302,6 +306,7 @@ int Myclass::window_choosev(void) {
 		DrawFormatStringToHandle(x_r(0), y_r(18 * 6), c_00ff00, font18.get(), " 木の描画距離         : %5.2f m", drawdist);
 		DrawFormatStringToHandle(x_r(0), y_r(18 * 7), c_00ff00, font18.get(), " 地面のクォリティ     : x%d", gndx);
 		DrawFormatStringToHandle(x_r(0), y_r(18 * 8), c_00ff00, font18.get(), " 影のクォリティ       : x%d", shadex);
+		DrawFormatStringToHandle(x_r(0), y_r(18 * 9), c_00ff00, font18.get(), " ホストパスエフェクト : %s", USEHOST ? "TRUE" : "FALSE");
 		//
 		GetMousePoint(&mousex, &mousey);
 		if (inm(x_r(360), y_r(340), x_r(400), y_r(740))) {

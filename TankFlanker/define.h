@@ -223,9 +223,9 @@ struct players {
 	b2World* foot[2];
 
 	struct Foots {
-		std::unique_ptr<b2Body> body; /**/
+		std::unique_ptr<b2Body> fbody; /**/
 		b2Fixture* fplayerfix;	      /**/
-		VECTOR p;		      /**/
+		VECTOR fp;		      /**/
 	};
 	std::vector<Foots> Foot[2];	/**/
 	b2FixtureDef f_fixtureDef[2];	/*動的ボディフィクスチャを定義します。*/
@@ -255,6 +255,7 @@ private:
 	float drawdist{ 100.0f }; /*木の描画距離*/
 	int gndx = 8;		  /*地面のクオリティ*/
 	int shadex = 3;		  /*影のクオリティ*/
+	bool USEHOST{ false };
 	/**/
 	std::vector<vehicle> vecs;		 /*車輛情報*/
 	VECTOR view, view_r;			 /*通常視点の角度、距離*/
@@ -269,7 +270,8 @@ public:
 	int get_shadex(void) { return shadex; }
 	float get_drawdist(void) { return drawdist; }
 	float get_f_rate(void) { return f_rate; }
-	void write_option(void); //未実装
+	bool get_usehost(void) { return USEHOST; }
+	void write_option(void);
 	//bool set_fonts(int arg_num, ...);
 	template <typename... Args>
 	void set_fonts(Args&&... args) {

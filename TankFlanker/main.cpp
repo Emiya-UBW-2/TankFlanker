@@ -241,11 +241,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 							p.f_fixtureDef[LR].friction = 0.2f;
 							p.f_bodyDef[LR].type = b2_dynamicBody;
 							p.f_bodyDef[LR].position.Set(vects.z, vects.y);
-							p.Foot[LR][i].body.reset(p.foot[LR]->CreateBody(&p.f_bodyDef[LR]));
-							p.Foot[LR][i].fplayerfix = p.Foot[LR][i].body->CreateFixture(&p.f_fixtureDef[LR]); // シェイプをボディに追加します。
-							p.f_jointDef[LR].Initialize(prevBody, p.Foot[LR][i].body.get(), b2Vec2(vects.z, vects.y));
+							p.Foot[LR][i].fbody.reset(p.foot[LR]->CreateBody(&p.f_bodyDef[LR]));
+							p.Foot[LR][i].fplayerfix = p.Foot[LR][i].fbody->CreateFixture(&p.f_fixtureDef[LR]); // シェイプをボディに追加します。
+							p.f_jointDef[LR].Initialize(prevBody, p.Foot[LR][i].fbody.get(), b2Vec2(vects.z, vects.y));
 							p.foot[LR]->CreateJoint(&p.f_jointDef[LR]);
-							prevBody = p.Foot[LR][i].body.get();
+							prevBody = p.Foot[LR][i].fbody.get();
 							++i;
 						}
 					}
@@ -254,8 +254,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					i = 0;
 					for (auto& w : p.ptr->wheelframe) {
 						vects = VAdd(
-						    VTransform(VGet(0, 0, 0), MV1GetFrameLocalMatrix(player[0].obj.get(), w + 1)),
-						    VTransform(VGet(0, 0, 0), MV1GetFrameLocalMatrix(player[0].obj.get(), w)));
+						    VTransform(VGet(0, 0, 0), MV1GetFrameLocalMatrix(p.obj.get(), w + 1)),
+						    VTransform(VGet(0, 0, 0), MV1GetFrameLocalMatrix(p.obj.get(), w)));
 						if (vects.x * ((LR == 0) ? 1.f : -1.f) > 0) {
 							p.Fwheel[LR].resize(i + 1);
 							b2CircleShape shape;
@@ -264,8 +264,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 							p.fw_fixtureDef[LR].density = 1.0f;
 							p.fw_bodyDef[LR].type = b2_kinematicBody;
 							p.fw_bodyDef[LR].position.Set(vects.z, vects.y);
-							p.Fwheel[LR][i].body.reset(p.foot[LR]->CreateBody(&p.fw_bodyDef[LR]));
-							p.Fwheel[LR][i].fplayerfix = p.Fwheel[LR][i].body->CreateFixture(&p.fw_fixtureDef[LR]);
+							p.Fwheel[LR][i].fbody.reset(p.foot[LR]->CreateBody(&p.fw_bodyDef[LR]));
+							p.Fwheel[LR][i].fplayerfix = p.Fwheel[LR][i].fbody->CreateFixture(&p.fw_fixtureDef[LR]);
 							++i;
 						}
 					}
@@ -280,8 +280,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 							p.fy_fixtureDef[LR].density = 1.0f;
 							p.fy_bodyDef[LR].type = b2_kinematicBody;
 							p.fy_bodyDef[LR].position.Set(vects.z, vects.y);
-							p.Fyudo[LR][i].body.reset(p.foot[LR]->CreateBody(&p.fy_bodyDef[LR]));
-							p.Fyudo[LR][i].fplayerfix = p.Fyudo[LR][i].body->CreateFixture(&p.fy_fixtureDef[LR]);
+							p.Fyudo[LR][i].fbody.reset(p.foot[LR]->CreateBody(&p.fy_bodyDef[LR]));
+							p.Fyudo[LR][i].fplayerfix = p.Fyudo[LR][i].fbody->CreateFixture(&p.fy_fixtureDef[LR]);
 							++i;
 						}
 					}
@@ -702,7 +702,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 							    VTransform(VGet(0, 0, 0), MV1GetFrameLocalMatrix(p.obj.get(), w + 1)),
 							    VTransform(VGet(0, 0, 0), MV1GetFrameLocalMatrix(p.obj.get(), w)));
 							if (vects.x * ((LR == 0) ? 1.f : -1.f) > 0) {
-								p.Fwheel[LR][i].body->SetTransform(b2Vec2(vects.z, vects.y), 0.f);
+								p.Fwheel[LR][i].fbody->SetTransform(
+									b2Vec2(vects.z, vects.y), 0.f);
 								i++;
 							}
 						}
@@ -710,16 +711,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						for (auto& w : p.ptr->youdoframe) {
 							VECTOR vects = VTransform(VGet(0, 0, 0), MV1GetFrameLocalMatrix(p.obj.get(), w));
 							if (vects.x * ((LR == 0) ? 1.f : -1.f) > 0) {
-								p.Fyudo[LR][i].body->SetTransform(b2Vec2(vects.z, vects.y), 0.f);
+								p.Fyudo[LR][i].fbody->SetTransform(b2Vec2(vects.z, vects.y), 0.f);
 								i++;
 							}
 						}
 						for (auto& f : p.Foot[LR])
-							f.body->SetLinearVelocity(b2Vec2(0.f, -0.98f));
+							f.fbody->SetLinearVelocity(b2Vec2(0.f, -0.98f));
 						p.foot[LR]->Step(1.0f / f_rates, 3, 3);
 						for (auto& f : p.Foot[LR]) {
-							f.p.y = f.body->GetPosition().y;
-							f.p.z = f.body->GetPosition().x;
+							f.fp.y = f.fbody->GetPosition().y;
+							f.fp.z = f.fbody->GetPosition().x;
 						}
 					}
 				}
@@ -803,8 +804,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						for (auto& w : p.ptr->upsizeframe) {
 							float xw = VTransform(VGet(0, 0, 0), MV1GetFrameLocalMatrix(p.obj.get(), w)).x;
 							if (xw * ((LR == 0) ? 1.f : -1.f) > 0) {
-								p.Foot[LR][i].p.x = xw;
-								MV1SetFrameUserLocalMatrix(p.obj.get(), w, MGetTranslate(p.Foot[LR][i].p));
+								p.Foot[LR][i].fp.x = xw;
+								MV1SetFrameUserLocalMatrix(p.obj.get(), w, MGetTranslate(p.Foot[LR][i].fp));
 								++i;
 							}
 						}
@@ -1145,7 +1146,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				/*通常*/
 				DrawGraph(0, 0, mainscreen, FALSE);
 				/*ブルーム*/
-				if (!parts->get_in()) {
+				if (!parts->get_in() && parts->get_usehost()) {
 					GraphFilterBlt(mainscreen, HighBrightScreen, DX_GRAPH_FILTER_BRIGHT_CLIP, DX_CMP_LESS, 210, TRUE, c_000000, 255);
 					GraphFilterBlt(HighBrightScreen, GaussScreen, DX_GRAPH_FILTER_DOWN_SCALE, EXTEND);
 					GraphFilter(GaussScreen, DX_GRAPH_FILTER_GAUSS, 16, 1000);
