@@ -443,6 +443,7 @@ HUMANS::HUMANS(bool useg, float frates) {
 					MV1SetAttachAnimBlendRate(model[i].obj.get(), model[i].amine[j], 0.0f);
 					MV1SetAttachAnimTime(model[i].obj.get(), model[i].amine[j], 0.f);
  				}
+				i++;
 			}
 		} while (FindNextFile(hFind, &win32fdt));
 	} //else{ return false; }
@@ -478,7 +479,8 @@ bool HUMANS::set_humans(const MV1ModelHandle& inmod) {
 
 		int j = 0;
 		float time = 0.f;
-
+		first = false;
+ 
 		while (ProcessMessage() == 0) {
 			waits = GetNowHiPerformanceCount();
 			if (CheckHitKey(KEY_INPUT_ESCAPE) != 0) {
@@ -509,7 +511,12 @@ bool HUMANS::set_humans(const MV1ModelHandle& inmod) {
 				j %= (ANIME_RtoL + 1);
 			}
 
+			if (!first)
+				MV1PhysicsResetState(model[i].obj.get());
+			else
+				MV1PhysicsCalculation(model[i].obj.get(), 1000.0f / f_rate);
 
+			first = true;
 
 			font72.DrawString(x_r(960) - font72.GetDrawWidth(name[i]) / 2, y_r(154), name[i], c_00ff00);
 			/*
@@ -683,7 +690,7 @@ void HUMANS::set_humanmove(const players& player, VECTOR rad) {
 			differential(h.per[ANIME_voi], 1.f, 0.1f);
 		h.per[ANIME_nom] = 1.0f - h.per[ANIME_voi];
 	}
-	std::for_each(hum.begin() + 1, hum.end(), [](HUMANS::humans& e) { e.per = { 0, 0, 0, 0, 1, 1, 1, 0 }; });
+	std::for_each(hum.begin() + 1, hum.end(), [](HUMANS::humans& e) { e.per = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 0 }; });
 	//反映
 	for (int k = 0; k < divi; ++k) {
 		int fnum = bone_in_turret;
@@ -722,7 +729,7 @@ void HUMANS::set_humanmove(const players& player, VECTOR rad) {
 				MV1SetAttachAnimBlendRate(h.obj.get(), h.amine[j], h.per[j]);
 				MV1SetAttachAnimTime(h.obj.get(), h.amine[j], h.time[j]);
 				h.time[j] += 30.0f / divi / f_rate; //
-				if (j != 2 && h.time[j] >= h.alltime[j])
+				if (j != ANIME_eye && h.time[j] >= h.alltime[j])
 					h.time[j] = 0.0f;
 			}
 			//
