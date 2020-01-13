@@ -31,6 +31,9 @@ Myclass::Myclass() {
 	shadex = std::stoi(getright(mstr));
 	FileRead_gets(mstr, 64, mdata);
 	USEHOST = bool(std::stoul(getright(mstr)));
+	FileRead_gets(mstr, 64, mdata);
+	se_vol = float(std::stoul(getright(mstr))) / 100.f;
+
 	FileRead_close(mdata);
 
 
@@ -139,6 +142,7 @@ void Myclass::write_option(void) {
 	outputfile << "groundx(1~16)=" + std::to_string(gndx) + "\n";
 	outputfile << "shadow(0~3)=" + std::to_string(shadex) + "\n";
 	outputfile << "hostpass(1or0)=" + std::to_string(USEHOST) + "\n";
+	outputfile << "se_vol(100~0)=" + std::to_string(se_vol) + "\n"; //
 	outputfile.close();
 }
 bool Myclass::set_veh(void) {
@@ -356,7 +360,7 @@ int Myclass::window_choosev(void) {
 		else
 			m = c_ff6400;
 		DrawBox(x_r(760), y_r(960), x_r(1160), y_r(996), m, FALSE);
-		font18.DrawString(x_r(960) - font18.GetDrawWidth("戦闘開始") / 2, y_r(969), "戦闘開始", c_ffffff);
+		font18.DrawString(x_r(960) - font18.GetDrawWidth("次へ") / 2, y_r(969), "次へ", c_ffffff);
 		Screen_Flip(waits);
 	}
 	if (i != -1) {
@@ -413,23 +417,38 @@ void Myclass::play_sound(int p1) {
 }
 //
 HUMANS::HUMANS(bool useg, float frates) {
+	using namespace std::literals;
 	usegrab = useg;
 	f_rate = frates;
 
 	WIN32_FIND_DATA win32fdt;
 	HANDLE hFind;
+	if (usegrab)
+		MV1SetLoadModelUsePhysicsMode(DX_LOADMODEL_PHYSICS_REALTIME);
+	else
+		MV1SetLoadModelUsePhysicsMode(DX_LOADMODEL_PHYSICS_LOADCALC);
 
+	int i = 0;
 	hFind = FindFirstFile("data/chara/*", &win32fdt);
 	if (hFind != INVALID_HANDLE_VALUE) {
 		do {
 			if ((win32fdt.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && (win32fdt.cFileName[0] != '.')) {
 				name.emplace_back(win32fdt.cFileName);
+
+				model.resize(i + 1);
+				model.back().obj = MV1ModelHandle::Load("data/chara/"s + name.back() + "/model.mv1");
+				for (size_t j = 0; j < ANIME_RtoL+1; ++j) {
+					model.back().amine[j] = MV1AttachAnim(model.back().obj.get(), int(j), -1, TRUE);
+					model.back().alltime[j] = MV1GetAttachAnimTotalTime(model.back().obj.get(), model.back().amine[j]);
+					MV1SetAttachAnimBlendRate(model[i].obj.get(), model[i].amine[j], 0.0f);
+					MV1SetAttachAnimTime(model[i].obj.get(), model[i].amine[j], 0.f);
+ 				}
 			}
 		} while (FindNextFile(hFind, &win32fdt));
 	} //else{ return false; }
 	FindClose(hFind);
 }
-void HUMANS::set_humans(const MV1ModelHandle& inmod) {
+bool HUMANS::set_humans(const MV1ModelHandle& inmod) {
 	using namespace std::literals;
 	//load
 	SetUseASyncLoadFlag(FALSE);
@@ -439,13 +458,147 @@ void HUMANS::set_humans(const MV1ModelHandle& inmod) {
 	hum.resize((inflames - bone_in_turret >= 1) ? inflames - bone_in_turret : 1);
 	//読み込み
 	//todo : ここでキャラ選択
+	{
+		SetMousePoint(x_r(960), y_r(969));
+		SetMouseDispFlag(TRUE);
+		const auto font18 = FontHandle::Create(x_r(18), y_r(18 / 3), DX_FONTTYPE_ANTIALIASING);
+		const auto font72 = FontHandle::Create(x_r(72), y_r(72 / 3), DX_FONTTYPE_ANTIALIASING);
+		int i = 0, x = 0, y = 0;
+		//int xp = 0, yp = 0;
+		int mousex, mousey;
+		LONGLONG waits;
+		unsigned int m;
+		const auto c_00ff00 = GetColor(0, 255, 0);
+		const auto c_ffff00 = GetColor(255, 255, 0);
+		const auto c_ff0000 = GetColor(255, 0, 0);
+		const auto c_ffffff = GetColor(255, 255, 255);
+		const auto c_808080 = GetColor(128, 128, 128);
+		const auto c_ffc800 = GetColor(255, 200, 0);
+		const auto c_ff6400 = GetColor(255, 100, 0);
+
+		int j = 0;
+		float time = 0.f;
+
+		while (ProcessMessage() == 0) {
+			waits = GetNowHiPerformanceCount();
+			if (CheckHitKey(KEY_INPUT_ESCAPE) != 0) {
+				i = -1;
+				break;
+			} //end
+			SetDrawScreen(DX_SCREEN_BACK);
+			ClearDrawScreen();
+			setcv(1.0f, 100.0f, VGet(0, 2.f, -2.f), VGet(0, 1.0f, 0), VGet(0, 1.0f, 0), 45.0f);
+			SetLightDirection(VSub(VGet(0, 2.f, -2.f), VGet(0, 1.0f, 0)));
+
+			MV1SetPosition(model[i].obj.get(), VGet(0, 0, 0));
+			MV1SetRotationXYZ(model[i].obj.get(), VGet(0, 0, 0));
+			MV1DrawModel(model[i].obj.get());
+
+			for (size_t k = 0; k < ANIME_RtoL + 1; k++) {
+				if (k != j) {
+					MV1SetAttachAnimBlendRate(model[i].obj.get(), model[i].amine[k], 0.0f);
+				}
+			}
+			MV1SetAttachAnimBlendRate(model[i].obj.get(), model[i].amine[j], 1.0f);
+			MV1SetAttachAnimTime(model[i].obj.get(), model[i].amine[j], time);
+
+			time += 30.f / f_rate;
+			if (time >= model[i].alltime[j]) {
+				time = 0.f;
+				j++;
+				j %= (ANIME_RtoL + 1);
+			}
+
+
+
+			font72.DrawString(x_r(960) - font72.GetDrawWidth(name[i]) / 2, y_r(154), name[i], c_00ff00);
+			/*
+			xp = 850;
+			yp = 850;
+			DrawBox(x_r(xp - 1), y_r(yp + 18), x_r(xp + 1 + 200), y_r(yp + 19), c_808080, FALSE);
+			DrawBox(x_r(xp + 1 + 100), y_r(yp + 17), x_r(xp - 1 + 100 + 100 * (vecs[i].speed_flont[3] * 3.6f) / 100.f), y_r(yp + 20), c_00ff00, TRUE);
+			DrawBox(x_r(xp + 1 + 100), y_r(yp + 17), x_r(xp - 1 + 100 - 100 * (vecs[i].speed_back[3] * -3.6f) / 50.f), y_r(yp + 20), c_ff0000, TRUE);
+			DrawFormatStringToHandle(x_r(xp), y_r(850), c_00ff00, font18.get(), "SPEED : %5.2f～%5.2f km/h", vecs[i].speed_flont[3] * 3.6f, vecs[i].speed_back[3] * 3.6f);
+			*/
+
+			GetMousePoint(&mousex, &mousey);
+			if (inm(x_r(360), y_r(340), x_r(400), y_r(740))) {
+				m = c_ffff00;
+				if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0) {
+					m = c_ff0000;
+					++x;
+					if (x == 1) {
+						i++;
+						i %= model.size();
+					}
+				}
+				else
+					x = 0;
+			}
+			else
+				m = c_00ff00;
+			DrawBox(x_r(360), y_r(340), x_r(400), y_r(740), m, FALSE);
+			font18.DrawString(x_r(396) - font18.GetDrawWidth("<"), y_r(531), "<", c_ffffff);
+			//
+			if (inm(x_r(1520), y_r(340), x_r(1560), y_r(740))) {
+				m = c_ffff00;
+				if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0) {
+					m = c_ff0000;
+					++y;
+					if (y == 1) {
+						i--;
+						if (i < 0)
+							i = int(model.size() - 1);
+					}
+				}
+				else
+					y = 0;
+			}
+			else
+				m = c_00ff00;
+			DrawBox(x_r(1520), y_r(340), x_r(1560), y_r(740), m, FALSE);
+			font18.DrawString(x_r(1524), y_r(531), ">", c_ffffff);
+			//
+			if (inm(x_r(760), y_r(960), x_r(1160), y_r(996))) {
+				m = c_ffc800;
+				if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0)
+					break;
+			}
+			else
+				m = c_ff6400;
+			DrawBox(x_r(760), y_r(960), x_r(1160), y_r(996), m, FALSE);
+			font18.DrawString(x_r(960) - font18.GetDrawWidth("戦闘開始") / 2, y_r(969), "戦闘開始", c_ffffff);
+			ScreenFlip();
+			do {
+			} while (GetNowHiPerformanceCount() - waits < 1000000.0f / f_rate);
+			//Myclass::Screen_Flip(waits);
+		}
+		if (i != -1) {
+			const auto c_000000 = GetColor(0, 0, 0);
+			float unt = 0;
+			while (ProcessMessage() == 0 && unt <= 0.9f) {
+				waits = GetNowHiPerformanceCount();
+				SetDrawScreen(DX_SCREEN_BACK);
+				SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(255.f * unt));
+				DrawBox(0, 0, dispx, dispy, c_000000, TRUE);
+				differential(unt, 1.f, 0.05f);
+				ScreenFlip();
+				do {
+				} while (GetNowHiPerformanceCount() - waits < 1000000.0f / f_rate);
+				//Myclass::Screen_Flip(waits);
+			}
+		}
+
+		if (i == -1)
+			return false;
+	}
 
 	for (auto&& h : hum) {
 		if (usegrab)
 			MV1SetLoadModelUsePhysicsMode(DX_LOADMODEL_PHYSICS_REALTIME);
 		else
 			MV1SetLoadModelUsePhysicsMode(DX_LOADMODEL_PHYSICS_LOADCALC);
-		h.obj = MV1ModelHandle::Load("data/chara/"s + name[0] + "/model.mv1");
+		h.obj = model[0].obj.Duplicate();
 	}
 	//読み込み後の設定、読み込み
 	for (auto&& h : hum) {
@@ -483,7 +636,7 @@ void HUMANS::set_humans(const MV1ModelHandle& inmod) {
 	hum[0].nvec = VSub(hum[0].obj.frame(hum[0].neck), hum[0].obj.frame(hum[0].neck - 1));
 	first = false;
 	hum[0].vflug = -1;
-	return;
+	return true;
 }
 void HUMANS::set_humanvc_vol(unsigned char size) {
 	for (auto&& v : hum[0].vsound)
@@ -530,7 +683,7 @@ void HUMANS::set_humanmove(const players& player, VECTOR rad) {
 			differential(h.per[ANIME_voi], 1.f, 0.1f);
 		h.per[ANIME_nom] = 1.0f - h.per[ANIME_voi];
 	}
-	std::for_each(hum.begin() + 1, hum.end(), [](HUMANS::humans& e) { e.per = { 1, 1, 1, 0 }; });
+	std::for_each(hum.begin() + 1, hum.end(), [](HUMANS::humans& e) { e.per = { 0, 0, 0, 0, 1, 1, 1, 0 }; });
 	//反映
 	for (int k = 0; k < divi; ++k) {
 		int fnum = bone_in_turret;
@@ -598,6 +751,9 @@ void HUMANS::draw_humanall() {
 }
 void HUMANS::delete_human(void) {
 	inmodel_handle.Dispose();
+	for (auto&& h : hum)
+		h.obj.Dispose();
+
 	hum.clear();
 	locin.clear();
 	pos_old.clear();
@@ -1001,11 +1157,9 @@ void UIS::set_state(players* play) {
 void UIS::set_reco(void) {
 	recs = 1.f;
 }
-
 void UIS::draw_drive() {
 	DrawExtendGraph(0, 0, dispx, dispy, UI_main[pplayer->ptr->countryc].ui_sight[7].get(), TRUE);
 }
-
 void UIS::draw_icon(players& p, int font) {
 	const auto c_00ff00 = GetColor(0, 255, 0);
 	const auto c_ff0000 = GetColor(255, 0, 0);
@@ -1014,7 +1168,6 @@ void UIS::draw_icon(players& p, int font) {
 		if (p.iconpos.z > 0.0f && p.iconpos.z < 1.0f)
 			DrawFormatStringToHandle((int)p.iconpos.x, (int)p.iconpos.y, (p.type == TEAM) ? c_00ff00 : c_ff0000, font, "%dm", (int)VSize(VSub(p.pos, pplayer->pos)));
 }
-
 void UIS::draw_sight(float posx, float posy, float ratio, float dist, int font) {
 	DrawRotaGraph(x_r(960), y_r(540), (float)y_r(2), deg2rad(-dist / 20), UI_main[pplayer->ptr->countryc].ui_sight[1].get(), TRUE);
 	DrawRotaGraph((int)posx, (int)posy, (float)y_r(2) * ratio / 4.0f, 0, UI_main[pplayer->ptr->countryc].ui_sight[2].get(), TRUE);

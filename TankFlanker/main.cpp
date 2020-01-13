@@ -25,7 +25,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	LONGLONG old_time, waits;				      /*時間取得*/
 	VECTOR campos, viewpos, uppos;				      /*カメラ*/
 	int mapc;
-	float se_vol = 1.f;
 	//init----------------------------------------------------------------------------------//
 	auto parts = std::make_unique<Myclass>();							       /*汎用クラス*/
 	auto humanparts = std::make_unique<HUMANS>(parts->get_usegrab(), parts->get_f_rate());		       /*車内関係*/
@@ -138,11 +137,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		mapparts->set_map_readyb(mapc);
 		uiparts->draw_load(); //
 		/*human*/
-		humanparts->set_humans(player[0].ptr->inmodel);
+		if (!humanparts->set_humans(player[0].ptr->inmodel))
+			return 0;
 		/*map*/
-		if (!mapparts->set_map_ready()) {
+		if (!mapparts->set_map_ready())
 			break;
-		}
 		//players
 		const auto c_ffff96 = GetColor(255, 255, 150);
 		const auto c_ffc896 = GetColor(255, 200, 150);
@@ -289,9 +288,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 		}
 		/*音量調整*/
-		se_vol = 1.f;
-		humanparts->set_humanvc_vol(unsigned char(255.f * se_vol));
-		parts->set_se_vol(unsigned char(128.f * se_vol));
+		humanparts->set_humanvc_vol(unsigned char(255.f * parts->get_se_vol()));
+		parts->set_se_vol(unsigned char(128.f * parts->get_se_vol()));
 		for (auto&& p : player)
 			for (auto& s : p.se)
 				ChangeVolumeSoundMem(128, s.get());
@@ -695,6 +693,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					p.yrad = -p.body->GetAngle();
 					p.vec.x = p.body->GetLinearVelocity().x;
 					p.vec.z = p.body->GetLinearVelocity().y;
+
+
+					b2Vec2 tmpb2 = b2Vec2(
+					    (M_GR / 10.f) * VDot(VGet(0, -1.f, 0), VNorm(VSub(p.obj.frame(7 + 1), p.obj.frame(7)))),
+					    (M_GR / 10.f) * VDot(VGet(0, 1.f, 0), p.nor));
+
 					for (size_t LR = 0; LR < 2; ++LR) {
 						int i = 0;
 						for (auto& w : p.ptr->wheelframe) {
@@ -702,8 +706,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 							    VTransform(VGet(0, 0, 0), MV1GetFrameLocalMatrix(p.obj.get(), w + 1)),
 							    VTransform(VGet(0, 0, 0), MV1GetFrameLocalMatrix(p.obj.get(), w)));
 							if (vects.x * ((LR == 0) ? 1.f : -1.f) > 0) {
-								p.Fwheel[LR][i].fbody->SetTransform(
-									b2Vec2(vects.z, vects.y), 0.f);
+								p.Fwheel[LR][i].fbody->SetTransform( b2Vec2(vects.z, vects.y), 0.f);
 								i++;
 							}
 						}
@@ -716,7 +719,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 							}
 						}
 						for (auto& f : p.Foot[LR])
-							f.fbody->SetLinearVelocity(b2Vec2(0.f, -0.98f));
+							f.fbody->SetLinearVelocity(tmpb2); //
+
 						p.foot[LR]->Step(1.0f / f_rates, 3, 3);
 						for (auto& f : p.Foot[LR]) {
 							f.fp.y = f.fbody->GetPosition().y;
@@ -752,11 +756,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						}
 					}
 					//サウンド
-					ChangeVolumeSoundMem(std::min<int>(int(64.f * abs(p.speed / p.ptr->speed_flont[0] * se_vol)), int(64.f * se_vol)), p.se[0].get());
+					ChangeVolumeSoundMem(int(std::min<float>(64.f * abs(p.speed / p.ptr->speed_flont[0]), 64.f) * parts->get_se_vol()), p.se[0].get());
 					for (size_t i = 27; i < 29; ++i)
-						ChangeVolumeSoundMem((int)((64.f + 64.f * abs(p.speed / p.ptr->speed_flont[3])) * se_vol), p.se[i].get());
+						ChangeVolumeSoundMem((int)((64.f + 64.f * abs(p.speed / p.ptr->speed_flont[3])) * parts->get_se_vol()), p.se[i].get());
 
-					ChangeVolumeSoundMem(int(128.f * p.gun_turn * se_vol), p.se[31].get());
+					ChangeVolumeSoundMem(int(128.f * p.gun_turn * parts->get_se_vol()), p.se[31].get());
 					differential(p.gun_turn, VSize(VSub(p.gunrad_rec, p.gunrad)) / p.ptr->gun_RD, 0.05f);
 					p.gunrad_rec = p.gunrad;
 
@@ -1173,6 +1177,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 			/*debug*/
 			//DrawFormatStringToHandle(x_r(18), y_r(1062), c_ffffff, parts->get_font(0), "start-stop(%.2fms)", (float)stop_w / 1000.f);
+
+			DrawFormatStringToHandle(x_r(18), y_r(1062), c_ffffff, parts->get_font(0), "(%.2f,%.2f)",
+			    VDot(VGet(0, -1.f, 0), VNorm(VSub(player[0].obj.frame(7 + 1), player[0].obj.frame(7)))),
+			    VDot(VGet(0, -1.f, 0), player[0].nor));
+
+			//VDot(VGet(0, -1.f, 0), VNorm(VSub(p.obj.frame(7 + 1), p.obj.frame(7))));
+			//VDot(VGet(0, -1.f, 0), p.nor);
+
 			uiparts->debug(fps, (float)(GetNowHiPerformanceCount() - waits) / 1000.0f);
 			//
 			parts->Screen_Flip(waits);

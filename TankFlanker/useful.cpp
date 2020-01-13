@@ -6,9 +6,8 @@ size_t count_impl(std::basic_string_view<TCHAR> pattern) {
 	const auto hFind = FindFirstFile(pattern.data(), &win32fdt);
 	if (hFind != INVALID_HANDLE_VALUE) {
 		do {
-			if (win32fdt.cFileName[0] != '.') {
+			if (win32fdt.cFileName[0] != '.')
 				++cnt;
-			}
 		} while (FindNextFile(hFind, &win32fdt));
 	}
 	FindClose(hFind);

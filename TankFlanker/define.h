@@ -46,12 +46,18 @@ constexpr size_t gunc = 2;				  /*銃、砲の数*/
 
 /*構造体*/
 enum animeid {
-	ANIME_nom = 0,
-	ANIME_sit = 1,
-	ANIME_eye = 2,
-	ANIME_voi = 3,
-	ANIME_out = 4,
-	ANIME_voice = 2
+	ANIME_L1 = 0,
+	ANIME_L2 = 1,
+	ANIME_L3 = 2,
+	ANIME_LtoR = 3,
+	ANIME_R = 4,
+	ANIME_RtoL = 5,
+	ANIME_nom = 6,
+	ANIME_sit = 7,
+	ANIME_eye = 8,
+	ANIME_voi = 9,
+	ANIME_out = 10,
+	ANIME_voice = 2//ボイス数
 };
 enum cpu {
 	CPU_NOMAL = 0,
@@ -255,7 +261,8 @@ private:
 	float drawdist{ 100.0f }; /*木の描画距離*/
 	int gndx = 8;		  /*地面のクオリティ*/
 	int shadex = 3;		  /*影のクオリティ*/
-	bool USEHOST{ false };
+	bool USEHOST{ false };    /**/
+	float se_vol{ 1.f };      /**/
 	/**/
 	std::vector<vehicle> vecs;		 /*車輛情報*/
 	VECTOR view, view_r;			 /*通常視点の角度、距離*/
@@ -271,6 +278,7 @@ public:
 	float get_drawdist(void) { return drawdist; }
 	float get_f_rate(void) { return f_rate; }
 	bool get_usehost(void) { return USEHOST; }
+	float get_se_vol(void) { return se_vol; }
 	void write_option(void);
 	//bool set_fonts(int arg_num, ...);
 	template <typename... Args>
@@ -303,8 +311,19 @@ public:
 };
 class HUMANS {
 private:
+	struct Hmod {
+		MV1ModelHandle obj;
+
+		int neck{ 0 };
+		VECTOR nvec{ VGet(0, 0, 0) };
+
+		int amine[ANIME_out]{ 0 };
+		float alltime[ANIME_out]{ 0.f };
+	};
+
 	struct humans {
 		char vflug{ 0 };
+
 		MV1ModelHandle obj;
 		int neck{ 0 };
 		VECTOR nvec{ VGet(0, 0, 0) };
@@ -312,6 +331,7 @@ private:
 		std::array<float, ANIME_out> time{};
 		float alltime[ANIME_out]{ 0.f };
 		std::array<float, ANIME_out> per{};
+
 		float voicetime{ 0.f };
 		float voicealltime[ANIME_voice]{ 0 };
 		int voices[ANIME_voice]{ 0 };
@@ -327,9 +347,10 @@ private:
 	std::vector<VECTOR> pos_old;   /*inmodelの前回のフレーム*/
 	std::vector<std::string> name; /**/
 	bool first;		       //初回フラグ
+	std::vector<Hmod> model;
 public:
 	HUMANS(bool useg, float frates);
-	void set_humans(const MV1ModelHandle& inmod);
+	bool set_humans(const MV1ModelHandle& inmod);
 	void set_humanvc_vol(unsigned char size);
 	void set_humanmove(const players& player, VECTOR rad);
 	void draw_human(size_t p1);
