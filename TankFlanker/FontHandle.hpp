@@ -34,6 +34,12 @@ public:
 	int DrawString(int x, int y, std::basic_string_view<TCHAR> String, unsigned int Color, unsigned int EdgeColor = 0, bool VerticalFlag = false) const noexcept {
 		return DxLib::DrawNStringToHandle(x, y, String.data(), String.size(), Color, this->handle_, EdgeColor, VerticalFlag);
 	}
+
+	template <typename... Args>
+	int DrawStringFormat(int x, int y, unsigned int Color, std::string String, Args&&... args) const noexcept {
+		return DxLib::DrawFormatStringToHandle(x, y, Color, this->handle_, String.c_str(), args...);
+	}
+
 	int GetDrawWidth(std::basic_string_view<TCHAR> String, bool VerticalFlag = false) const noexcept {
 		return DxLib::GetDrawNStringWidthToHandle(String.data(), String.size(), this->handle_, VerticalFlag);
 	}

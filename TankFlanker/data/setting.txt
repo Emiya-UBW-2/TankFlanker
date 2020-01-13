@@ -6,5 +6,5 @@ windowmode(1or0)=1
 drawdist(100~400)=100.000000
 groundx(1~16)=16
 shadow(0~3)=3
-hostpass(1or0)=1
-se_vol(100~0)=0.000000
+hostpass(1or0)=0
+se_vol(100~0)=100.000000

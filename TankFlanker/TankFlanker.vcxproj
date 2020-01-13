@@ -169,6 +169,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="define.h" />
+    <ClInclude Include="DXLib_vec.hpp" />
     <ClInclude Include="EffekseerEffectHandle.hpp" />
     <ClInclude Include="FontHandle.hpp" />
     <ClInclude Include="GraphHandle.hpp" />

@@ -3,6 +3,7 @@
 #include <EffekseerForDXLib.h>
 #include <string_view>
 class EffekseerEffectHandle;
+/*
 class Effekseer2DPlayingHandle {
 private:
 	int handle_;
@@ -27,91 +28,71 @@ public:
 			this->Stop();
 		}
 	}
-	/**
-	    @brief	2D表示のエフェクトが再生中か取得する。
-	    @return	再生中かどうか?
-	    @return	true:再生中、false:再生されていない、もしくは再生終了
-	*/
+	//    @brief	2D表示のエフェクトが再生中か取得する。
+	//    @return	再生中かどうか?
+	//    @return	true:再生中、false:再生されていない、もしくは再生終了
 	bool IsPlaying() const noexcept {
 		return 0 == IsEffekseer2DEffectPlaying(this->handle_);
 	}
-	/**
-	 * @brief 2D表示のエフェクトを停止する。
-	 */
+	// @brief 2D表示のエフェクトを停止する。
 	void Stop() const noexcept {
 		StopEffekseer2DEffect(this->handle_);
 	}
-	/**
-	    @brief	再生中の2D表示のエフェクトの位置を設定する。
-	    @param	x	X座標
-	    @param	y	Y座標
-	*/
-	void SetPos(VECTOR pos) const noexcept {
-		SetPosPlayingEffekseer2DEffect(this->handle_, pos.x, pos.y, pos.z);
+	//    @brief	再生中の2D表示のエフェクトの位置を設定する。
+	//    @param	x	X座標
+	//    @param	y	Y座標
+	void SetPos(VECTOR_ref pos) const noexcept {
+		SetPosPlayingEffekseer2DEffect(this->handle_, pos.x(), pos.y(), pos.z());
 	}
-	/**
-	    @brief	再生中の2D表示のエフェクトの角度を設定する。
-	    @param	x	X軸角度(ラジアン)
-	    @param	y	Y軸角度(ラジアン)
-	    @param	z	Z軸角度(ラジアン)
-	    @note
-	    回転の方向は時計回りである。
-	    回転の順番は Z軸回転 → X軸回転 → Y軸回転である。
-	*/
+	//    @brief	再生中の2D表示のエフェクトの角度を設定する。
+	//    @param	x	X軸角度(ラジアン)
+	//    @param	y	Y軸角度(ラジアン)
+	//    @param	z	Z軸角度(ラジアン)
+	//    @note
+	//    回転の方向は時計回りである。
+	//    回転の順番は Z軸回転 → X軸回転 → Y軸回転である。
 	void SetRotation(float x, float y, float z) const noexcept {
 		SetRotationPlayingEffekseer2DEffect(this->handle_, x, y, z);
 	}
-	/**
-	    @brief	再生中の2D表示のエフェクトの拡大率を設定する。
-	    @param	x	X方向拡大率
-	    @param	y	Y方向拡大率
-	    @param	z	Z方向拡大率
-	*/
+	//    @brief	再生中の2D表示のエフェクトの拡大率を設定する。
+	//    @param	x	X方向拡大率
+	//    @param	y	Y方向拡大率
+	//    @param	z	Z方向拡大率
 	void SetScale(float x, float y, float z) const noexcept {
 		SetScalePlayingEffekseer2DEffect(this->handle_, x, y, z);
 	}
-	/**
-	    @brief	再生中の2D表示のエフェクトの再生速度を取得する。
-	    @return	再生速度
-	*/
+	//    @brief	再生中の2D表示のエフェクトの再生速度を取得する。
+	//    @return	再生速度
 	float GetSpeed() const noexcept {
 		return GetSpeedPlayingEffekseer2DEffect(this->handle_);
 	}
-	/**
-	    @brief	再生中の2D表示のエフェクトの再生速度を設定する。
-	    @param	speed	再生速度
-	*/
+	//    @brief	再生中の2D表示のエフェクトの再生速度を設定する。
+	//    @param	speed	再生速度
 	void SetSpeed(float speed) const noexcept {
 		SetSpeedPlayingEffekseer2DEffect(this->handle_, speed);
 	}
-	/**
-	 * @brief 再生中の2D表示のエフェクトの色を設定する。
-	 */
+	// * @brief 再生中の2D表示のエフェクトの色を設定する。
 	void SetColor(int r, int g, int b, int a) const noexcept {
 		SetColorPlayingEffekseer2DEffect(this->handle_, r, g, b, a);
 	}
-	/**
-	 * @brief ハンドルを破棄する
-	 */
+	// * @brief ハンドルを破棄する
 	void Dispose() noexcept {
 		if (-1 != this->handle_) {
 			this->Stop();
 			this->handle_ = -1;
 		}
 	}
-	/**
-	    @brief	指定されたEffekseerにより再生中の2Dエフェクトを描画する。
-	    @note
-	    特定のエフェクトのみを描画したい時に使用する。
-	    特定のエフェクトを描画する。
-	    DrawEffekseer2Dとは併用できない。
-	*/
+	//    @brief	指定されたEffekseerにより再生中の2Dエフェクトを描画する。
+	//    @note
+	//    特定のエフェクトのみを描画したい時に使用する。
+	//    特定のエフェクトを描画する。
+	//    DrawEffekseer2Dとは併用できない。
 	void Draw() noexcept {
 		DrawEffekseer2D_Draw(this->handle_);
 	}
 	[[deprecated]] int get() const noexcept { return this->handle_; }
 };
-
+*/
 class Effekseer3DPlayingHandle {
 private:
 	int handle_;
@@ -155,8 +136,8 @@ public:
 	    @param	x	X座標
 	    @param	y	Y座標
 	*/
-	void SetPos(VECTOR pos) const noexcept {
-		SetPosPlayingEffekseer3DEffect(this->handle_, pos.x, pos.y, pos.z);
+	void SetPos(VECTOR_ref pos) const noexcept {
+		SetPosPlayingEffekseer3DEffect(this->handle_, pos.x(), pos.y(), pos.z());
 	}
 	/**
 	    @brief	再生中の3D表示のエフェクトの角度を設定する。
@@ -250,13 +231,13 @@ public:
 			this->handle_ = -1;
 		}
 	}
-	/**
-	    @brief	メモリ上のEffekseerのエフェクトリソースを2D表示で再生する。
-	    @return	エフェクトのハンドル
-	*/
+	/*
+	//    @brief	メモリ上のEffekseerのエフェクトリソースを2D表示で再生する。
+	//    @return	エフェクトのハンドル
 	Effekseer2DPlayingHandle Play2D() const noexcept {
 		return { PlayEffekseer2DEffect(this->handle_) };
 	}
+	*/
 	/**
 	    @brief	メモリ上のEffekseerのエフェクトリソースを3D表示で再生する。
 	    @return	エフェクトのハンドル

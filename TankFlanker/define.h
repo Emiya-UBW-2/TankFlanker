@@ -22,6 +22,7 @@
 #include <iostream>
 #include <fstream>
 
+#include "DXLib_vec.hpp"
 #include "MV1ModelHandle.hpp"
 #include "EffekseerEffectHandle.hpp"
 #include "SoundHandle.hpp"
@@ -102,13 +103,13 @@ struct ammos {
 	int cnt = 0;
 	int color = 0;
 	float speed = 0.f, pene = 0.f;
-	VECTOR pos{ VGet(0, 0, 0) }, repos{ VGet(0, 0, 0) }, vec{ VGet(0, 0, 0) };
+	VECTOR_ref pos, repos, vec;
 };
 struct EffectS {
 	bool flug{ false };		 /**/
 	Effekseer3DPlayingHandle handle; /**/
-	VECTOR pos{ VGet(0, 0, 0) };	 /**/
-	VECTOR nor{ VGet(0, 0, 0) };	 /**/
+	VECTOR_ref pos{ VGet(0, 0, 0) };	 /**/
+	VECTOR_ref nor{ VGet(0, 0, 0) };	 /**/
 };
 struct Hit {
 	bool flug{ false }; /**/
@@ -135,8 +136,8 @@ struct vehicle {
 	float gun_speed[3] = { 0.0f };	  /*弾速*/
 	float pene[3] = { 0.0f };	  /*貫通*/
 	int ammotype[3] = { 0 };	  /*弾種*/
-	std::vector<VECTOR> loc;	  /*フレームの元座標*/
-	std::array<VECTOR, 4> coloc;	  /*box2D用フレーム*/
+	std::vector<VECTOR_ref> loc;	  /*フレームの元座標*/
+	std::array<VECTOR_ref, 4> coloc;	  /*box2D用フレーム*/
 	int turretframe;		  /*砲塔フレーム*/
 	std::array<int, gunc> gunframe;	  /*銃フレーム*/
 	std::array<int, gunc> reloadtime; /*リロードタイム*/
@@ -169,15 +170,15 @@ struct players {
 	std::vector<SoundHandle> se; /*SE*/
 	/**/
 	int move{ 0 };		     /*キー操作*/
-	VECTOR pos{ VGet(0, 0, 0) }; /*座標*/
+	VECTOR_ref pos{ VGet(0, 0, 0) }; /*座標*/
 	MATRIX ps_m;		     /*車体行列*/
 	MATRIX ps_t;		     /*砲塔行列*/
 	//std::vector<MATRIX> ps_all;					/*行列*/
 	float yace{ 0.f };						/*加速度*/
 	float speed{ 0.f }, speedrec{ 0.f }, flont{ 0.f }, back{ 0.f }; /*速度関連*/
-	VECTOR vec{ VGet(0, 0, 0) };					/*移動ベクトル*/
+	VECTOR_ref vec{ VGet(0, 0, 0) };					/*移動ベクトル*/
 	float xnor{ 0.f }, znor{ 0.f }, znorrec{ 0.f };			/*法線角度*/
-	VECTOR nor{ VGet(0, 0, 0) };					/*法線*/
+	VECTOR_ref nor{ VGet(0, 0, 0) };					/*法線*/
 	float yrad{ 0.f };						/*角度*/
 	float yadd{ 0.f };						/*角速度*/
 	int recoall{ 0 };						/*弾き角度*/
@@ -187,7 +188,7 @@ struct players {
 	std::optional<size_t> atkf;	       /*cpuのヘイト*/
 	int aim{ 0 };			       /*ヘイトの変更カウント*/
 	size_t wayselect{ 0 }, waynow{ 0 };    /**/
-	VECTOR waypos[waypc]{ VGet(0, 0, 0) }; /*ウェイポイント*/
+	VECTOR_ref waypos[waypc]{ VGet(0, 0, 0) }; /*ウェイポイント*/
 	int wayspd[waypc]{ 0 };		       /*速度指定*/
 	int state{ 0 };			       /*ステータス*/
 	/**/
@@ -201,17 +202,17 @@ struct players {
 	int gear{ 0 };			 /*変速*/
 	unsigned int gearu{ 0 };	 /*キー*/
 	unsigned int geard{ 0 };	 /*キー*/
-	VECTOR inertia{ VGet(0, 0, 0) }; /*慣性*/
+	float inertiax, inertiaz;/*慣性*/
 	float wheelrad[3]{ 0.f };	 /*履帯の送り、転輪旋回*/
-	VECTOR gunrad{ 0 };		 /*砲角度*/
-	VECTOR gunrad_rec{ 0 };		 /*砲角度*/
+	VECTOR_ref gunrad;		 /*砲角度*/
+	VECTOR_ref gunrad_rec;		 /*砲角度*/
 	float gun_turn{ 0.f };
 	/*弾関連*/
 	int ammotype{ 0 };     /*弾種*/
 	bool recoadd{ false }; /*弾きフラグ*/
 	bool hitadd{ false };  /*命中フラグ*/
 	size_t hitid{ 0 };
-	VECTOR iconpos{ VGet(0, 0, 0) }; /*UI用*/
+	VECTOR_ref iconpos{ VGet(0, 0, 0) }; /*UI用*/
 	EffectS effcs[efs_user];	 /*effect*/
 	std::vector<float> Springs;	 /*スプリング*/
 	std::vector<short> HP;		 /*ライフ*/
@@ -231,7 +232,7 @@ struct players {
 	struct Foots {
 		std::unique_ptr<b2Body> fbody; /**/
 		b2Fixture* fplayerfix;	      /**/
-		VECTOR fp;		      /**/
+		VECTOR_ref fp;		      /**/
 	};
 	std::vector<Foots> Foot[2];	/**/
 	b2FixtureDef f_fixtureDef[2];	/*動的ボディフィクスチャを定義します。*/
@@ -265,7 +266,7 @@ private:
 	float se_vol{ 1.f };      /**/
 	/**/
 	std::vector<vehicle> vecs;		 /*車輛情報*/
-	VECTOR view, view_r;			 /*通常視点の角度、距離*/
+	VECTOR_ref view, view_r;			 /*通常視点の角度、距離*/
 	std::vector<int> fonts;			 /*フォント*/
 	std::array<SoundHandle, 13> se_;	 /*効果音*/
 	std::array<GraphHandle, 4> ui_reload;	 /*UI用*/
@@ -293,7 +294,7 @@ public:
 
 	bool set_veh(void);
 	int window_choosev(void); //車両選択
-	void set_viewrad(VECTOR vv);
+	void set_viewrad(VECTOR_ref vv);
 	void set_view_r(void);
 	void Screen_Flip(LONGLONG waits);
 	~Myclass();
@@ -302,9 +303,9 @@ public:
 	auto& get_ui2() & { return ui_reload; }
 	const auto& get_ui2() const& { return ui_reload; }
 	int get_font(int p1) { return fonts[p1]; } //フォントハンドル取り出し
-	VECTOR get_view_r(void) { return view_r; }
-	const auto get_in(void) { return view_r.z == 0.1f; }
-	VECTOR get_view_pos(void) { return VScale(VGet(sin(view_r.y) * cos(view_r.x), sin(view_r.x), cos(view_r.y) * cos(view_r.x)), 15.0f * view_r.z); }
+	VECTOR_ref get_view_r(void) { return view_r; }
+	const auto get_in(void) { return view_r.z() == 0.1f; }
+	VECTOR_ref get_view_pos(void) { return VScale(VGet(sin(view_r.y()) * cos(view_r.x()), sin(view_r.x()), cos(view_r.y()) * cos(view_r.x())), 15.0f * view_r.z()); }
 	EffekseerEffectHandle& get_effHandle(int p1) noexcept { return effHndle[p1]; }
 	const EffekseerEffectHandle& get_effHandle(int p1) const noexcept { return effHndle[p1]; }
 	vehicle* get_vehicle(int p1) { return &vecs[p1]; }
@@ -313,26 +314,24 @@ class HUMANS {
 private:
 	struct Hmod {
 		MV1ModelHandle obj;
-
-		int neck{ 0 };
-		VECTOR nvec{ VGet(0, 0, 0) };
-
 		int amine[ANIME_out]{ 0 };
 		float alltime[ANIME_out]{ 0.f };
+		std::array<SoundHandle, ANIME_voice> vsound;
 	};
 
 	struct humans {
 		char vflug{ 0 };
 
 		MV1ModelHandle obj;
-		int neck{ 0 };
-		VECTOR nvec{ VGet(0, 0, 0) };
-		int amine[ANIME_out]{ 0 };
+		std::array<int, ANIME_out> amine{};
 		std::array<float, ANIME_out> time{};
-		float alltime[ANIME_out]{ 0.f };
+		std::array<float, ANIME_out> alltime{};
 		std::array<float, ANIME_out> per{};
 
+		int neck{ 0 };
+		VECTOR_ref nvec{ VGet(0, 0, 0) };
 		float voicetime{ 0.f };
+
 		float voicealltime[ANIME_voice]{ 0 };
 		int voices[ANIME_voice]{ 0 };
 		std::array<SoundHandle, ANIME_voice> vsound;
@@ -343,8 +342,8 @@ private:
 	bool in_f{ false };	       //中描画スイッチ
 	size_t inflames;	       //inmodelのフレーム数
 	std::vector<humans> hum;       /**/
-	std::vector<VECTOR> locin;     /*inmodelのフレーム*/
-	std::vector<VECTOR> pos_old;   /*inmodelの前回のフレーム*/
+	std::vector<VECTOR_ref> locin;     /*inmodelのフレーム*/
+	std::vector<VECTOR_ref> pos_old;   /*inmodelの前回のフレーム*/
 	std::vector<std::string> name; /**/
 	bool first;		       //初回フラグ
 	std::vector<Hmod> model;
@@ -352,14 +351,14 @@ public:
 	HUMANS(bool useg, float frates);
 	bool set_humans(const MV1ModelHandle& inmod);
 	void set_humanvc_vol(unsigned char size);
-	void set_humanmove(const players& player, VECTOR rad);
+	void set_humanmove(const players& player, VECTOR_ref rad);
 	void draw_human(size_t p1);
 	void draw_humanall();
 	void delete_human(void);
 	void start_humanvoice(std::int8_t p1);
 	void start_humananime(int p1);
-	VECTOR get_neckpos() { return hum[0].obj.frame(hum[0].neck); }
-	VECTOR get_campos() { return inmodel_handle.frame(bone_hatch); }
+	VECTOR_ref get_neckpos() { return hum[0].obj.frame(hum[0].neck); }
+	VECTOR_ref get_campos() { return inmodel_handle.frame(bone_hatch); }
 };
 class MAPS {
 private:
@@ -376,8 +375,8 @@ private:
 		std::vector<MV1ModelHandle> fars;  /**/
 
 		std::vector<pair> treesort;
-		std::vector<VECTOR> pos;
-		std::vector<VECTOR> rad;
+		std::vector<VECTOR_ref> pos;
+		std::vector<VECTOR_ref> rad;
 		std::vector<bool> hit;
 	} tree;
 	int shadow_seminear;			  /*shadow中距離*/
@@ -387,7 +386,7 @@ private:
 	GraphHandle texp, texo, texn, texm, texl; /*mapテクスチャ*/
 	MV1ModelHandle sky_model;		  /*skyモデル*/
 	GraphHandle sky_sun;			  /*sunpic*/
-	VECTOR lightvec;			  /*light方向*/
+	VECTOR_ref lightvec;			  /*light方向*/
 	/*grass*/
 	int grasss = 10000;		/*grassの数*/
 	std::vector<VERTEX3D> grassver; /**/
@@ -400,13 +399,13 @@ private:
 	int vnum, pnum;			/**/
 	MV1_REF_POLYGONLIST RefMesh;	/**/
 	//campos
-	VECTOR camera, viewv, upv; /**/
+	VECTOR_ref camera, viewv, upv; /**/
 	float rat;		   /**/
 public:
 	MAPS(int map_size, float draw_dist, int shadow_size);
 	void set_map_readyb(size_t set);
 	bool set_map_ready(void);
-	void set_camerapos(VECTOR pos, VECTOR vec, VECTOR up, float ratio);
+	void set_camerapos(VECTOR_ref pos, VECTOR_ref vec, VECTOR_ref up, float ratio);
 	void set_map_shadow_near(float vier_r);
 	void draw_map_track(const players& player);
 	void draw_map_model(void);
@@ -416,15 +415,15 @@ public:
 
 	void ready_shadow(void);
 	void exit_shadow(void);
-	void set_normal(float* xnor, float* znor, VECTOR position); //地面に沿わせる
+	void set_normal(float* xnor, float* znor, VECTOR_ref position); //地面に沿わせる
 	auto& get_minmap() & { return texp; }
 	const auto& get_minmap() const& noexcept { return texp; }
 
 	int get_map_shadow_near() { return shadow_near; }
 	int get_map_shadow_seminear() { return shadow_seminear; }
 
-	MV1_COLL_RESULT_POLY get_gnd_hit(VECTOR startpos, VECTOR endpos) { return MV1CollCheck_Line(m_model.get(), 0, startpos, endpos); }
-	void set_hitplayer(VECTOR pos);
+	MV1_COLL_RESULT_POLY get_gnd_hit(VECTOR_ref startpos, VECTOR_ref endpos) { return MV1CollCheck_Line(m_model.get(), 0, startpos.get(), endpos.get()); }
+	void set_hitplayer(VECTOR_ref pos);
 	void draw_trees(void);
 	void draw_grass(void);
 };
@@ -465,10 +464,10 @@ public:
 	void debug(float fps, float time);
 };
 /**/
-void setcv(float neard, float fard, VECTOR cam, VECTOR view, VECTOR up, float fov);		     //カメラ情報指定
-void getdist(VECTOR* startpos, VECTOR vector, float& dist, float& getdists, float speed, float fps); //startposに測距情報を出力
+void setcv(float neard, float fard, VECTOR_ref cam, VECTOR_ref view, VECTOR_ref up, float fov);		     //カメラ情報指定
+void getdist(VECTOR_ref& startpos, VECTOR_ref vector, float& dist, float& getdists, float speed, float fps); //startposに測距情報を出力
 //effect
-void set_effect(EffectS* efh, VECTOR pos, VECTOR nor);
+void set_effect(EffectS* efh, VECTOR_ref pos, VECTOR_ref nor);
 void set_pos_effect(EffectS* efh, const EffekseerEffectHandle& handle);
 //play_class予定
 bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s);

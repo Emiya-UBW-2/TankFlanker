@@ -142,7 +142,7 @@ void Myclass::write_option(void) {
 	outputfile << "groundx(1~16)=" + std::to_string(gndx) + "\n";
 	outputfile << "shadow(0~3)=" + std::to_string(shadex) + "\n";
 	outputfile << "hostpass(1or0)=" + std::to_string(USEHOST) + "\n";
-	outputfile << "se_vol(100~0)=" + std::to_string(se_vol) + "\n"; //
+	outputfile << "se_vol(100~0)=" + std::to_string(se_vol * 100.f) + "\n"; //
 	outputfile.close();
 }
 bool Myclass::set_veh(void) {
@@ -263,26 +263,27 @@ int Myclass::window_choosev(void) {
 		DrawBox(x_r(xp - 1), y_r(yp + 18), x_r(xp + 1 + 200), y_r(yp + 19), c_808080, FALSE);
 		DrawBox(x_r(xp + 1 + 100), y_r(yp + 17), x_r(xp - 1 + 100 + 100 * (vecs[i].speed_flont[3] * 3.6f) / 100.f * pert), y_r(yp + 20), c_00ff00, TRUE);
 		DrawBox(x_r(xp + 1 + 100), y_r(yp + 17), x_r(xp - 1 + 100 - 100 * (vecs[i].speed_back[3] * -3.6f) / 50.f * pert), y_r(yp + 20), c_ff0000, TRUE);
-		DrawFormatStringToHandle(x_r(xp), y_r(850), c_00ff00, font18.get(), "SPEED : %5.2f～%5.2f km/h", vecs[i].speed_flont[3] * 3.6f, vecs[i].speed_back[3] * 3.6f);
+		font18.DrawStringFormat(x_r(xp), y_r(850), c_00ff00, "SPEED : %5.2f～%5.2f km/h", vecs[i].speed_flont[3] * 3.6f, vecs[i].speed_back[3] * 3.6f);
 
 		xp = 1140;
 		yp = 810;
 		DrawBox(x_r(xp - 1), y_r(yp + 18), x_r(xp + 1 + 200), y_r(yp + 19), c_808080, FALSE);
 		DrawBox(x_r(xp + 1), y_r(yp + 17), x_r(xp - 1 + 200 * rad2deg(vecs[i].vehicle_RD) / 100.f * pert), y_r(yp + 20), c_00ff00, TRUE);
-		DrawFormatStringToHandle(x_r(xp), y_r(yp), c_00ff00, font18.get(), "TURN SPEED : %5.2f deg/s", rad2deg(vecs[i].vehicle_RD));
+		font18.DrawStringFormat(x_r(xp), y_r(yp), c_00ff00, "TURN SPEED : %5.2f deg/s", rad2deg(vecs[i].vehicle_RD));
+
 
 		xp = 1120;
 		yp = 580;
 		DrawBox(x_r(xp - 1), y_r(yp + 18), x_r(xp + 1 + 200), y_r(yp + 19), c_808080, FALSE);
 		DrawBox(x_r(xp + 1), y_r(yp + 17), x_r(xp - 1 + 200 * vecs[i].armer[0] / 150.f * pert), y_r(yp + 20), c_00ff00, TRUE);
-		DrawFormatStringToHandle(x_r(xp), y_r(yp), c_00ff00, font18.get(), "MAX ARMER : %5.2f mm", vecs[i].armer[0]);
+		font18.DrawStringFormat(x_r(xp), y_r(yp), c_00ff00, "MAX ARMER : %5.2f mm", vecs[i].armer[0]);
 
 		xp = 450;
 		yp = 510;
 		DrawBox(x_r(xp - 1), y_r(yp + 18), x_r(xp + 1 + 200), y_r(yp + 19), c_808080, FALSE);
 		DrawBox(x_r(xp + 1 + 100), y_r(yp + 17), x_r(xp - 1 + 100 + 100 * rad2deg(vecs[i].gun_lim_[2]) / 40.f * pert), y_r(yp + 20), c_00ff00, TRUE);
 		DrawBox(x_r(xp + 1 + 100), y_r(yp + 17), x_r(xp - 1 + 100 - 100 * rad2deg(vecs[i].gun_lim_[3]) / -20.f * pert), y_r(yp + 20), c_ff0000, TRUE);
-		DrawFormatStringToHandle(x_r(xp), y_r(yp), c_00ff00, font18.get(), "GUN RAD     : %5.2f°～%5.2f°", rad2deg(vecs[i].gun_lim_[2]), rad2deg(vecs[i].gun_lim_[3]));
+		font18.DrawStringFormat(x_r(xp), y_r(yp), c_00ff00, "GUN RAD     : %5.2f°～%5.2f°", rad2deg(vecs[i].gun_lim_[2]), rad2deg(vecs[i].gun_lim_[3]));
 
 		yp = 530;
 		DrawBox(x_r(xp + 10), y_r(yp + 10), x_r(xp + 90), y_r(yp + 90), c_808080, FALSE);
@@ -298,19 +299,19 @@ int Myclass::window_choosev(void) {
 		DrawCircle(x_r(xp + 120), y_r(yp + 70), y_r(int(vecs[i].ammosize[0] * 1000.f * pert) / 2 / 5), c_00ff00, FALSE);
 		DrawLine(x_r(xp + 120), y_r(yp + 70), x_r(xp + 140), y_r(yp + 46), c_00ff00);
 
-		DrawFormatStringToHandle(x_r(xp + 140), y_r(yp + 10), c_00ff00, font18.get(), "ACCURACY    : ±%05.1f°", float(vecs[i].accuracy[0]) / 10000.f);
-		DrawFormatStringToHandle(x_r(xp + 140), y_r(yp + 28), c_00ff00, font18.get(), "GUN CALIBER : %03.1fmm", vecs[i].ammosize[0] * 1000.f);
+		font18.DrawStringFormat(x_r(xp + 140), y_r(yp + 10), c_00ff00, "ACCURACY    : ±%05.1f°", float(vecs[i].accuracy[0]) / 10000.f);
+		font18.DrawStringFormat(x_r(xp + 140), y_r(yp + 28), c_00ff00, "GUN CALIBER : %03.1fmm", vecs[i].ammosize[0] * 1000.f);
 
 		//
 		font18.DrawString(x_r(0), y_r(18 * 1), "SETTING", c_00ff00);
-		DrawFormatStringToHandle(x_r(0), y_r(18 * 2), c_00ff00, font18.get(), " 人の物理演算         : %s", usegrab ? "TRUE" : "FALSE");
-		DrawFormatStringToHandle(x_r(0), y_r(18 * 3), c_00ff00, font18.get(), " アンチエイリアス倍率 : x%d", ANTI);
-		DrawFormatStringToHandle(x_r(0), y_r(18 * 4), c_00ff00, font18.get(), " 垂直同期             : %s", YSync ? "TRUE" : "FALSE");
-		DrawFormatStringToHandle(x_r(0), y_r(18 * 5), c_00ff00, font18.get(), " ウィンドウor全画面   : %s", windowmode ? "TRUE" : "FALSE");
-		DrawFormatStringToHandle(x_r(0), y_r(18 * 6), c_00ff00, font18.get(), " 木の描画距離         : %5.2f m", drawdist);
-		DrawFormatStringToHandle(x_r(0), y_r(18 * 7), c_00ff00, font18.get(), " 地面のクォリティ     : x%d", gndx);
-		DrawFormatStringToHandle(x_r(0), y_r(18 * 8), c_00ff00, font18.get(), " 影のクォリティ       : x%d", shadex);
-		DrawFormatStringToHandle(x_r(0), y_r(18 * 9), c_00ff00, font18.get(), " ホストパスエフェクト : %s", USEHOST ? "TRUE" : "FALSE");
+		font18.DrawStringFormat(x_r(0), y_r(18 * 2), c_00ff00, " 人の物理演算         : %s", usegrab ? "TRUE" : "FALSE");
+		font18.DrawStringFormat(x_r(0), y_r(18 * 3), c_00ff00, " アンチエイリアス倍率 : x%d", ANTI);
+		font18.DrawStringFormat(x_r(0), y_r(18 * 4), c_00ff00, " 垂直同期             : %s", YSync ? "TRUE" : "FALSE");
+		font18.DrawStringFormat(x_r(0), y_r(18 * 5), c_00ff00, " ウィンドウor全画面   : %s", windowmode ? "TRUE" : "FALSE");
+		font18.DrawStringFormat(x_r(0), y_r(18 * 6), c_00ff00, " 木の描画距離         : %5.2f m", drawdist);
+		font18.DrawStringFormat(x_r(0), y_r(18 * 7), c_00ff00, " 地面のクォリティ     : x%d", gndx);
+		font18.DrawStringFormat(x_r(0), y_r(18 * 8), c_00ff00, " 影のクォリティ       : x%d", shadex);
+		font18.DrawStringFormat(x_r(0), y_r(18 * 9), c_00ff00, " ホストパスエフェクト : %s", USEHOST ? "TRUE" : "FALSE");
 		//
 		GetMousePoint(&mousex, &mousey);
 		if (inm(x_r(360), y_r(340), x_r(400), y_r(740))) {
@@ -377,26 +378,20 @@ int Myclass::window_choosev(void) {
 	}
 	return i;
 }
-void Myclass::set_viewrad(VECTOR vv) {
+void Myclass::set_viewrad(VECTOR_ref vv) {
 	view = vv;
 	view_r = vv;
 }
 void Myclass::set_view_r(void) {
 	int px, py;
 	GetMousePoint(&px, &py);
-	view.z += (float)GetMouseWheelRotVol() / 10.0f;
-	if (view.z < 0.1f) {
-		view.z = 0.1f;
-		view_r.z = view.z;
-	}
-	if (view.z > 2.f) {
-		view.z = 2.f;
-	}
-	//x_r(960), y_r(540)
-	view.y += (float)(px - dispx / 2) / dispx * dispx / 640 * 1.0f;
-	view.x += (float)(py - dispy / 2) / dispy * dispy / 480 * 1.0f;
-	view.x = std::clamp(view.x, deg2rad(-35), deg2rad(35));
-	view_r = VAdd(view_r, VScale(VSub(view, view_r), 0.1f));
+	view = DxLib::VGet(
+	    std::clamp(view.x() + (float)(py - dispy / 2) / dispy * dispy / 480 * 1.0f, deg2rad(-35), deg2rad(35)),
+	    view.y() + (float)(px - dispx / 2) / dispx * dispx / 640 * 1.0f,
+	    std::clamp(view.z() + (float)GetMouseWheelRotVol() / 10.0f, 0.1f, 2.f));
+	view_r += (view - view_r).Scale(0.1f);
+	//if (view.z() == 0.1f)
+	//	view_r.z = view.z();
 	SetMousePoint(x_r(960), y_r(540));
 }
 void Myclass::Screen_Flip(LONGLONG waits) {
@@ -437,12 +432,18 @@ HUMANS::HUMANS(bool useg, float frates) {
 
 				model.resize(i + 1);
 				model.back().obj = MV1ModelHandle::Load("data/chara/"s + name.back() + "/model.mv1");
-				for (size_t j = 0; j < ANIME_RtoL+1; ++j) {
+				for (size_t j = 0; j < ANIME_RtoL + 1; ++j) {
 					model.back().amine[j] = MV1AttachAnim(model.back().obj.get(), int(j), -1, TRUE);
 					model.back().alltime[j] = MV1GetAttachAnimTotalTime(model.back().obj.get(), model.back().amine[j]);
 					MV1SetAttachAnimBlendRate(model[i].obj.get(), model[i].amine[j], 0.0f);
 					MV1SetAttachAnimTime(model[i].obj.get(), model[i].amine[j], 0.f);
- 				}
+				}
+				//車長ボイス
+				SetUseASyncLoadFlag(TRUE);
+				for (size_t k = 0; k < ANIME_voice; ++k) {
+					model[i].vsound[k] = SoundHandle::Load("data/chara/"s + name.back() + "/voice/" + std::to_string(k) + ".wav");
+				}
+				SetUseASyncLoadFlag(FALSE);
 				i++;
 			}
 		} while (FindNextFile(hFind, &win32fdt));
@@ -451,20 +452,19 @@ HUMANS::HUMANS(bool useg, float frates) {
 }
 bool HUMANS::set_humans(const MV1ModelHandle& inmod) {
 	using namespace std::literals;
-	//load
-	SetUseASyncLoadFlag(FALSE);
 	inmodel_handle = inmod.Duplicate();
 	inflames = inmodel_handle.frame_num();
 	pos_old.resize(inflames);
 	hum.resize((inflames - bone_in_turret >= 1) ? inflames - bone_in_turret : 1);
 	//読み込み
 	//todo : ここでキャラ選択
+	int sel = 0;
 	{
 		SetMousePoint(x_r(960), y_r(969));
 		SetMouseDispFlag(TRUE);
 		const auto font18 = FontHandle::Create(x_r(18), y_r(18 / 3), DX_FONTTYPE_ANTIALIASING);
 		const auto font72 = FontHandle::Create(x_r(72), y_r(72 / 3), DX_FONTTYPE_ANTIALIASING);
-		int i = 0, x = 0, y = 0;
+		uint8_t x = 0, y = 0;
 		//int xp = 0, yp = 0;
 		int mousex, mousey;
 		LONGLONG waits;
@@ -480,11 +480,11 @@ bool HUMANS::set_humans(const MV1ModelHandle& inmod) {
 		int j = 0;
 		float time = 0.f;
 		first = false;
- 
+
 		while (ProcessMessage() == 0) {
 			waits = GetNowHiPerformanceCount();
 			if (CheckHitKey(KEY_INPUT_ESCAPE) != 0) {
-				i = -1;
+				sel = -1;
 				break;
 			} //end
 			SetDrawScreen(DX_SCREEN_BACK);
@@ -492,40 +492,37 @@ bool HUMANS::set_humans(const MV1ModelHandle& inmod) {
 			setcv(1.0f, 100.0f, VGet(0, 2.f, -2.f), VGet(0, 1.0f, 0), VGet(0, 1.0f, 0), 45.0f);
 			SetLightDirection(VSub(VGet(0, 2.f, -2.f), VGet(0, 1.0f, 0)));
 
-			MV1SetPosition(model[i].obj.get(), VGet(0, 0, 0));
-			MV1SetRotationXYZ(model[i].obj.get(), VGet(0, 0, 0));
-			MV1DrawModel(model[i].obj.get());
+			MV1SetPosition(model[sel].obj.get(), VGet(0, 0, 0));
+			MV1SetRotationXYZ(model[sel].obj.get(), VGet(0, 0, 0));
+			MV1DrawModel(model[sel].obj.get());
 
-			for (size_t k = 0; k < ANIME_RtoL + 1; k++) {
-				if (k != j) {
-					MV1SetAttachAnimBlendRate(model[i].obj.get(), model[i].amine[k], 0.0f);
-				}
-			}
-			MV1SetAttachAnimBlendRate(model[i].obj.get(), model[i].amine[j], 1.0f);
-			MV1SetAttachAnimTime(model[i].obj.get(), model[i].amine[j], time);
+			for (size_t k = 0; k < ANIME_RtoL + 1; k++)
+				if (k != j)
+					MV1SetAttachAnimBlendRate(model[sel].obj.get(), model[sel].amine[k], 0.0f);
+			MV1SetAttachAnimBlendRate(model[sel].obj.get(), model[sel].amine[j], 1.0f);
+			MV1SetAttachAnimTime(model[sel].obj.get(), model[sel].amine[j], time);
 
 			time += 30.f / f_rate;
-			if (time >= model[i].alltime[j]) {
+			if (time >= model[sel].alltime[j]) {
 				time = 0.f;
 				j++;
 				j %= (ANIME_RtoL + 1);
 			}
-
 			if (!first)
-				MV1PhysicsResetState(model[i].obj.get());
+				MV1PhysicsResetState(model[sel].obj.get());
 			else
-				MV1PhysicsCalculation(model[i].obj.get(), 1000.0f / f_rate);
+				MV1PhysicsCalculation(model[sel].obj.get(), 1000.0f / f_rate);
 
 			first = true;
 
-			font72.DrawString(x_r(960) - font72.GetDrawWidth(name[i]) / 2, y_r(154), name[i], c_00ff00);
+			font72.DrawString(x_r(960) - font72.GetDrawWidth(name[sel]) / 2, y_r(154), name[sel], c_00ff00);
 			/*
 			xp = 850;
 			yp = 850;
 			DrawBox(x_r(xp - 1), y_r(yp + 18), x_r(xp + 1 + 200), y_r(yp + 19), c_808080, FALSE);
-			DrawBox(x_r(xp + 1 + 100), y_r(yp + 17), x_r(xp - 1 + 100 + 100 * (vecs[i].speed_flont[3] * 3.6f) / 100.f), y_r(yp + 20), c_00ff00, TRUE);
-			DrawBox(x_r(xp + 1 + 100), y_r(yp + 17), x_r(xp - 1 + 100 - 100 * (vecs[i].speed_back[3] * -3.6f) / 50.f), y_r(yp + 20), c_ff0000, TRUE);
-			DrawFormatStringToHandle(x_r(xp), y_r(850), c_00ff00, font18.get(), "SPEED : %5.2f～%5.2f km/h", vecs[i].speed_flont[3] * 3.6f, vecs[i].speed_back[3] * 3.6f);
+			DrawBox(x_r(xp + 1 + 100), y_r(yp + 17), x_r(xp - 1 + 100 + 100 * (vecs[sel].speed_flont[3] * 3.6f) / 100.f), y_r(yp + 20), c_00ff00, TRUE);
+			DrawBox(x_r(xp + 1 + 100), y_r(yp + 17), x_r(xp - 1 + 100 - 100 * (vecs[sel].speed_back[3] * -3.6f) / 50.f), y_r(yp + 20), c_ff0000, TRUE);
+			font18.DrawStringFormat(x_r(xp), y_r(850), c_00ff00, "SPEED : %5.2f～%5.2f km/h", vecs[sel].speed_flont[3] * 3.6f, vecs[sel].speed_back[3] * 3.6f);
 			*/
 
 			GetMousePoint(&mousex, &mousey);
@@ -533,10 +530,11 @@ bool HUMANS::set_humans(const MV1ModelHandle& inmod) {
 				m = c_ffff00;
 				if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0) {
 					m = c_ff0000;
-					++x;
+					x = std::min<uint8_t>(x + 1, 2);
 					if (x == 1) {
-						i++;
-						i %= model.size();
+						sel++;
+						sel %= model.size();
+						first = false;
 					}
 				}
 				else
@@ -551,11 +549,12 @@ bool HUMANS::set_humans(const MV1ModelHandle& inmod) {
 				m = c_ffff00;
 				if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0) {
 					m = c_ff0000;
-					++y;
+					y = std::min<uint8_t>(y + 1, 2);
 					if (y == 1) {
-						i--;
-						if (i < 0)
-							i = int(model.size() - 1);
+						sel--;
+						if (sel < 0)
+							sel = int(model.size() - 1);
+						first = false;
 					}
 				}
 				else
@@ -580,7 +579,7 @@ bool HUMANS::set_humans(const MV1ModelHandle& inmod) {
 			} while (GetNowHiPerformanceCount() - waits < 1000000.0f / f_rate);
 			//Myclass::Screen_Flip(waits);
 		}
-		if (i != -1) {
+		if (sel != -1) {
 			const auto c_000000 = GetColor(0, 0, 0);
 			float unt = 0;
 			while (ProcessMessage() == 0 && unt <= 0.9f) {
@@ -596,19 +595,12 @@ bool HUMANS::set_humans(const MV1ModelHandle& inmod) {
 			}
 		}
 
-		if (i == -1)
+		if (sel == -1)
 			return false;
 	}
 
 	for (auto&& h : hum) {
-		if (usegrab)
-			MV1SetLoadModelUsePhysicsMode(DX_LOADMODEL_PHYSICS_REALTIME);
-		else
-			MV1SetLoadModelUsePhysicsMode(DX_LOADMODEL_PHYSICS_LOADCALC);
-		h.obj = model[0].obj.Duplicate();
-	}
-	//読み込み後の設定、読み込み
-	for (auto&& h : hum) {
+		h.obj = model[sel].obj.Duplicate();
 		//色調
 		for (int j = 0; j < h.obj.material_num(); ++j) {
 			MV1SetMaterialDifColor(h.obj.get(), j, GetColorF(0.5f, 0.5f, 0.5f, 1.0f));
@@ -618,16 +610,16 @@ bool HUMANS::set_humans(const MV1ModelHandle& inmod) {
 		//アニメーション
 		for (size_t j = 0; j < ANIME_out; ++j) {
 			h.amine[j] = MV1AttachAnim(h.obj.get(), int(j), -1, TRUE);
-			h.time[j] = 0.0f;
 			h.alltime[j] = MV1GetAttachAnimTotalTime(h.obj.get(), h.amine[j]);
+			h.time[j] = 0.0f;
 			h.per[j] = 0.f;
 		}
 	}
-	//車長にはボイスと口パクアニメーション
+	//車長には口パクアニメーション
 	for (size_t i = 0; i < ANIME_voice; ++i) {
 		hum[0].voices[i] = MV1AttachAnim(hum[0].obj.get(), int(ANIME_out + i), -1, TRUE);
 		hum[0].voicealltime[i] = MV1GetAttachAnimTotalTime(hum[0].obj.get(), hum[0].voices[i]);
-		hum[0].vsound[i] = SoundHandle::Load("data/chara/"s + name[0] + "/voice/" + std::to_string(i) + ".wav");
+		hum[0].vsound[i] = model[sel].vsound[i].Duplicate();
 	}
 	//
 	MV1SetMatrix(inmodel_handle.get(), MGetTranslate(VGet(0, 0, 0)));
@@ -640,7 +632,7 @@ bool HUMANS::set_humans(const MV1ModelHandle& inmod) {
 	for (const TCHAR* re; "首"sv != (re = MV1GetFrameName(hum[0].obj.get(), hum[0].neck++));) {}
 	//if (hum[0].neck == 0) { hum[0].neck = 121; } //暫定処置
 	MV1SetMatrix(hum[0].obj.get(), MGetTranslate(VGet(0, 0, 0)));
-	hum[0].nvec = VSub(hum[0].obj.frame(hum[0].neck), hum[0].obj.frame(hum[0].neck - 1));
+	hum[0].nvec = hum[0].obj.frame(hum[0].neck) - hum[0].obj.frame(hum[0].neck - 1);
 	first = false;
 	hum[0].vflug = -1;
 	return true;
@@ -649,7 +641,7 @@ void HUMANS::set_humanvc_vol(unsigned char size) {
 	for (auto&& v : hum[0].vsound)
 		ChangeVolumeSoundMem(size, v.get());
 }
-void HUMANS::set_humanmove(const players& player, VECTOR rad) {
+void HUMANS::set_humanmove(const players& player, VECTOR_ref rad) {
 	if (!first)
 		MV1SetMatrix(inmodel_handle.get(), player.ps_m);
 	for (int i = 0; i < inflames; ++i)
@@ -657,21 +649,21 @@ void HUMANS::set_humanmove(const players& player, VECTOR rad) {
 
 	MV1SetMatrix(inmodel_handle.get(), player.ps_m);
 	MV1SetFrameUserLocalMatrix(inmodel_handle.get(), player.ptr->turretframe, player.ps_t);
-	MV1SetFrameUserLocalMatrix(inmodel_handle.get(), player.ptr->gunframe[0], MMult(MMult(MGetRotX(player.gunrad.y), MGetTranslate(VSub(locin[player.ptr->gunframe[0]], locin[player.ptr->turretframe]))), player.ps_t));
-	MV1SetFrameUserLocalMatrix(inmodel_handle.get(), player.ptr->gunframe[0], MGetTranslate(VAdd(VSub(player.ptr->loc[player.ptr->gunframe[0] + 1], player.ptr->loc[player.ptr->gunframe[0]]), VGet(0, 0, player.Gun[0].fired))));
-	//
+	MV1SetFrameUserLocalMatrix(inmodel_handle.get(), player.ptr->gunframe[0], MMult(MMult(MGetRotX(player.gunrad.y()), (locin[player.ptr->gunframe[0]] - locin[player.ptr->turretframe]).Mtrans()), player.ps_t));
+	MV1SetFrameUserLocalMatrix(inmodel_handle.get(), player.ptr->gunframe[0], (player.ptr->loc[player.ptr->gunframe[0] + 1] - player.ptr->loc[player.ptr->gunframe[0]] + VGet(0, 0, player.Gun[0].fired)).Mtrans());
+	//7,6だけ車体乗人
 	for (int i = bone_hatch; i < inflames; ++i) {
-		//警告	C6289	不適切な演算子です : || を使用した相互排除は常に 0 でない定数となります。 && を使用しようとしましたか ?
-		if (i != 9 || i != 10)
-			MV1SetFrameUserLocalMatrix(inmodel_handle.get(), i, MMult(MMult(MGetRotY(player.gunrad.x), MGetTranslate(VSub(locin[i], locin[player.ptr->turretframe]))), player.ps_t));
+		if (i == 7 || i == 8)
+			continue;
+		MV1SetFrameUserLocalMatrix(inmodel_handle.get(), i, MMult(MMult(MGetRotY(player.gunrad.x()), (locin[i] - locin[player.ptr->turretframe]).Mtrans()), player.ps_t));
 	}
 
 	bool physicsReset;
 	physicsReset = false;
 
-	if (rad.z > 0.1f)
+	if (rad.z() > 0.1f)
 		in_f = false;
-	if (rad.z == 0.1f && !in_f) {
+	if (rad.z() == 0.1f && !in_f) {
 		in_f = true;
 		physicsReset = true;
 	}
@@ -699,18 +691,17 @@ void HUMANS::set_humanmove(const players& player, VECTOR rad) {
 			    h.obj.get(),
 			    MMult(
 				MMult(
-				    MGetRotY(player.yrad + player.gunrad.x), MGetRotVec2(VGet(0, 1.f, 0), player.nor)),
-				MGetTranslate(
-				    VAdd(pos_old[fnum], VScale(VSub(inmodel_handle.frame(fnum), pos_old[fnum]), (float)(1 + k) / divi)))));
+				    MGetRotY(player.yrad + player.gunrad.x()), MGetRotVec2(VGet(0, 1.f, 0), player.nor.get())),
+				(pos_old[fnum] + (inmodel_handle.frame(fnum) - pos_old[fnum]).Scale((float)(1 + k) / divi)).Mtrans()));
 			if (fnum == bone_in_turret) {
 				/*首振り*/
 				MV1SetFrameUserLocalMatrix(
 				    h.obj.get(), h.neck,
 				    MMult(
-					MGetTranslate(h.nvec),
+					h.nvec.Mtrans(),
 					MMult(
-					    MGetRotX(std::clamp(-rad.x, deg2rad(-20), deg2rad(20))),
-					    MGetRotY(std::clamp(atanf(sin(rad.y - player.yrad - player.gunrad.x)), deg2rad(-40), deg2rad(40))))));
+					    MGetRotX(std::clamp(-rad.x(), deg2rad(-20), deg2rad(20))),
+					    MGetRotY(std::clamp(atanf(sin(rad.y() - player.yrad - player.gunrad.x())), deg2rad(-40), deg2rad(40))))));
 				//voice
 				if (h.vflug != -1) {
 					if (h.voicetime < h.voicealltime[h.vflug]) {
@@ -758,9 +749,12 @@ void HUMANS::draw_humanall() {
 }
 void HUMANS::delete_human(void) {
 	inmodel_handle.Dispose();
-	for (auto&& h : hum)
+	for (auto&& h : hum) {
 		h.obj.Dispose();
-
+		for (size_t k = 0; k < ANIME_voice; ++k) {
+			h.vsound[k].Dispose();
+		}
+	}
 	hum.clear();
 	locin.clear();
 	pos_old.clear();
@@ -828,10 +822,10 @@ bool MAPS::set_map_ready() {
 	MV1SetupCollInfo(m_model.get(), 0, map_x / 5, map_x / 5, map_y / 5);
 	SetFogStartEnd(10.0f, 1400.0f); /*fog*/
 	SetFogColor(150, 150, 175);	/*fog*/
-	SetLightDirection(lightvec);
-	SetShadowMapLightDirection(shadow_near, lightvec);
-	SetShadowMapLightDirection(shadow_seminear, lightvec);
-	SetShadowMapLightDirection(shadow_far, lightvec);
+	SetLightDirection(lightvec.get());
+	SetShadowMapLightDirection(shadow_near, lightvec.get());
+	SetShadowMapLightDirection(shadow_seminear, lightvec.get());
+	SetShadowMapLightDirection(shadow_far, lightvec.get());
 	SetShadowMapDrawArea(shadow_far, VGet(-(float)map_x / 2.f, -(float)map_x / 2.f, -(float)map_y / 2.f), VGet((float)map_x / 2.f, (float)map_x / 2.f, (float)map_y / 2.f));
 
 	constexpr uint8_t rate = 96;
@@ -866,12 +860,12 @@ bool MAPS::set_map_ready() {
 	grassind.resize(IndexNum); /*頂点データとインデックスデータを格納するメモリ領域の確保*/
 
 	for (int i = 0; i < grasss; ++i) {
-		const auto tmpvect = VGet((float)(-map_x * 5 + GetRand(map_x * 10)) / 10.0f, 0.0f, (float)(-map_y * 5 + GetRand(map_y * 10)) / 10.0f);
+		VECTOR_ref tmpvect = VGet((float)(-map_x * 5 + GetRand(map_x * 10)) / 10.0f, 0.0f, (float)(-map_y * 5 + GetRand(map_y * 10)) / 10.0f);
 		//
 		SetDrawScreen(texp.get());
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 64);
-		DrawRotaGraph((int)(groundx * (0.5f + tmpvect.x / (float)map_x)), (int)(groundx * (0.5f - tmpvect.z / (float)map_y)), 8.f * groundx / 1024 / 128.0f, 0, GgHandle.get(), TRUE);
-		const auto HitPoly = MV1CollCheck_Line(m_model.get(), 0, VAdd(tmpvect, VGet(0.0f, (float)map_x, 0.0f)), VAdd(tmpvect, VGet(0.0f, -(float)map_x, 0.0f)));
+		DrawRotaGraph((int)(groundx * (0.5f + tmpvect.x() / (float)map_x)), (int)(groundx * (0.5f - tmpvect.z() / (float)map_y)), 8.f * groundx / 1024 / 128.0f, 0, GgHandle.get(), TRUE);
+		const auto HitPoly = get_gnd_hit(tmpvect + VGet(0.0f, (float)map_x, 0.0f), tmpvect + VGet(0.0f, -(float)map_x, 0.0f));
 		if (HitPoly.HitFlag)
 			MV1SetMatrix(grass.get(), MMult(MGetScale(VGet((float)(200 + GetRand(400)) / 100.0f, (float)(25 + GetRand(100)) / 100.0f, (float)(200 + GetRand(400)) / 100.0f)), MMult(MMult(MGetRotY(deg2rad(GetRand(360))), MGetRotVec2(VGet(0, 1.f, 0), HitPoly.Normal)), MGetTranslate(HitPoly.HitPosition))));
 		//上省
@@ -903,13 +897,15 @@ bool MAPS::set_map_ready() {
 	/*tree,shadow*/
 	ShadowMap_DrawSetup(shadow_far);
 	for (size_t i = 0; i < treec; ++i) {
-		const auto tmpvect = VGet((float)(-map_x * 5 + GetRand(map_x * 10)) / 10.0f, 0.0f, (float)(-map_y * 5 + GetRand(map_y * 10)) / 10.0f);
-		const auto HitPoly = MV1CollCheck_Line(m_model.get(), 0, VAdd(tmpvect, VGet(0.0f, 100.0f, 0.0f)), VAdd(tmpvect, VGet(0.0f, -100.0f, 0.0f)));
-		tree.pos[i] = (HitPoly.HitFlag) ? HitPoly.HitPosition : tmpvect;
+		{
+			VECTOR_ref tmpvect = VGet((float)(-map_x * 5 + GetRand(map_x * 10)) / 10.0f, 0.0f, (float)(-map_y * 5 + GetRand(map_y * 10)) / 10.0f);
+			const auto HitPoly = get_gnd_hit(tmpvect + VGet(0.0f, 100.0f, 0.0f), tmpvect + VGet(0.0f, -100.0f, 0.0f));
+			tree.pos[i] = (HitPoly.HitFlag) ? HitPoly.HitPosition : tmpvect;
+		}
 		tree.rad[i] = VGet(0.0f, deg2rad(GetRand(360)), 0.0f);
-		MV1SetPosition(tree.nears[i].get(), tree.pos[i]);
-		MV1SetPosition(tree.fars[i].get(), tree.pos[i]);
-		MV1SetRotationXYZ(tree.nears[i].get(), tree.rad[i]);
+		MV1SetPosition(tree.nears[i].get(), tree.pos[i].get());
+		MV1SetPosition(tree.fars[i].get(), tree.pos[i].get());
+		MV1SetRotationXYZ(tree.nears[i].get(), tree.rad[i].get());
 		MV1DrawModel(tree.nears[i].get());
 		MV1SetMaterialDrawAlphaTestAll(tree.nears[i].get(), TRUE, DX_CMP_GREATER, 128);
 	}
@@ -917,7 +913,7 @@ bool MAPS::set_map_ready() {
 	ShadowMap_DrawEnd();
 	return true;
 }
-void MAPS::set_camerapos(VECTOR pos, VECTOR vec, VECTOR up, float ratio) {
+void MAPS::set_camerapos(VECTOR_ref pos, VECTOR_ref vec, VECTOR_ref up, float ratio) {
 	camera = pos;
 	viewv = vec;
 	upv = up;
@@ -925,17 +921,14 @@ void MAPS::set_camerapos(VECTOR pos, VECTOR vec, VECTOR up, float ratio) {
 }
 void MAPS::set_map_shadow_near(float vier_r) {
 	float shadow_dist = std::max(20.f, 10.0f * float(shadowx) * vier_r + 20.0f);
-	SetShadowMapDrawArea(shadow_near, VSub(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist)), VAdd(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist)));
-	SetShadowMapDrawArea(shadow_seminear, VSub(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist * 2)), VAdd(camera, VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist * 2)));
+	SetShadowMapDrawArea(shadow_near, (camera - VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist)).get(), (camera + VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist)).get());
+	SetShadowMapDrawArea(shadow_seminear, (camera - VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist * 2)).get(), (camera + VScale(VGet(1.0f, 1.0f, 1.0f), shadow_dist * 2)).get());
 }
 void MAPS::draw_map_track(const players& player) {
 	SetDrawScreen(texn.get());
-	for (auto& w : player.ptr->wheelframe) {
-		if (player.Springs[w] >= -0.15f) {
-			VECTOR tempvec = player.obj.frame(w);
-			DrawRotaGraph((int)(groundx * (0.5f + tempvec.x / (float)map_x)), (int)(groundx * (0.5f - tempvec.z / (float)map_y)), 1.f * groundx / 1024 / 195.0f, player.yrad, texo.get(), TRUE);
-		}
-	}
+	for (auto& w : player.ptr->wheelframe)
+		if (player.Springs[w] >= -0.15f)
+			DrawRotaGraph((int)(groundx * (0.5f + player.obj.frame(w).x() / (float)map_x)), (int)(groundx * (0.5f - player.obj.frame(w).z() / (float)map_y)), 1.f * groundx / 1024 / 195.0f, player.yrad, texo.get(), TRUE);
 }
 void MAPS::draw_map_model() {
 	MV1DrawModel(m_model.get());
@@ -949,25 +942,25 @@ void MAPS::draw_map_sky(void) {
 	SetUseLighting(FALSE);
 	SetFogEnable(FALSE);
 
-	MV1SetPosition(sky_model.get(), camera);
+	MV1SetPosition(sky_model.get(), camera.get());
 	MV1DrawModel(sky_model.get());
-	DrawBillboard3D(VAdd(camera, VScale(VNorm(lightvec), -80.0f)), 0.5f, 0.5f, 10.0f, 0.0f, sky_sun.get(), TRUE);
+	DrawBillboard3D((camera + VScale(lightvec.Norm(), -80.0f)).get(), 0.5f, 0.5f, 10.0f, 0.0f, sky_sun.get(), TRUE);
 
 	SetFogEnable(TRUE);
 	SetUseLighting(TRUE);
 }
-void MAPS::set_hitplayer(VECTOR pos) {
+void MAPS::set_hitplayer(VECTOR_ref pos) {
 	for (size_t j = 0; j < treec; ++j) {
 		if (tree.hit[j]) {
-			if (VSize(VSub(tree.pos[j], pos)) <= 3.f) {
+			if ((tree.pos[j] - pos).size() <= 3.f) {
 				tree.hit[j] = false;
-				tree.rad[j].y = atan2(VSub(tree.pos[j], pos).x, VSub(tree.pos[j], pos).z);
+				tree.rad[j] = VGet(tree.rad[j].x(), atan2((tree.pos[j] - pos).x(), (tree.pos[j] - pos).z()), tree.rad[j].z());
 			}
 		}
 		else {
-			if (tree.rad[j].x <= deg2rad(85)) {
-				MV1SetRotationXYZ(tree.nears[j].get(), tree.rad[j]);
-				differential(tree.rad[j].x, deg2rad(90), 0.002f);
+			if (tree.rad[j].x() <= deg2rad(85)) {
+				MV1SetRotationXYZ(tree.nears[j].get(), tree.rad[j].get());
+				tree.rad[j] = VGet(tree.rad[j].x() + (deg2rad(90) - tree.rad[j].x()) * 0.002f, tree.rad[j].y(), tree.rad[j].z());
 			}
 		}
 	}
@@ -975,10 +968,10 @@ void MAPS::set_hitplayer(VECTOR pos) {
 void MAPS::draw_trees() {
 
 	for (size_t j = 0; j < treec; ++j) {
-		if (CheckCameraViewClip_Box(VAdd(tree.pos[j], VGet(-10, 0, -10)), VAdd(tree.pos[j], VGet(10, 10, 10))))
+		if (CheckCameraViewClip_Box((tree.pos[j] + VGet(-10, 0, -10)).get(), (tree.pos[j] + VGet(10, 10, 10)).get()))
 			tree.treesort[j] = pair(j, (float)map_x);
 		else
-			tree.treesort[j] = pair(j, VSize(VSub(tree.pos[j], camera)));
+			tree.treesort[j] = pair(j, (tree.pos[j] - camera).size());
 	}
 	std::sort(tree.treesort.begin(), tree.treesort.end(), [](const pair& x, const pair& y) { return x.second > y.second; });
 
@@ -990,8 +983,8 @@ void MAPS::draw_trees() {
 			const auto per = (tt.second < drawdist + 100) ? (tt.second - drawdist) / 100.0f : 1.f;
 			if (per > 0) {
 				MV1SetOpacityRate(tree.fars[k].get(), per);
-				const auto vect = VSub(tree.pos[k], camera);
-				MV1SetRotationXYZ(tree.fars[k].get(), VGet(0.0f, atan2(vect.x, vect.z), 0.0f));
+				const auto vect = tree.pos[k] - camera;
+				MV1SetRotationXYZ(tree.fars[k].get(), VGet(0.0f, atan2(vect.x(), vect.z()), 0.0f));
 				MV1DrawModel(tree.fars[k].get());
 			}
 		}
@@ -1040,18 +1033,18 @@ void MAPS::exit_shadow(void) {
 	SetUseShadowMap(1, -1);
 	SetUseShadowMap(2, -1);
 }
-void MAPS::set_normal(float* xnor, float* znor, VECTOR position) {
+void MAPS::set_normal(float* xnor, float* znor, VECTOR_ref position) {
 	/*X*/
-	const auto r0_0 = get_gnd_hit(VAdd(position, VGet(0.0f, 2.0f, -0.5f)), VAdd(position, VGet(0.0f, -2.0f, -0.5f)));
+	const auto r0_0 = get_gnd_hit(position + VGet(0.0f, 2.0f, -0.5f), position + VGet(0.0f, -2.0f, -0.5f));
 	if (r0_0.HitFlag) {
-		const auto r0_1 = get_gnd_hit(VAdd(position, VGet(0.0f, 2.0f, 0.5f)), VAdd(position, VGet(0.0f, -2.0f, 0.5f)));
+		const auto r0_1 = get_gnd_hit(position + VGet(0.0f, 2.0f, 0.5f), position + VGet(0.0f, -2.0f, 0.5f));
 		if (r0_1.HitFlag)
 			differential(*xnor, atan2(r0_0.HitPosition.y - r0_1.HitPosition.y, 1.0f), 0.05f);
 	}
 	/*Z*/
-	const auto r1_0 = get_gnd_hit(VAdd(position, VGet(0.5f, 2.0f, 0.0f)), VAdd(position, VGet(0.5f, -2.0f, 0.0f)));
+	const auto r1_0 = get_gnd_hit(position + VGet(0.5f, 2.0f, 0.0f), position + VGet(0.5f, -2.0f, 0.0f));
 	if (r1_0.HitFlag) {
-		const auto r1_1 = get_gnd_hit(VAdd(position, VGet(-0.5f, 2.0f, 0.0f)), VAdd(position, VGet(-0.5f, -2.0f, 0.0f)));
+		const auto r1_1 = get_gnd_hit(position + VGet(-0.5f, 2.0f, 0.0f), position + VGet(-0.5f, -2.0f, 0.0f));
 		if (r1_1.HitFlag)
 			differential(*znor, atan2(r1_0.HitPosition.y - r1_1.HitPosition.y, 1.0f), 0.05f);
 	}
@@ -1105,7 +1098,7 @@ void UIS::draw_load(void) {
 		//
 		const float pers = (float)(pp - GetASyncLoadNum()) / pp;
 		DrawBox(x_r(0), y_r(1080 - 6), x_r(1920.f * pers), y_r(1080 - 3), c_00ff00, TRUE);
-		DrawFormatStringToHandle(x_r(0), y_r(1080 - 24), c_00ff00, font18.get(), "LOADING : %06.2f%%", pers * 100.f);
+		font18.DrawStringFormat(x_r(0), y_r(1080 - 24), c_00ff00, "LOADING : %06.2f%%", pers * 100.f);
 		//
 		DrawExtendGraph(x_r(552), y_r(401), x_r(1367), y_r(679), pad.get(), TRUE);
 		int i = 0;
@@ -1170,10 +1163,10 @@ void UIS::draw_drive() {
 void UIS::draw_icon(players& p, int font) {
 	const auto c_00ff00 = GetColor(0, 255, 0);
 	const auto c_ff0000 = GetColor(255, 0, 0);
-
+	//font18.DrawStringFormat
 	if (p.HP[0] != 0)
-		if (p.iconpos.z > 0.0f && p.iconpos.z < 1.0f)
-			DrawFormatStringToHandle((int)p.iconpos.x, (int)p.iconpos.y, (p.type == TEAM) ? c_00ff00 : c_ff0000, font, "%dm", (int)VSize(VSub(p.pos, pplayer->pos)));
+		if (p.iconpos.z() > 0.0f && p.iconpos.z() < 1.0f)
+			DrawFormatStringToHandle((int)p.iconpos.x(), (int)p.iconpos.y(), (p.type == TEAM) ? c_00ff00 : c_ff0000, font, "%dm", (int)(p.pos - pplayer->pos).size());
 }
 void UIS::draw_sight(float posx, float posy, float ratio, float dist, int font) {
 	DrawRotaGraph(x_r(960), y_r(540), (float)y_r(2), deg2rad(-dist / 20), UI_main[pplayer->ptr->countryc].ui_sight[1].get(), TRUE);
@@ -1244,7 +1237,7 @@ void UIS::draw_ui(int selfammo, float y_v) {
 		}
 		else
 			SetDrawBright(255, 255, 255);
-		DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, double(-y_v + pplayer->yrad + pplayer->gunrad.x), UI_turret[i].get(), TRUE);
+		DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, double(-y_v + pplayer->yrad + pplayer->gunrad.x()), UI_turret[i].get(), TRUE);
 	}
 	//DrawFormatString(x_r(1056), y_r(594), GetColor(255, 255, 255), "[%03d][%03d]", UI_body.size(),UI_turret.size());
 }
@@ -1290,25 +1283,26 @@ void UIS::debug(float fps, float time) {
 	}
 }
 //
-void setcv(float neard, float fard, VECTOR cam, VECTOR view, VECTOR up, float fov) {
+void setcv(float neard, float fard, VECTOR_ref cam, VECTOR_ref view, VECTOR_ref up, float fov) {
 	SetCameraNearFar(neard, fard);
-	SetCameraPositionAndTargetAndUpVec(cam, view, up);
+	SetCameraPositionAndTargetAndUpVec(cam.get(), view.get(), up.get());
 	SetupCamera_Perspective(deg2rad(fov));
-	Set3DSoundListenerPosAndFrontPosAndUpVec(cam, view, up);
+	Set3DSoundListenerPosAndFrontPosAndUpVec(cam.get(), view.get(), up.get());
 }
-void getdist(VECTOR* startpos, VECTOR vector, float& dist, float& getdists, float speed, float fps) {
+void getdist(VECTOR_ref& startpos, VECTOR_ref vector, float& dist, float& getdists, float speed, float fps) {
 	dist = std::clamp(dist, 100.f, 2000.f);
 	speed /= fps;
-	const auto endpos = *startpos;
+	auto endpos = startpos;
 	for (int z = 0; z < (int)(fps / 1000.0f * dist); ++z) {
-		*startpos = VAdd(*startpos, VScale(vector, speed));
-		vector.y += M_GR / 2.0f / fps / fps;
+		startpos += vector.Scale(speed);
+
+		vector = VGet(vector.x(), vector.y() + M_GR / 2.0f / fps / fps, vector.z()); //改善
 		speed -= 5.f / fps;
 	}
-	getdists = VSize(VSub(endpos, *startpos));
+	getdists = (endpos - startpos).size();
 }
 //
-void set_effect(EffectS* efh, VECTOR pos, VECTOR nor) {
+void set_effect(EffectS* efh, VECTOR_ref pos, VECTOR_ref nor) {
 	efh->flug = true;
 	efh->pos = pos;
 	efh->nor = nor;
@@ -1317,7 +1311,7 @@ void set_pos_effect(EffectS* efh, const EffekseerEffectHandle& handle) {
 	if (efh->flug) {
 		efh->handle = handle.Play3D();
 		efh->handle.SetPos(efh->pos);
-		efh->handle.SetRotation(atan2(efh->nor.y, std::hypot(efh->nor.x, efh->nor.z)), atan2(-efh->nor.x, -efh->nor.z), 0);
+		efh->handle.SetRotation(atan2(efh->nor.y(), std::hypot(efh->nor.x(), efh->nor.z())), atan2(-efh->nor.x(), -efh->nor.z()), 0);
 		efh->flug = false;
 	}
 	//IsEffekseer3DEffectPlaying(player[0].effcs[i].handle)
@@ -1336,9 +1330,9 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 			//とりあえず当たったかどうか探してソート
 			is_hit = false;
 			for (size_t colmesh = 0; colmesh < t.hitssort.size(); ++colmesh) {
-				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, VAdd(c.pos, VScale(VSub(c.pos, c.repos), 0.1f)), int(colmesh));
+				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos.get(), (c.pos + (c.pos - c.repos).Scale(0.1f)).get(), int(colmesh));
 				if (HitPoly.HitFlag) {
-					t.hitssort[colmesh] = pair(colmesh, VSize(VSub(HitPoly.HitPosition, c.repos)));
+					t.hitssort[colmesh] = pair(colmesh, (c.repos - HitPoly.HitPosition).size());
 					is_hit = true;
 				}
 				else
@@ -1357,7 +1351,7 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 						if (k == 4)
 							continue; //砲身だけ処理を別にしたいので分けます
 					//空間装甲、モジュール
-					const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, VAdd(c.pos, VScale(c.vec, 0.1f)), int(k));
+					const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos.get(), (c.pos + c.vec.Scale(0.1f)).get(), int(k));
 					if (HitPoly.HitFlag) {
 						set_effect(&play.effcs[ef_reco], HitPoly.HitPosition, HitPoly.Normal);
 						t.HP[k] = std::max<short>(t.HP[k] - 50, 0);
@@ -1372,12 +1366,13 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 			}
 			//ダメージ面に当たった時に装甲値に勝てるかどうか
 			if (hitnear) {
-				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, VAdd(c.pos, VScale(c.vec, 0.1f)), int(hitnear.value())); //当たっているものとして詳しい判定をとる
+				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos.get(), (c.pos + c.vec.Scale(0.1f)).get(), int(hitnear.value())); //当たっているものとして詳しい判定をとる
 				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 0 + 3 * t.hitbuf, MMult(MGetTranslate(HitPoly.HitPosition), MInverse(t.ps_m)));
 				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 1 + 3 * t.hitbuf, MMult(MGetTranslate(VAdd(HitPoly.Normal, HitPoly.HitPosition)), MInverse(t.ps_m)));
-				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 2 + 3 * t.hitbuf, MMult(MGetTranslate(VAdd(VCross(HitPoly.Normal, c.vec), HitPoly.HitPosition)), MInverse(t.ps_m)));
+				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 2 + 3 * t.hitbuf, MMult(((c.vec * HitPoly.Normal).Scale(-1.f) + HitPoly.HitPosition).Mtrans(), MInverse(t.ps_m)));
+
 				set_effect(&play.effcs[ef_reco], HitPoly.HitPosition, HitPoly.Normal);
-				if (c.pene > t.ptr->armer[hitnear.value()] * (1.0f / abs(VDot(VNorm(c.vec), HitPoly.Normal)))) {
+				if (c.pene > t.ptr->armer[hitnear.value()] * (1.0f / abs(VDot(c.vec.Norm(), HitPoly.Normal)))) {
 					if (t.HP[0] != 0) {
 						PlaySoundMem(t.se[29 + GetRand(1)].get(), DX_PLAYTYPE_BACK, TRUE);
 						set_effect(&t.effcs[ef_bomb], t.obj.frame(t.ptr->engineframe), VGet(0, 0, 0));
@@ -1394,18 +1389,21 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 				else {
 					PlaySoundMem(t.se[10 + GetRand(16)].get(), DX_PLAYTYPE_BACK, TRUE);
 					if (t.recoadd == false) {
-						t.recorad = atan2(HitPoly.HitPosition.x - t.pos.x, HitPoly.HitPosition.z - t.pos.z);
+						t.recorad = atan2(HitPoly.HitPosition.x - t.pos.x(), HitPoly.HitPosition.z - t.pos.z());
 						t.recoadd = true;
 					}
-					c.vec = VAdd(c.vec, VScale(HitPoly.Normal, VDot(c.vec, HitPoly.Normal) * -2.0f));
-					c.pos = VAdd(HitPoly.HitPosition, VScale(c.vec, 0.1f));
+					c.vec += VScale(HitPoly.Normal, (c.vec ^ HitPoly.Normal) * -2.0f);
+					c.pos = c.vec.Scale(0.1f) + HitPoly.HitPosition;
 
 					c.pene /= 2.0f;
 					c.speed /= 2.f;
 
 					t.hit[t.hitbuf].use = 1;
 				}
-				MV1SetScale(t.hit[t.hitbuf].pic.get(), VGet(play.ptr->ammosize[gun_s] * 100.f * (1.0f / abs(VDot(VNorm(c.vec), HitPoly.Normal))), play.ptr->ammosize[gun_s] * 100.f, play.ptr->ammosize[gun_s] * 100.f)); //
+				{
+					float asize = play.ptr->ammosize[gun_s] * 100.f;
+					MV1SetScale(t.hit[t.hitbuf].pic.get(), VGet(asize / abs(VDot(c.vec.Norm(), HitPoly.Normal)), asize, asize)); //
+				}
 				t.hit[t.hitbuf].flug = true;
 				t.hitbuf++;
 				t.hitbuf %= 3;
@@ -1419,9 +1417,9 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 			for (size_t colmesh = 0; colmesh < t.HP.size(); ++colmesh) {
 				if (colmesh >= 5 && t.HP[colmesh] == 0)
 					continue;
-				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, VAdd(c.pos, VScale(c.vec, 0.1f)), int(colmesh));
+				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos.get(), (c.pos + c.vec.Scale(0.1f)).get(), int(colmesh));
 				if (HitPoly.HitFlag) {
-					tmpf[1] = VSize(VSub(HitPoly.HitPosition, c.repos));
+					tmpf[1] = (c.repos - HitPoly.HitPosition).size();
 					if (tmpf[1] <= tmpf[0]) {
 						tmpf[0] = tmpf[1];
 						hitnear = colmesh;
@@ -1430,11 +1428,11 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 			}
 			//至近で弾かせる
 			if (hitnear) {
-				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos, VAdd(c.pos, VScale(c.vec, 0.1f)), int(hitnear.value()));
+				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos.get(), (c.pos + c.vec.Scale(0.1f)).get(), int(hitnear.value()));
 				set_effect(&play.effcs[ef_reco2], HitPoly.HitPosition, HitPoly.Normal);
 				PlaySoundMem(t.se[10 + GetRand(16)].get(), DX_PLAYTYPE_BACK, TRUE);
-				c.vec = VAdd(c.vec, VScale(HitPoly.Normal, VDot(c.vec, HitPoly.Normal) * -2.0f));
-				c.pos = VAdd(HitPoly.HitPosition, VScale(c.vec, 0.1f));
+				c.vec = c.vec + VScale(HitPoly.Normal, (c.vec ^ HitPoly.Normal) * -2.0f);
+				c.pos = c.vec.Scale(0.1f) + HitPoly.HitPosition;
 			}
 		}
 		if (hitnear)
@@ -1447,20 +1445,20 @@ void set_gunrad(players& play, float rat_r) {
 		if ((play.move & (KEY_TURNLFT << i)) != 0) {
 			switch (i) {
 			case 0:
-				play.gunrad.x -= play.ptr->gun_RD / rat_r; //
+				play.gunrad = VGet(play.gunrad.x() - play.ptr->gun_RD / rat_r, play.gunrad.y(), play.gunrad.z());
 				if (!play.ptr->gun_lim_LR)
-					play.gunrad.x = std::max<float>(play.gunrad.x, play.ptr->gun_lim_[0]);
+					play.gunrad = VGet(std::max<float>(play.gunrad.x(), play.ptr->gun_lim_[0]), play.gunrad.y(), play.gunrad.z());
 				break;
 			case 1:
-				play.gunrad.x += play.ptr->gun_RD / rat_r; //
+				play.gunrad = VGet(play.gunrad.x() + play.ptr->gun_RD / rat_r, play.gunrad.y(), play.gunrad.z());
 				if (!play.ptr->gun_lim_LR)
-					play.gunrad.x = std::min<float>(play.gunrad.x, play.ptr->gun_lim_[1]);
+					play.gunrad = VGet(std::min<float>(play.gunrad.x(), play.ptr->gun_lim_[1]), play.gunrad.y(), play.gunrad.z());
 				break;
 			case 2:
-				play.gunrad.y = std::min<float>(play.gunrad.y + (play.ptr->gun_RD / 2.f) / rat_r, play.ptr->gun_lim_[2]);
+				play.gunrad = VGet(play.gunrad.x(), std::min<float>(play.gunrad.y() + (play.ptr->gun_RD / 2.f) / rat_r, play.ptr->gun_lim_[2]), play.gunrad.z());
 				break;
 			case 3:
-				play.gunrad.y = std::max<float>(play.gunrad.y - (play.ptr->gun_RD / 2.f) / rat_r, play.ptr->gun_lim_[3]);
+				play.gunrad = VGet(play.gunrad.x(), std::max<float>(play.gunrad.y() - (play.ptr->gun_RD / 2.f) / rat_r, play.ptr->gun_lim_[3]), play.gunrad.z());
 				break;
 			}
 		}

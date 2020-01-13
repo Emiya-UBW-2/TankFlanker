@@ -31,6 +31,8 @@ public:
 		}
 	}
 	int get() const noexcept { return handle_; }
+	SoundHandle Duplicate() const noexcept { return DxLib::DuplicateSoundMem(this->handle_); }
+
 	static SoundHandle Load(std::basic_string_view<TCHAR> FileName, int BufferNum = 3) noexcept {
 		return { DxLib::LoadSoundMemWithStrLen(FileName.data(), FileName.length(), BufferNum) };
 	}
