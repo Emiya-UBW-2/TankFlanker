@@ -108,8 +108,8 @@ struct ammos {
 struct EffectS {
 	bool flug{ false };		 /**/
 	Effekseer3DPlayingHandle handle; /**/
-	VECTOR_ref pos{ VGet(0, 0, 0) };	 /**/
-	VECTOR_ref nor{ VGet(0, 0, 0) };	 /**/
+	VECTOR_ref pos;	 /**/
+	VECTOR_ref nor;	 /**/
 };
 struct Hit {
 	bool flug{ false }; /**/
@@ -164,21 +164,23 @@ struct players {
 	int id{ 0 };
 	int use{ 0 };		     /*使用車両*/
 	vehicle* ptr;		     /*vehicle*/
+
 	MV1ModelHandle obj;	     /*モデル*/
 	MV1ModelHandle colobj;	     /*コリジョン*/
+
 	char type{ 0 };		     /*敵味方識別*/
 	std::vector<SoundHandle> se; /*SE*/
-	/**/
+
 	int move{ 0 };		     /*キー操作*/
-	VECTOR_ref pos{ VGet(0, 0, 0) }; /*座標*/
+	VECTOR_ref pos; /*座標*/
 	MATRIX ps_m;		     /*車体行列*/
 	MATRIX ps_t;		     /*砲塔行列*/
 	//std::vector<MATRIX> ps_all;					/*行列*/
 	float yace{ 0.f };						/*加速度*/
-	float speed{ 0.f }, speedrec{ 0.f }, flont{ 0.f }, back{ 0.f }; /*速度関連*/
-	VECTOR_ref vec{ VGet(0, 0, 0) };					/*移動ベクトル*/
+	float speed{ 0.f }, speedrec{ 0.f }; /*速度関連*/
+	VECTOR_ref vec;					/*移動ベクトル*/
 	float xnor{ 0.f }, znor{ 0.f }, znorrec{ 0.f };			/*法線角度*/
-	VECTOR_ref nor{ VGet(0, 0, 0) };					/*法線*/
+	VECTOR_ref nor;					/*法線*/
 	float yrad{ 0.f };						/*角度*/
 	float yadd{ 0.f };						/*角速度*/
 	int recoall{ 0 };						/*弾き角度*/
@@ -188,8 +190,8 @@ struct players {
 	std::optional<size_t> atkf;	       /*cpuのヘイト*/
 	int aim{ 0 };			       /*ヘイトの変更カウント*/
 	size_t wayselect{ 0 }, waynow{ 0 };    /**/
-	VECTOR_ref waypos[waypc]{ VGet(0, 0, 0) }; /*ウェイポイント*/
-	int wayspd[waypc]{ 0 };		       /*速度指定*/
+	std::array<VECTOR_ref, waypc> waypos;/*ウェイポイント*/
+	std::array<int, waypc> wayspd;		       /*速度指定*/
 	int state{ 0 };			       /*ステータス*/
 	/**/
 	struct Guns {
@@ -212,8 +214,8 @@ struct players {
 	bool recoadd{ false }; /*弾きフラグ*/
 	bool hitadd{ false };  /*命中フラグ*/
 	size_t hitid{ 0 };
-	VECTOR_ref iconpos{ VGet(0, 0, 0) }; /*UI用*/
-	EffectS effcs[efs_user];	 /*effect*/
+	VECTOR_ref iconpos; /*UI用*/
+	std::array<EffectS, efs_user> effcs;	 /*effect*/
 	std::vector<float> Springs;	 /*スプリング*/
 	std::vector<short> HP;		 /*ライフ*/
 	std::vector<pair> hitssort;	 /*当たった順番*/
@@ -227,28 +229,16 @@ struct players {
 	b2Fixture* playerfix;	      /**/
 	b2BodyDef bodyDef;	      /*ダイナミックボディを定義します。その位置を設定し、ボディファクトリを呼び出します。*/
 	/*足物理*/
-	b2World* foot[2];
-
+	std::array<b2World*,2> foot;
 	struct Foots {
 		std::unique_ptr<b2Body> fbody; /**/
 		b2Fixture* fplayerfix;	      /**/
 		VECTOR_ref fp;		      /**/
 	};
-	std::vector<Foots> Foot[2];	/**/
-	b2FixtureDef f_fixtureDef[2];	/*動的ボディフィクスチャを定義します。*/
-	b2PolygonShape f_dynamicBox[2]; /*ダイナミックボディに別のボックスシェイプを定義します。*/
-	b2BodyDef f_bodyDef[2];		/*ダイナミックボディを定義します。その位置を設定し、ボディファクトリを呼び出します。*/
 	b2RevoluteJointDef f_jointDef[2];
-
-	std::vector<Foots> Fwheel[2];	 /**/
-	b2FixtureDef fw_fixtureDef[2];	 /*動的ボディフィクスチャを定義します。*/
-	b2PolygonShape fw_dynamicBox[2]; /*ダイナミックボディに別のボックスシェイプを定義します。*/
-	b2BodyDef fw_bodyDef[2];	 /*ダイナミックボディを定義します。その位置を設定し、ボディファクトリを呼び出します。*/
-
-	std::vector<Foots> Fyudo[2];	 /**/
-	b2FixtureDef fy_fixtureDef[2];	 /*動的ボディフィクスチャを定義します。*/
-	b2PolygonShape fy_dynamicBox[2]; /*ダイナミックボディに別のボックスシェイプを定義します。*/
-	b2BodyDef fy_bodyDef[2];	 /*ダイナミックボディを定義します。その位置を設定し、ボディファクトリを呼び出します。*/
+	std::vector<Foots> Foot[2];     /**/
+	std::vector<Foots> Fwheel[2]; /**/
+	std::vector<Foots> Fyudo[2];    /**/
 };
 /*CLASS*/
 class Myclass {
@@ -285,9 +275,6 @@ public:
 	template <typename... Args>
 	void set_fonts(Args&&... args) {
 		SetUseASyncLoadFlag(true);
-		//自分にはオバテク...
-		// - https://cpprefjp.github.io/lang/cpp17/folding_expressions.html
-		// - https://stackoverflow.com/questions/45519117/using-fold-expression-to-merge-multiple-vector
 		(this->fonts.emplace(this->fonts.end(), DxLib::CreateFontToHandle(NULL, x_r(args), y_r(args / 3), DX_FONTTYPE_ANTIALIASING_EDGE)), ...);
 		SetUseASyncLoadFlag(false);
 	} //(必要なフォント数,サイズ1,サイズ2, ...)
@@ -329,7 +316,7 @@ private:
 		std::array<float, ANIME_out> per{};
 
 		int neck{ 0 };
-		VECTOR_ref nvec{ VGet(0, 0, 0) };
+		VECTOR_ref nvec;
 		float voicetime{ 0.f };
 
 		float voicealltime[ANIME_voice]{ 0 };
@@ -457,7 +444,7 @@ public:
 	void draw_drive();
 	void draw_icon(players& p, int font);
 	void draw_sight(float posx, float posy, float ratio, float dist, int font); /*照準UI*/
-	void draw_ui(int selfammo, float y_v);					    /*メインUI*/
+	void draw_ui(int selfammo, float y_v, int font);			    /*メインUI*/
 	/*debug*/
 	void put_way(void);
 	void end_way(void);

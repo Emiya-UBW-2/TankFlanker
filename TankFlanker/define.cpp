@@ -10,6 +10,10 @@ Myclass::Myclass() {
 	char mstr[64]; /*tank*/
 	int mdata;     /*tank*/
 
+	//int SetUseMaxTextureSize( int Size ) ;// 使用するテクスチャーの最大サイズを設定する( デフォルトではグラフィックスデバイスが対応している最大テクスチャーサイズ、引数に 0 を渡すとデフォルト設定になります )
+	//int GetMaxGraphTextureSize( int *SizeX, int *SizeY ) ;// グラフィックスデバイスが対応している最大テクスチャサイズを取得する
+	//
+
 	SetOutApplicationLogValidFlag(FALSE); /*log*/
 
 	mdata = FileRead_open("data/setting.txt", FALSE);
@@ -390,8 +394,8 @@ void Myclass::set_view_r(void) {
 	    view.y() + (float)(px - dispx / 2) / dispx * dispx / 640 * 1.0f,
 	    std::clamp(view.z() + (float)GetMouseWheelRotVol() / 10.0f, 0.1f, 2.f));
 	view_r += (view - view_r).Scale(0.1f);
-	//if (view.z() == 0.1f)
-	//	view_r.z = view.z();
+	if (view.z() == 0.1f)
+		view_r = view;
 	SetMousePoint(x_r(960), y_r(540));
 }
 void Myclass::Screen_Flip(LONGLONG waits) {
@@ -1176,7 +1180,7 @@ void UIS::draw_sight(float posx, float posy, float ratio, float dist, int font) 
 	DrawFormatStringToHandle(x_r(1056), y_r(594), GetColor(255, 255, 255), font, "[%03d]", (int)dist);
 	DrawFormatStringToHandle(x_r(1056), y_r(648), GetColor(255, 255, 255), font, "[x%02.1f]", ratio);
 }
-void UIS::draw_ui(int selfammo, float y_v) {
+void UIS::draw_ui(int selfammo, float y_v, int font) {
 	/*跳弾*/
 	if (recs >= 0.01f) {
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(recs * 128.0f));
@@ -1392,7 +1396,7 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 						t.recorad = atan2(HitPoly.HitPosition.x - t.pos.x(), HitPoly.HitPosition.z - t.pos.z());
 						t.recoadd = true;
 					}
-					c.vec += VScale(HitPoly.Normal, (c.vec ^ HitPoly.Normal) * -2.0f);
+					c.vec += VScale(HitPoly.Normal, (c.vec % HitPoly.Normal) * -2.0f);
 					c.pos = c.vec.Scale(0.1f) + HitPoly.HitPosition;
 
 					c.pene /= 2.0f;
@@ -1431,7 +1435,7 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos.get(), (c.pos + c.vec.Scale(0.1f)).get(), int(hitnear.value()));
 				set_effect(&play.effcs[ef_reco2], HitPoly.HitPosition, HitPoly.Normal);
 				PlaySoundMem(t.se[10 + GetRand(16)].get(), DX_PLAYTYPE_BACK, TRUE);
-				c.vec = c.vec + VScale(HitPoly.Normal, (c.vec ^ HitPoly.Normal) * -2.0f);
+				c.vec = c.vec + VScale(HitPoly.Normal, (c.vec % HitPoly.Normal) * -2.0f);
 				c.pos = c.vec.Scale(0.1f) + HitPoly.HitPosition;
 			}
 		}
@@ -1468,10 +1472,10 @@ bool set_shift(players& play) {
 	int gearrec = play.gear;
 	/*自動変速機*/
 	if (play.gear > 0 && play.gear <= 3)
-		if (play.flont >= play.ptr->speed_flont[play.gear - 1] * 0.9)
+		if (play.speed >= play.ptr->speed_flont[play.gear - 1] * 0.9)
 			++play.gear;
 	if (play.gear < 0 && play.gear >= -3)
-		if (play.back <= play.ptr->speed_back[-play.gear - 1] * 0.9)
+		if (play.speed <= play.ptr->speed_back[-play.gear - 1] * 0.9)
 			--play.gear;
 
 	if ((play.move & KEY_GOFLONT) == 0 && play.gear > 0)
