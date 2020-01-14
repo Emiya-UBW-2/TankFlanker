@@ -6,19 +6,20 @@ private:
 	int handle_;
 	MV1ModelHandle(int h) noexcept : handle_(h) {}
 	static constexpr int invalid_handle = -1;
+
 public:
 	constexpr MV1ModelHandle() noexcept : handle_(invalid_handle) {}
 	MV1ModelHandle(const MV1ModelHandle&) = delete;
-	MV1ModelHandle(MV1ModelHandle&& o) noexcept : handle_(o.handle_){
+	MV1ModelHandle(MV1ModelHandle&& o) noexcept : handle_(o.handle_) {
 		o.handle_ = invalid_handle;
 	}
 	MV1ModelHandle& operator=(const MV1ModelHandle&) = delete;
-	MV1ModelHandle& operator=(MV1ModelHandle&& o) noexcept{
+	MV1ModelHandle& operator=(MV1ModelHandle&& o) noexcept {
 		this->handle_ = o.handle_;
 		o.handle_ = invalid_handle;
 		return *this;
 	}
-	~MV1ModelHandle() noexcept{
+	~MV1ModelHandle() noexcept {
 		if (-1 != this->handle_) {
 			MV1DeleteModel(this->handle_);
 		}

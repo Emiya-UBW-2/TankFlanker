@@ -247,7 +247,7 @@ public:
 	}
 	[[deprecated]] int get() const noexcept { return this->handle_; }
 	constexpr explicit operator bool() { return -1 != this->handle_; }
-	// LoadEffekseerEffectはfileNameをstd::wstringに必ず格納するので、効率のためにオーバーロードが必要
+	// LoadEffekseerEffectはfileNameをstd::wstringに必ず格納する、オーバーロード必要
 	static EffekseerEffectHandle load(const char* fileName, float magnification = 1.0f) noexcept { return { LoadEffekseerEffect(fileName, magnification) }; }
 	static EffekseerEffectHandle load(const wchar_t* fileName, float magnification = 1.0f) noexcept { return { LoadEffekseerEffect(fileName, magnification) }; }
 	static EffekseerEffectHandle load(const std::string& fileName, float magnification = 1.0f) noexcept { return load(fileName.c_str(), magnification); }

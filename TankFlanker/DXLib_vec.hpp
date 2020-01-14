@@ -11,6 +11,7 @@ public:
 */
 class VECTOR_ref {
 	VECTOR value;
+
 public:
 	VECTOR_ref() noexcept : value(DxLib::VGet(0, 0, 0)) {}
 	VECTOR_ref(VECTOR value) { this->value = value; }
@@ -36,12 +37,12 @@ public:
 	}
 	//内積
 	float operator%(VECTOR_ref obj) {
-		return DxLib::VDot(this->value, obj.value); 
+		return DxLib::VDot(this->value, obj.value);
 	}
 	//行列取得
-	MATRIX Mtrans() const noexcept { return DxLib::MGetTranslate(this->value);}
+	MATRIX Mtrans() const noexcept { return DxLib::MGetTranslate(this->value); }
 	//サイズ変更
-	VECTOR_ref Scale(float p1) const noexcept { return VECTOR_ref(DxLib::VScale(this->value,p1)); }
+	VECTOR_ref Scale(float p1) const noexcept { return VECTOR_ref(DxLib::VScale(this->value, p1)); }
 	//正規化
 	VECTOR Norm() const noexcept { return DxLib::VNorm(this->value); }
 	//サイズ

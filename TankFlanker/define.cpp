@@ -155,9 +155,9 @@ bool Myclass::set_veh(void) {
 		for (int i = 0; i < v.colmodel.frame_num(); ++i) {
 			std::string tempname = MV1GetFrameName(v.colmodel.get(), i);
 			if (tempname == "min")
-				v.coloc[0] = v.colmodel.frame(i);
+				v.min = v.colmodel.frame(i);
 			if (tempname == "max")
-				v.coloc[2] = v.colmodel.frame(i);
+				v.max = v.colmodel.frame(i);
 		}
 		//
 		{
@@ -855,7 +855,6 @@ bool MAPS::set_map_ready() {
 	MV1SetupReferenceMesh(grass.get(), -1, TRUE); /*参照用メッシュの作成*/
 
 	RefMesh = MV1GetReferenceMesh(grass.get(), -1, TRUE); /*参照用メッシュの取得*/
-	/*todo : mv1にしとく*/
 
 	IndexNum = RefMesh.PolygonNum * 3 * grasss; /*インデックスの数を取得*/
 	VerNum = RefMesh.VertexNum * grasss;	    /*頂点の数を取得*/
@@ -973,7 +972,7 @@ void MAPS::draw_trees() {
 
 	for (size_t j = 0; j < treec; ++j) {
 		if (CheckCameraViewClip_Box((tree.pos[j] + VGet(-10, 0, -10)).get(), (tree.pos[j] + VGet(10, 10, 10)).get()))
-			tree.treesort[j] = pair(j, (float)map_x);
+			tree.treesort[j] = pair(j, float(map_x));
 		else
 			tree.treesort[j] = pair(j, (tree.pos[j] - camera).size());
 	}
@@ -983,8 +982,10 @@ void MAPS::draw_trees() {
 		if (tt.second == (float)map_x)
 			continue;
 		const auto k = tt.first;
-		if (tt.second > drawdist) {
-			const auto per = (tt.second < drawdist + 100) ? (tt.second - drawdist) / 100.0f : 1.f;
+
+		float per;
+		if ((tt.second - drawdist) > 0) {
+			per = std::clamp((tt.second - drawdist) / 100.0f, 0.f, 1.f);
 			if (per > 0) {
 				MV1SetOpacityRate(tree.fars[k].get(), per);
 				const auto vect = tree.pos[k] - camera;
@@ -992,12 +993,14 @@ void MAPS::draw_trees() {
 				MV1DrawModel(tree.fars[k].get());
 			}
 		}
-		if (tt.second < drawdist + 100) {
-			auto per = (tt.second < 20) ? -0.5f + tt.second / 20.0f : 1.f;
-			if (tt.second > drawdist)
-				per = 1.0f - (tt.second - drawdist) / 100.0f;
-			if (per > 0)
+		if ((tt.second - drawdist) < 100) {
+			per = std::clamp(1.0f - (tt.second - drawdist) / 100.0f, 0.f, 1.f);
+			if (tt.second <= 20)
+				per = tt.second / 20.0f;
+			if (per > 0) {
+				MV1SetOpacityRate(tree.nears[k].get(), per);
 				MV1DrawModel(tree.nears[k].get());
+			}
 		}
 	}
 }
@@ -1063,7 +1066,7 @@ UIS::UIS() {
 
 	UI_main.resize(countries); /*改善*/
 	SetUseASyncLoadFlag(TRUE);
-	for (size_t j = 0; j < std::size(ui_reload); ++j)
+	for (size_t j = 0; j < ui_reload.size(); ++j)
 		ui_reload[j] = GraphHandle::Load("data/ui/ammo_" + std::to_string(j) + ".bmp"); /*弾0,弾1,弾2,空弾*/
 	//
 	ui_compass = GraphHandle::Load("data/ui/compass.png");
@@ -1071,9 +1074,9 @@ UIS::UIS() {
 	if (hFind != INVALID_HANDLE_VALUE) {
 		do {
 			if (win32fdt.cFileName[0] == 'B')
-				UI_body.emplace_back(GraphHandle::Load(("data/ui/body/"s + win32fdt.cFileName).c_str()));
+				UI_body.emplace_back(GraphHandle::Load("data/ui/body/"s + win32fdt.cFileName));
 			if (win32fdt.cFileName[0] == 'T')
-				UI_turret.emplace_back(GraphHandle::Load(("data/ui/body/"s + win32fdt.cFileName).c_str()));
+				UI_turret.emplace_back(GraphHandle::Load("data/ui/body/"s + win32fdt.cFileName));
 		} while (FindNextFile(hFind, &win32fdt));
 	} //else{ return false; }
 	FindClose(hFind);
@@ -1106,48 +1109,28 @@ void UIS::draw_load(void) {
 		//
 		DrawExtendGraph(x_r(552), y_r(401), x_r(1367), y_r(679), pad.get(), TRUE);
 		int i = 0;
-		font18.DrawString(x_r(1367), y_r(401 + i), "W : 前進", c_ff0000);
-		i += 18;
-		font18.DrawString(x_r(1367), y_r(401 + i), "S : 後退", c_ff0000);
-		i += 18;
-		font18.DrawString(x_r(1367), y_r(401 + i), "A : 左転", c_ff0000);
-		i += 18;
-		font18.DrawString(x_r(1367), y_r(401 + i), "D : 右転", c_ff0000);
-		i += 18;
-		//font18.DrawString(x_r(1367), y_r(401 + i), "R : シフトアップ", c_ff0000); i += 18;
-		//font18.DrawString(x_r(1367), y_r(401 + i), "F : シフトダウン", c_ff0000); i += 18;
-		font18.DrawString(x_r(1367), y_r(401 + i), "↑ : 砲昇", c_ff6400);
-		i += 18;
-		font18.DrawString(x_r(1367), y_r(401 + i), "↓ : 砲降", c_ff6400);
-		i += 18;
-		font18.DrawString(x_r(1367), y_r(401 + i), "← : 砲左", c_ff6400);
-		i += 18;
-		font18.DrawString(x_r(1367), y_r(401 + i), "→ : 砲右", c_ff6400);
-		i += 18;
-		font18.DrawString(x_r(1367), y_r(401 + i), "左CTRL : 精密砲操作", c_ff6400);
-		i += 18;
-		font18.DrawString(x_r(1367), y_r(401 + i), "左shift : 照準", c_ff6400);
-		i += 18;
-		font18.DrawString(x_r(1367), y_r(401 + i), "右CTRL : ドライバー視点", c_ff6400);
-		i += 18;
-		font18.DrawString(x_r(1367), y_r(401 + i), "Z : レティクル上昇", c_ff6400);
-		i += 18;
-		font18.DrawString(x_r(1367), y_r(401 + i), "X : レティクル下降", c_ff6400);
-		i += 18;
-		font18.DrawString(x_r(1367), y_r(401 + i), "C : ズームアウト", c_ff6400);
-		i += 18;
-		font18.DrawString(x_r(1367), y_r(401 + i), "V : ズームイン", c_ff6400);
-		i += 18;
-		font18.DrawString(x_r(1367), y_r(401 + i), "Q : 再装填", c_00c800);
-		i += 18;
-		font18.DrawString(x_r(1367), y_r(401 + i), "space : 射撃", c_00c800);
-		i += 18;
-		font18.DrawString(x_r(1367), y_r(401 + i), "右shift : 指揮", c_3264ff);
-		i += 18;
-		font18.DrawString(x_r(1367), y_r(401 + i), "マウス : 見回し/指揮", c_3264ff);
-		i += 18;
-		font18.DrawString(x_r(1367), y_r(401 + i), "ESC : 終了", c_3264ff);
-		i += 18;
+		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "W : 前進", c_ff0000);
+		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "S : 後退", c_ff0000);
+		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "A : 左転", c_ff0000);
+		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "D : 右転", c_ff0000);
+		//font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "R : シフトアップ", c_ff0000);
+		//font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "F : シフトダウン", c_ff0000);
+		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "↑ : 砲昇", c_ff6400);
+		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "↓ : 砲降", c_ff6400);
+		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "← : 砲左", c_ff6400);
+		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "→ : 砲右", c_ff6400);
+		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "左CTRL : 大きく砲操作", c_ff6400);
+		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "左shift : 照準", c_ff6400);
+		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "右CTRL : ドライバー視点", c_ff6400);
+		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "Z : レティクル上昇", c_ff6400);
+		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "X : レティクル下降", c_ff6400);
+		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "C : ズームアウト", c_ff6400);
+		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "V : ズームイン", c_ff6400);
+		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "Q : 再装填", c_00c800);
+		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "space : 射撃", c_00c800);
+		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "右shift : 指揮", c_3264ff);
+		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "マウス : 見回し/指揮", c_3264ff);
+		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "ESC : 終了", c_3264ff);
 		ScreenFlip();
 		while (GetNowHiPerformanceCount() - waits < 1000000.0f / 60.f) {}
 	}
@@ -1180,7 +1163,7 @@ void UIS::draw_sight(float posx, float posy, float ratio, float dist, int font) 
 	DrawFormatStringToHandle(x_r(1056), y_r(594), GetColor(255, 255, 255), font, "[%03d]", (int)dist);
 	DrawFormatStringToHandle(x_r(1056), y_r(648), GetColor(255, 255, 255), font, "[x%02.1f]", ratio);
 }
-void UIS::draw_ui(int selfammo, float y_v, int font) {
+void UIS::draw_ui(uint8_t selfammo[], float y_v, int font) {
 	/*跳弾*/
 	if (recs >= 0.01f) {
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(recs * 128.0f));
@@ -1192,7 +1175,7 @@ void UIS::draw_ui(int selfammo, float y_v, int font) {
 	if (pplayer->Gun[0].loadcnt > 0) {
 		DrawRotaGraph(x_r(2112 - (int)(384 * pplayer->Gun[0].loadcnt / pplayer->ptr->reloadtime[0])), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[pplayer->ammotype].get(), TRUE);
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(128.0f * pow(1.0f - (float)pplayer->Gun[0].loadcnt / (float)pplayer->ptr->reloadtime[0], 10)));
-		if (selfammo == 0)
+		if (selfammo[0] == 0 && selfammo[1] == 0)
 			DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[3].get(), TRUE);
 		else
 			DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[(pplayer->ammotype - 1) % 3].get(), TRUE);
@@ -1243,7 +1226,8 @@ void UIS::draw_ui(int selfammo, float y_v, int font) {
 			SetDrawBright(255, 255, 255);
 		DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, double(-y_v + pplayer->yrad + pplayer->gunrad.x()), UI_turret[i].get(), TRUE);
 	}
-	//DrawFormatString(x_r(1056), y_r(594), GetColor(255, 255, 255), "[%03d][%03d]", UI_body.size(),UI_turret.size());
+
+	DrawFormatStringToHandle(x_r(1056), y_r(648), GetColor(255, 255, 255), font, "[x%d]", 0);
 }
 /*debug*/
 void UIS::put_way(void) {
@@ -1251,10 +1235,8 @@ void UIS::put_way(void) {
 	seldeb = 0;
 }
 void UIS::end_way(void) {
-	if (seldeb < 6) {
-		waydeb[seldeb] = (float)(GetNowHiPerformanceCount() - waypoint) / 1000.0f;
-		seldeb++;
-	}
+	if (seldeb < 6)
+		waydeb[seldeb++] = (float)(GetNowHiPerformanceCount() - waypoint) / 1000.0f;
 }
 void UIS::debug(float fps, float time) {
 	deb[0][0] = time;
