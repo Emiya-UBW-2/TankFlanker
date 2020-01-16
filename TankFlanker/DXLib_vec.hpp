@@ -1,14 +1,6 @@
 #pragma once
 #include <DxLib.h>
 #include <string_view>
-/*
-class VECTOR_ref {
-private:
-	VECTOR handle_;
-public:
-	VECTOR operator+
-};
-*/
 class VECTOR_ref {
 	VECTOR value;
 

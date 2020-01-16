@@ -60,7 +60,7 @@ Myclass::Myclass() {
 	SetAlwaysRunFlag(TRUE);			  /*background*/
 	SetUseZBuffer3D(TRUE);			  /*zbufuse*/
 	SetWriteZBuffer3D(TRUE);		  /*zbufwrite*/
-	MV1SetLoadModelReMakeNormal(TRUE);	  /*法線*/
+	MV1SetLoadModelReMakeNormal(TRUE);	/*法線*/
 	MV1SetLoadModelPhysicsWorldGravity(M_GR); /*重力*/
 	//車両数取得
 	hFind = FindFirstFile("data/tanks/*", &win32fdt);
@@ -134,6 +134,116 @@ Myclass::Myclass() {
 	for (size_t j = 0; j < std::size(ui_reload); ++j)
 		ui_reload[j] = GraphHandle::Load("data/ui/ammo_" + std::to_string(j) + ".bmp"); /*弾0,弾1,弾2,空弾*/
 	SetUseASyncLoadFlag(FALSE);
+}
+void Myclass::autoset_option(void) {
+	using namespace std::literals;
+	WIN32_FIND_DATA win32fdt;
+	HANDLE hFind;
+	char mstr[64]; /*tank*/
+	int mdata;     /*tank*/
+
+	const auto c_00ff00 = GetColor(0, 255, 0);
+	const auto c_ffff00 = GetColor(255, 255, 0);
+	const auto c_ff0000 = GetColor(255, 0, 0);
+	const auto c_ffffff = GetColor(255, 255, 255);
+
+	char CPUName[256];
+	char GPUName[256];
+	double TotalMemorySize;
+	GetPcInfo(NULL, NULL, CPUName, NULL, NULL, &TotalMemorySize, NULL, GPUName, NULL, NULL);
+
+	int k = 0;
+	const auto waits = GetNowHiPerformanceCount();
+	SetDrawScreen(DX_SCREEN_BACK);
+	DrawFormatString(0, 18 * (k++), c_ffffff, "CPU    : %s", CPUName); //
+	DrawFormatString(0, 18 * (k++), c_ffffff, "GPU    : %s", GPUName); //
+
+	DrawFormatString(0, 18 * (k++), c_ffffff, "メモリ : %fGB", TotalMemorySize / 1000); //
+	if (TotalMemorySize <= 5000) {							    //5GB以内
+	}
+
+	bool find;
+	std::string tempname;
+	//CPU
+	DrawString(0, 18 * (k++), "CPU構成", c_ffff00);
+	tempname = CPUName;
+	hFind = FindFirstFile("data/setdata/CPU/*", &win32fdt);
+	if (hFind != INVALID_HANDLE_VALUE) {
+		do {
+			if (win32fdt.cFileName[0] != '.') {
+				DrawFormatString(0, 18 * (k++), c_ffffff, "┠%s", win32fdt.cFileName);
+				if (tempname.find(win32fdt.cFileName) != std::string::npos) {
+					DrawString(0, 18 * (k++), "　　find!", c_00ff00);
+
+					mdata = FileRead_open(("data/setdata/CPU/"s + win32fdt.cFileName).c_str(), FALSE);
+					FileRead_gets(mstr, 64, mdata);
+					usegrab = bool(std::stoul(getright(mstr)));
+					FileRead_gets(mstr, 64, mdata);
+					FileRead_gets(mstr, 64, mdata); //
+					FileRead_gets(mstr, 64, mdata); //
+					FileRead_gets(mstr, 64, mdata); //
+					FileRead_gets(mstr, 64, mdata);
+					drawdist = std::stof(getright(mstr));
+					FileRead_gets(mstr, 64, mdata);
+					FileRead_gets(mstr, 64, mdata);
+					FileRead_gets(mstr, 64, mdata);
+					FileRead_gets(mstr, 64, mdata); //se
+					FileRead_close(mdata);
+
+					find = true;
+					break;
+				}
+				else {
+					DrawString(0, 18 * (k++), "　　wrong", c_ff0000);
+				}
+			}
+		} while (FindNextFile(hFind, &win32fdt));
+	}
+	FindClose(hFind);
+	//GPU
+	DrawString(0, 18 * (k++), "GPU構成", c_ffff00);
+	tempname = GPUName;
+	hFind = FindFirstFile("data/setdata/GPU/*", &win32fdt);
+	if (hFind != INVALID_HANDLE_VALUE) {
+		do {
+			if (win32fdt.cFileName[0] != '.') {
+				DrawFormatString(0, 18 * (k++), c_ffffff, "┠%s", win32fdt.cFileName);
+				if (tempname.find(win32fdt.cFileName) != std::string::npos) {
+					DrawString(0, 18 * (k++), "　　find!", c_00ff00);
+
+					mdata = FileRead_open(("data/setdata/GPU/"s + win32fdt.cFileName).c_str(), FALSE);
+					FileRead_gets(mstr, 64, mdata);
+					FileRead_gets(mstr, 64, mdata);
+					ANTI = unsigned char(std::stoul(getright(mstr)));
+					FileRead_gets(mstr, 64, mdata); //
+					FileRead_gets(mstr, 64, mdata); //
+					FileRead_gets(mstr, 64, mdata); //
+					FileRead_gets(mstr, 64, mdata);
+					FileRead_gets(mstr, 64, mdata);
+					gndx = std::stoi(getright(mstr));
+					FileRead_gets(mstr, 64, mdata);
+					shadex = std::stoi(getright(mstr));
+					FileRead_gets(mstr, 64, mdata);
+					USEHOST = bool(std::stoul(getright(mstr)));
+					FileRead_gets(mstr, 64, mdata); //se
+					FileRead_close(mdata);
+
+					find = true;
+					break;
+				}
+				else {
+					DrawString(0, 18 * (k++), "　　wrong", c_ff0000);
+				}
+			}
+		} while (FindNextFile(hFind, &win32fdt));
+	}
+	FindClose(hFind);
+
+	ScreenFlip();
+
+	DxLib::WaitKey();
+
+	write_option();
 }
 void Myclass::write_option(void) {
 	std::ofstream outputfile("data/setting.txt");
@@ -231,7 +341,7 @@ int Myclass::window_choosev(void) {
 	int xp = 0, yp = 0;
 	unsigned int m;
 	float pert;
-	int mousex, mousey;
+	int mousex, mousey; /*mouse*/
 	float real = 0.f, r = 5.f;
 	LONGLONG waits;
 	const auto c_00ff00 = GetColor(0, 255, 0);
@@ -325,8 +435,7 @@ int Myclass::window_choosev(void) {
 				++x;
 				if (x == 1) {
 					l++;
-					i++;
-					i %= vecs.size();
+					++i %= vecs.size();
 				}
 			}
 			else
@@ -344,8 +453,7 @@ int Myclass::window_choosev(void) {
 				++y;
 				if (y == 1) {
 					l--;
-					i--;
-					if (i < 0)
+					if (--i < 0)
 						i = int(vecs.size() - 1);
 				}
 			}
@@ -386,17 +494,18 @@ void Myclass::set_viewrad(VECTOR_ref vv) {
 	view = vv;
 	view_r = vv;
 }
-void Myclass::set_view_r(void) {
-	int px, py;
-	GetMousePoint(&px, &py);
+void Myclass::set_view_r(int wheel,bool life) {
+	int mousex, mousey; /*mouse*/
+	GetMousePoint(&mousex, &mousey);
 	view = DxLib::VGet(
-	    std::clamp(view.x() + (float)(py - dispy / 2) / dispy * dispy / 480 * 1.0f, deg2rad(-35), deg2rad(35)),
-	    view.y() + (float)(px - dispx / 2) / dispx * dispx / 640 * 1.0f,
-	    std::clamp(view.z() + (float)GetMouseWheelRotVol() / 10.0f, 0.1f, 2.f));
+	    std::clamp(view.x() + (float)(mousey - dispy / 2) / dispy * dispy / 480 * 1.0f, deg2rad(-35), deg2rad(35)),
+	    view.y() + (float)(mousex - dispx / 2) / dispx * dispx / 640 * 1.0f,
+	    std::clamp(view.z() + (float)wheel / 10.0f, life? 0.1f : 0.11f, 2.f));
 	view_r += (view - view_r).Scale(0.1f);
 	if (view.z() == 0.1f)
 		view_r = view;
-	SetMousePoint(x_r(960), y_r(540));
+	SetCursorPos(x_r(960), y_r(540));
+	
 }
 void Myclass::Screen_Flip(LONGLONG waits) {
 	ScreenFlip();
@@ -470,7 +579,7 @@ bool HUMANS::set_humans(const MV1ModelHandle& inmod) {
 		const auto font72 = FontHandle::Create(x_r(72), y_r(72 / 3), DX_FONTTYPE_ANTIALIASING);
 		uint8_t x = 0, y = 0;
 		//int xp = 0, yp = 0;
-		int mousex, mousey;
+		int mousex, mousey; /*mouse*/
 		LONGLONG waits;
 		unsigned int m;
 		const auto c_00ff00 = GetColor(0, 255, 0);
@@ -509,8 +618,7 @@ bool HUMANS::set_humans(const MV1ModelHandle& inmod) {
 			time += 30.f / f_rate;
 			if (time >= model[sel].alltime[j]) {
 				time = 0.f;
-				j++;
-				j %= (ANIME_RtoL + 1);
+				++j %= (ANIME_RtoL + 1);
 			}
 			if (!first)
 				MV1PhysicsResetState(model[sel].obj.get());
@@ -536,8 +644,7 @@ bool HUMANS::set_humans(const MV1ModelHandle& inmod) {
 					m = c_ff0000;
 					x = std::min<uint8_t>(x + 1, 2);
 					if (x == 1) {
-						sel++;
-						sel %= model.size();
+						++sel %= model.size();
 						first = false;
 					}
 				}
@@ -555,8 +662,7 @@ bool HUMANS::set_humans(const MV1ModelHandle& inmod) {
 					m = c_ff0000;
 					y = std::min<uint8_t>(y + 1, 2);
 					if (y == 1) {
-						sel--;
-						if (sel < 0)
+						if (--sel < 0)
 							sel = int(model.size() - 1);
 						first = false;
 					}
@@ -695,7 +801,7 @@ void HUMANS::set_humanmove(const players& player, VECTOR_ref rad) {
 			    h.obj.get(),
 			    MMult(
 				MMult(
-				    MGetRotY(player.yrad + player.gunrad.x()), MGetRotVec2(VGet(0, 1.f, 0), player.nor.get())),
+				    MGetRotY(player.gunrad.x() - player.yrad), MGetRotVec2(VGet(0, 1.f, 0), player.nor.get())),
 				(pos_old[fnum] + (inmodel_handle.frame(fnum) - pos_old[fnum]).Scale((float)(1 + k) / divi)).Mtrans()));
 			if (fnum == bone_in_turret) {
 				/*首振り*/
@@ -705,7 +811,7 @@ void HUMANS::set_humanmove(const players& player, VECTOR_ref rad) {
 					h.nvec.Mtrans(),
 					MMult(
 					    MGetRotX(std::clamp(-rad.x(), deg2rad(-20), deg2rad(20))),
-					    MGetRotY(std::clamp(atanf(sin(rad.y() - player.yrad - player.gunrad.x())), deg2rad(-40), deg2rad(40))))));
+					    MGetRotY(std::clamp(atanf(sin(rad.y() - (player.gunrad.x() - player.yrad))), deg2rad(-40), deg2rad(40))))));
 				//voice
 				if (h.vflug != -1) {
 					if (h.voicetime < h.voicealltime[h.vflug]) {
@@ -743,13 +849,13 @@ void HUMANS::set_humanmove(const players& player, VECTOR_ref rad) {
 	first = true;
 }
 void HUMANS::draw_human(size_t p1) {
-	MV1DrawModel(hum[p1].obj.get());
+	if (hum[p1].per[ANIME_sit] <= 0.5f)
+		MV1DrawModel(hum[p1].obj.get());
 }
 void HUMANS::draw_humanall() {
 	MV1DrawModel(inmodel_handle.get());
-	for (size_t i = 0; i < hum.size(); ++i) {
-		draw_human(i);
-	}
+	for (const auto& h : hum)
+		MV1DrawModel(h.obj.get());
 }
 void HUMANS::delete_human(void) {
 	inmodel_handle.Dispose();
@@ -773,17 +879,17 @@ void HUMANS::start_humananime(int p1) {
 //
 MAPS::MAPS(int map_size, float draw_dist, int shadow_size) {
 	groundx = map_size * 1024; /*ノーマルマップのサイズ*/
-	drawdist = draw_dist;	   /*木の遠近*/
+	drawdist = draw_dist;      /*木の遠近*/
 	shadowx = shadow_size;
 	int shadowsize = (1 << (10 + shadowx));
 	//shadow----------------------------------------------------------------------------------------//
-	shadow_near = MakeShadowMap(shadowsize, shadowsize);	 /*近影*/
+	shadow_near = MakeShadowMap(shadowsize, shadowsize);     /*近影*/
 	SetShadowMapAdjustDepth(shadow_near, 0.0005f);		 /*ずれを小さくするため*/
 	shadow_seminear = MakeShadowMap(shadowsize, shadowsize); /*近影*/
-	shadow_far = MakeShadowMap(shadowsize, shadowsize);	 /*マップ用*/
+	shadow_far = MakeShadowMap(shadowsize, shadowsize);      /*マップ用*/
 	//map-------------------------------------------------------------------------------------------//
 	SetUseASyncLoadFlag(TRUE);
-	sky_sun = GraphHandle::Load("data/sun.png");	   /*太陽*/
+	sky_sun = GraphHandle::Load("data/sun.png");       /*太陽*/
 	texo = GraphHandle::Load("data/nm.png");	   /*轍*/
 	texp = GraphHandle::Make(groundx, groundx, FALSE); /*ノーマルマップ*/
 	texn = GraphHandle::Make(groundx, groundx, FALSE); /*実マップ*/
@@ -800,9 +906,9 @@ void MAPS::set_map_readyb(size_t set) {
 	texm = GraphHandle::Load("data/"s + mapper.at(set) + "/SandDesert_04_00344_NM.png");  /*nor*/
 	m_model = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/map.mv1");		      /*map*/
 	sky_model = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/sky/model_sky.mv1");   /*sky*/
-	graph = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/grass.png");	      /*grass*/
-	grass = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/grass/grass.mv1");	      /*grass*/
-	GgHandle = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/gg.png");	      /*地面草*/
+	graph = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/grass.png");	    /*grass*/
+	grass = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/grass/grass.mv1");	 /*grass*/
+	GgHandle = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/gg.png");	    /*地面草*/
 	SetUseASyncLoadFlag(FALSE);
 	return;
 }
@@ -825,7 +931,7 @@ bool MAPS::set_map_ready() {
 
 	MV1SetupCollInfo(m_model.get(), 0, map_x / 5, map_x / 5, map_y / 5);
 	SetFogStartEnd(10.0f, 1400.0f); /*fog*/
-	SetFogColor(150, 150, 175);	/*fog*/
+	SetFogColor(150, 150, 175);     /*fog*/
 	SetLightDirection(lightvec.get());
 	SetShadowMapLightDirection(shadow_near, lightvec.get());
 	SetShadowMapLightDirection(shadow_seminear, lightvec.get());
@@ -857,7 +963,7 @@ bool MAPS::set_map_ready() {
 	RefMesh = MV1GetReferenceMesh(grass.get(), -1, TRUE); /*参照用メッシュの取得*/
 
 	IndexNum = RefMesh.PolygonNum * 3 * grasss; /*インデックスの数を取得*/
-	VerNum = RefMesh.VertexNum * grasss;	    /*頂点の数を取得*/
+	VerNum = RefMesh.VertexNum * grasss;	/*頂点の数を取得*/
 
 	grassver.resize(VerNum);   /*頂点データとインデックスデータを格納するメモリ領域の確保*/
 	grassind.resize(IndexNum); /*頂点データとインデックスデータを格納するメモリ領域の確保*/
@@ -872,7 +978,7 @@ bool MAPS::set_map_ready() {
 		if (HitPoly.HitFlag)
 			MV1SetMatrix(grass.get(), MMult(MGetScale(VGet((float)(200 + GetRand(400)) / 100.0f, (float)(25 + GetRand(100)) / 100.0f, (float)(200 + GetRand(400)) / 100.0f)), MMult(MMult(MGetRotY(deg2rad(GetRand(360))), MGetRotVec2(VGet(0, 1.f, 0), HitPoly.Normal)), MGetTranslate(HitPoly.HitPosition))));
 		//上省
-		MV1RefreshReferenceMesh(grass.get(), -1, TRUE);	      /*参照用メッシュの更新*/
+		MV1RefreshReferenceMesh(grass.get(), -1, TRUE);       /*参照用メッシュの更新*/
 		RefMesh = MV1GetReferenceMesh(grass.get(), -1, TRUE); /*参照用メッシュの取得*/
 		for (size_t j = 0; j < size_t(RefMesh.VertexNum); ++j) {
 			grassver[j + vnum].pos = RefMesh.Vertexs[j].Position;
@@ -931,7 +1037,7 @@ void MAPS::draw_map_track(const players& player) {
 	SetDrawScreen(texn.get());
 	for (auto& w : player.ptr->wheelframe)
 		if (player.Springs[w] >= -0.15f)
-			DrawRotaGraph((int)(groundx * (0.5f + player.obj.frame(w).x() / (float)map_x)), (int)(groundx * (0.5f - player.obj.frame(w).z() / (float)map_y)), 1.f * groundx / 1024 / 195.0f, player.yrad, texo.get(), TRUE);
+			DrawRotaGraph((int)(groundx * (0.5f + player.obj.frame(w).x() / (float)map_x)), (int)(groundx * (0.5f - player.obj.frame(w).z() / (float)map_y)), 1.f * groundx / 1024 / 195.0f, -player.yrad, texo.get(), TRUE);
 }
 void MAPS::draw_map_model() {
 	MV1DrawModel(m_model.get());
@@ -1126,7 +1232,8 @@ void UIS::draw_load(void) {
 		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "X : レティクル下降", c_ff6400);
 		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "C : ズームアウト", c_ff6400);
 		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "V : ズームイン", c_ff6400);
-		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "Q : 再装填", c_00c800);
+		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "Q : 再装填1", c_00c800);
+		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "E : 再装填2", c_00c800);
 		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "space : 射撃", c_00c800);
 		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "右shift : 指揮", c_3264ff);
 		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "マウス : 見回し/指揮", c_3264ff);
@@ -1155,9 +1262,9 @@ void UIS::draw_icon(players& p, int font) {
 		if (p.iconpos.z() > 0.0f && p.iconpos.z() < 1.0f)
 			DrawFormatStringToHandle((int)p.iconpos.x(), (int)p.iconpos.y(), (p.type == TEAM) ? c_00ff00 : c_ff0000, font, "%dm", (int)(p.pos - pplayer->pos).size());
 }
-void UIS::draw_sight(float posx, float posy, float ratio, float dist, int font) {
+void UIS::draw_sight(VECTOR_ref aimpos, float ratio, float dist, int font) {
 	DrawRotaGraph(x_r(960), y_r(540), (float)y_r(2), deg2rad(-dist / 20), UI_main[pplayer->ptr->countryc].ui_sight[1].get(), TRUE);
-	DrawRotaGraph((int)posx, (int)posy, (float)y_r(2) * ratio / 4.0f, 0, UI_main[pplayer->ptr->countryc].ui_sight[2].get(), TRUE);
+	DrawRotaGraph(int(aimpos.x()), int(aimpos.y()), (float)y_r(2) * ratio / 4.0f, 0, UI_main[pplayer->ptr->countryc].ui_sight[2].get(), TRUE);
 	DrawRotaGraph(x_r(960), y_r(540), (float)y_r(2), 0, UI_main[pplayer->ptr->countryc].ui_sight[0].get(), TRUE);
 	DrawExtendGraph(0, 0, dispx, dispy, UI_main[pplayer->ptr->countryc].ui_sight[7].get(), TRUE);
 	DrawFormatStringToHandle(x_r(1056), y_r(594), GetColor(255, 255, 255), font, "[%03d]", (int)dist);
@@ -1212,7 +1319,7 @@ void UIS::draw_ui(uint8_t selfammo[], float y_v, int font) {
 		}
 		else
 			SetDrawBright(255, 255, 255);
-		DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, double(-y_v + pplayer->yrad), UI_body[i].get(), TRUE);
+		DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, double(-y_v - pplayer->yrad), UI_body[i].get(), TRUE);
 	}
 	for (int i = 0; i < UI_turret.size(); ++i) {
 		if (i == 0) {
@@ -1224,7 +1331,7 @@ void UIS::draw_ui(uint8_t selfammo[], float y_v, int font) {
 		}
 		else
 			SetDrawBright(255, 255, 255);
-		DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, double(-y_v + pplayer->yrad + pplayer->gunrad.x()), UI_turret[i].get(), TRUE);
+		DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, double(-y_v - pplayer->yrad + pplayer->gunrad.x()), UI_turret[i].get(), TRUE);
 	}
 
 	DrawFormatStringToHandle(x_r(1056), y_r(648), GetColor(255, 255, 255), font, "[x%d]", 0);
@@ -1275,15 +1382,13 @@ void setcv(float neard, float fard, VECTOR_ref cam, VECTOR_ref view, VECTOR_ref 
 	SetupCamera_Perspective(deg2rad(fov));
 	Set3DSoundListenerPosAndFrontPosAndUpVec(cam.get(), view.get(), up.get());
 }
-void getdist(VECTOR_ref& startpos, VECTOR_ref vector, float& dist, float& getdists, float speed, float fps) {
+void getdist(VECTOR_ref& startpos, VECTOR_ref vec, float& dist, float& getdists, float speed, float fps) {
 	dist = std::clamp(dist, 100.f, 2000.f);
 	speed /= fps;
 	auto endpos = startpos;
 	for (int z = 0; z < (int)(fps / 1000.0f * dist); ++z) {
-		startpos += vector.Scale(speed);
-
-		vector = VGet(vector.x(), vector.y() + M_GR / 2.0f / fps / fps, vector.z()); //改善
-		speed -= 5.f / fps;
+		startpos += vec.Scale(speed);
+		vec = VGet(vec.x(), vec.y() + m_ac(fps), vec.z());
 	}
 	getdists = (endpos - startpos).size();
 }
@@ -1310,55 +1415,57 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 	for (auto& t : tgts) {
 		if (play.id == t.id)
 			continue;
-		hitnear.reset();
+
+		//とりあえず当たったかどうか探してソート
+		is_hit = false;
+		for (size_t colmesh = 0; colmesh < t.hitssort.size(); ++colmesh) {
+			if (colmesh >= 5 && t.HP[colmesh] == 0) {
+				t.hitssort[colmesh] = pair(colmesh, (std::numeric_limits<float>::max)());
+				continue;
+			}
+			t.hitres[colmesh] = MV1CollCheck_Line(t.colobj.get(), -1, c.repos.get(), (c.pos + (c.pos - c.repos).Scale(0.1f)).get(), int(colmesh));
+			if (t.hitres[colmesh].HitFlag) {
+				t.hitssort[colmesh] = pair(colmesh, (c.repos - t.hitres[colmesh].HitPosition).size());
+				is_hit = true;
+			}
+			else
+				t.hitssort[colmesh] = pair(colmesh, (std::numeric_limits<float>::max)());
+		}
+		if (!is_hit)
+			continue;
+		std::sort(t.hitssort.begin(), t.hitssort.end(), [](const pair& x, const pair& y) { return x.second < y.second; });
+
 		//主砲
 		if (gun_s == 0) {
-			//とりあえず当たったかどうか探してソート
-			is_hit = false;
-			for (size_t colmesh = 0; colmesh < t.hitssort.size(); ++colmesh) {
-				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos.get(), (c.pos + (c.pos - c.repos).Scale(0.1f)).get(), int(colmesh));
-				if (HitPoly.HitFlag) {
-					t.hitssort[colmesh] = pair(colmesh, (c.repos - HitPoly.HitPosition).size());
-					is_hit = true;
-				}
-				else
-					t.hitssort[colmesh] = pair(colmesh, 9999.f);
-			}
-			if (!is_hit)
-				continue;
-			std::sort(t.hitssort.begin(), t.hitssort.end(), [](const pair& x, const pair& y) { return x.second < y.second; });
 			//近い順に、はじく操作のいらないメッシュに対しダメージ面に届くまで判定
 			for (auto& tt : t.hitssort) {
-				if (tt.second == 9999.f)
+				if (tt.second == (std::numeric_limits<float>::max)())
 					break; //装甲面に当たらなかったならスルー
 				const auto k = tt.first;
-				if (k >= 4) {
-					if (t.HP[k] > 0)
-						if (k == 4)
-							continue; //砲身だけ処理を別にしたいので分けます
+				if (k <= 3) {
+					hitnear = k;
+					break;
+				}
+				else if (t.HP[k] > 0) {
+					if (k == 4)
+						continue; //砲身だけ処理を別にしたいので分けます
 					//空間装甲、モジュール
-					const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos.get(), (c.pos + c.vec.Scale(0.1f)).get(), int(k));
-					if (HitPoly.HitFlag) {
-						set_effect(&play.effcs[ef_reco], HitPoly.HitPosition, HitPoly.Normal);
+					if (t.hitres[k].HitFlag) {
+						set_effect(&play.effcs[ef_reco], t.hitres[k].HitPosition, t.hitres[k].Normal);
 						t.HP[k] = std::max<short>(t.HP[k] - 50, 0);
 						c.pene /= 2.0f;
 						c.speed /= 2.f;
 					}
 				}
-				else {
-					hitnear = k;
-					break;
-				}
 			}
 			//ダメージ面に当たった時に装甲値に勝てるかどうか
 			if (hitnear) {
-				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos.get(), (c.pos + c.vec.Scale(0.1f)).get(), int(hitnear.value())); //当たっているものとして詳しい判定をとる
-				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 0 + 3 * t.hitbuf, MMult(MGetTranslate(HitPoly.HitPosition), MInverse(t.ps_m)));
-				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 1 + 3 * t.hitbuf, MMult(MGetTranslate(VAdd(HitPoly.Normal, HitPoly.HitPosition)), MInverse(t.ps_m)));
-				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 2 + 3 * t.hitbuf, MMult(((c.vec * HitPoly.Normal).Scale(-1.f) + HitPoly.HitPosition).Mtrans(), MInverse(t.ps_m)));
-
-				set_effect(&play.effcs[ef_reco], HitPoly.HitPosition, HitPoly.Normal);
-				if (c.pene > t.ptr->armer[hitnear.value()] * (1.0f / abs(VDot(c.vec.Norm(), HitPoly.Normal)))) {
+				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 0 + 3 * t.hitbuf, MMult(MGetTranslate(t.hitres[hitnear.value()].HitPosition), MInverse(t.ps_m)));
+				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 1 + 3 * t.hitbuf, MMult(MGetTranslate(VAdd(t.hitres[hitnear.value()].Normal, t.hitres[hitnear.value()].HitPosition)), MInverse(t.ps_m)));
+				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 2 + 3 * t.hitbuf, MMult(((c.vec * t.hitres[hitnear.value()].Normal).Scale(-1.f) + t.hitres[hitnear.value()].HitPosition).Mtrans(), MInverse(t.ps_m)));
+				//
+				set_effect(&play.effcs[ef_reco], t.hitres[hitnear.value()].HitPosition, t.hitres[hitnear.value()].Normal);
+				if (c.pene > t.ptr->armer[hitnear.value()] * (1.0f / abs(VDot(c.vec.Norm(), t.hitres[hitnear.value()].Normal)))) {
 					if (t.HP[0] != 0) {
 						PlaySoundMem(t.se[29 + GetRand(1)].get(), DX_PLAYTYPE_BACK, TRUE);
 						set_effect(&t.effcs[ef_bomb], t.obj.frame(t.ptr->engineframe), VGet(0, 0, 0));
@@ -1375,56 +1482,38 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 				else {
 					PlaySoundMem(t.se[10 + GetRand(16)].get(), DX_PLAYTYPE_BACK, TRUE);
 					if (t.recoadd == false) {
-						t.recorad = atan2(HitPoly.HitPosition.x - t.pos.x(), HitPoly.HitPosition.z - t.pos.z());
+						t.recorad = atan2(t.hitres[hitnear.value()].HitPosition.x - t.pos.x(), t.hitres[hitnear.value()].HitPosition.z - t.pos.z());
 						t.recoadd = true;
 					}
-					c.vec += VScale(HitPoly.Normal, (c.vec % HitPoly.Normal) * -2.0f);
-					c.pos = c.vec.Scale(0.1f) + HitPoly.HitPosition;
-
+					c.vec += VScale(t.hitres[hitnear.value()].Normal, (c.vec % t.hitres[hitnear.value()].Normal) * -2.0f);
+					c.pos = c.vec.Scale(0.1f) + t.hitres[hitnear.value()].HitPosition;
 					c.pene /= 2.0f;
 					c.speed /= 2.f;
-
 					t.hit[t.hitbuf].use = 1;
 				}
 				{
 					float asize = play.ptr->ammosize[gun_s] * 100.f;
-					MV1SetScale(t.hit[t.hitbuf].pic.get(), VGet(asize / abs(VDot(c.vec.Norm(), HitPoly.Normal)), asize, asize)); //
+					MV1SetScale(t.hit[t.hitbuf].pic.get(), VGet(asize / abs(VDot(c.vec.Norm(), t.hitres[hitnear.value()].Normal)), asize, asize)); //
 				}
 				t.hit[t.hitbuf].flug = true;
-				t.hitbuf++;
-				t.hitbuf %= 3;
+				++t.hitbuf %= 3;
 			}
 		}
 		//同軸機銃
 		else {
-			//近い面を探す判定
-			std::array<float, 2> tmpf;
-			tmpf[0] = c.speed;
-			for (size_t colmesh = 0; colmesh < t.HP.size(); ++colmesh) {
-				if (colmesh >= 5 && t.HP[colmesh] == 0)
-					continue;
-				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos.get(), (c.pos + c.vec.Scale(0.1f)).get(), int(colmesh));
-				if (HitPoly.HitFlag) {
-					tmpf[1] = (c.repos - HitPoly.HitPosition).size();
-					if (tmpf[1] <= tmpf[0]) {
-						tmpf[0] = tmpf[1];
-						hitnear = colmesh;
-					}
-				}
-			}
 			//至近で弾かせる
-			if (hitnear) {
-				const auto HitPoly = MV1CollCheck_Line(t.colobj.get(), -1, c.repos.get(), (c.pos + c.vec.Scale(0.1f)).get(), int(hitnear.value()));
-				set_effect(&play.effcs[ef_reco2], HitPoly.HitPosition, HitPoly.Normal);
-				PlaySoundMem(t.se[10 + GetRand(16)].get(), DX_PLAYTYPE_BACK, TRUE);
-				c.vec = c.vec + VScale(HitPoly.Normal, (c.vec % HitPoly.Normal) * -2.0f);
-				c.pos = c.vec.Scale(0.1f) + HitPoly.HitPosition;
-			}
-		}
-		if (hitnear)
-			break;
+			if (t.hitssort.begin()->second == (std::numeric_limits<float>::max)())
+				continue;
+			hitnear = t.hitssort.begin()->first;
+			set_effect(&play.effcs[ef_reco2], t.hitres[hitnear.value()].HitPosition, t.hitres[hitnear.value()].Normal);
+			PlaySoundMem(t.se[10 + GetRand(16)].get(), DX_PLAYTYPE_BACK, TRUE);
+			c.vec = c.vec + VScale(t.hitres[hitnear.value()].Normal, (c.vec % t.hitres[hitnear.value()].Normal) * -2.0f);
+			c.pos = c.vec.Scale(0.1f) + t.hitres[hitnear.value()].HitPosition;
 	}
-	return (hitnear.has_value());
+	if (hitnear)
+		break;
+}
+return (hitnear.has_value());
 }
 void set_gunrad(players& play, float rat_r) {
 	for (int i = 0; i < 4; ++i) {

@@ -174,14 +174,17 @@ struct players {
 
 	int move{ 0 };	/*キー操作*/
 	VECTOR_ref pos; /*座標*/
-	MATRIX ps_m;	/*車体行列*/
+	MATRIX ps_r;    /*車体旋回行列*/
+	MATRIX ps_m;    /*車体全体行列*/
 	MATRIX ps_t;	/*砲塔行列*/
 	//std::vector<MATRIX> ps_all;					/*行列*/
 	float yace{ 0.f };				/*加速度*/
 	float speed{ 0.f }, speedrec{ 0.f };		/*速度関連*/
+	float accel{ 0.f };				/*加速度*/
 	VECTOR_ref vec;					/*移動ベクトル*/
 	float xnor{ 0.f }, znor{ 0.f }, znorrec{ 0.f }; /*法線角度*/
 	VECTOR_ref nor;					/*法線*/
+	VECTOR_ref zvec;				/*前向きベクトル*/
 	float yrad{ 0.f };				/*角度*/
 	float yadd{ 0.f };				/*角速度*/
 	int recoall{ 0 };				/*弾き角度*/
@@ -223,6 +226,8 @@ struct players {
 	/*弾痕*/
 	int hitbuf;		/*使用弾痕*/
 	std::array<Hit, 3> hit; /**/
+	//確保
+	std::vector<MV1_COLL_RESULT_POLY> hitres;
 	/*box2d*/
 	std::unique_ptr<b2Body> body; /**/
 	b2Fixture* playerfix;	      /**/
@@ -272,8 +277,11 @@ public:
 	float get_f_rate(void) { return f_rate; }
 	bool get_usehost(void) { return USEHOST; }
 	float get_se_vol(void) { return se_vol; }
+
+	void autoset_option(void);
+
 	void write_option(void);
-	//bool set_fonts(int arg_num, ...);
+
 	template <typename... Args>
 	void set_fonts(Args&&... args) {
 		SetUseASyncLoadFlag(true);
@@ -284,7 +292,7 @@ public:
 	bool set_veh(void);
 	int window_choosev(void); //車両選択
 	void set_viewrad(VECTOR_ref vv);
-	void set_view_r(void);
+	void set_view_r(int wheel, bool life);
 	void Screen_Flip(LONGLONG waits);
 	~Myclass();
 	void set_se_vol(unsigned char size);
@@ -388,7 +396,7 @@ private:
 	GraphHandle GgHandle;		/**/
 	int vnum, pnum;			/**/
 	MV1_REF_POLYGONLIST RefMesh;	/**/
-	//campos
+	//cam
 	VECTOR_ref camera, viewv, upv; /**/
 	float rat;		       /**/
 public:
@@ -446,7 +454,7 @@ public:
 	void set_reco(void);	       /*反射スイッチ*/
 	void draw_drive();
 	void draw_icon(players& p, int font);
-	void draw_sight(float posx, float posy, float ratio, float dist, int font); /*照準UI*/
+	void draw_sight(VECTOR_ref aimpos, float ratio, float dist, int font); /*照準UI*/
 	void draw_ui(uint8_t selfammo[], float y_v, int font);			    /*メインUI*/
 	/*debug*/
 	void put_way(void);
@@ -455,7 +463,7 @@ public:
 };
 /**/
 void setcv(float neard, float fard, VECTOR_ref cam, VECTOR_ref view, VECTOR_ref up, float fov);		     //カメラ情報指定
-void getdist(VECTOR_ref& startpos, VECTOR_ref vector, float& dist, float& getdists, float speed, float fps); //startposに測距情報を出力
+void getdist(VECTOR_ref& startpos, VECTOR_ref vec, float& dist, float& getdists, float speed, float fps); //startposに測距情報を出力
 //effect
 void set_effect(EffectS* efh, VECTOR_ref pos, VECTOR_ref nor);
 void set_pos_effect(EffectS* efh, const EffekseerEffectHandle& handle);

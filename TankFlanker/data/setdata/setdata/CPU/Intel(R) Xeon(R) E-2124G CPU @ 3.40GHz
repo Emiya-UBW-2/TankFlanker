@@ -1,0 +1,10 @@
+usegrab(1or0)=1
+ANTI(1~4)=1
+YSync(1or0)=1
+fps(30or60or120)=60.000000
+windowmode(1or0)=1
+drawdist(100~400)=100.000000
+groundx(1~16)=8
+shadow(0~3)=1
+hostpass(1or0)=0
+se_vol(100~0)=100.000000

@@ -15,6 +15,8 @@
 #define y_r(p1) ((int)(p1)*dispy / 1080)
 //マウス判定
 #define inm(x1, y1, x2, y2) (mousex >= x1 && mousex <= x2 && mousey >= y1 && mousey <= y2)
+//重力加速度
+#define m_ac(p1) (M_GR / 2.0f / p1 / p1)
 //その他
 #define deg2rad(p1) ((p1)*DX_PI_F / 180)		//角度からラジアンに
 #define rad2deg(p1) ((p1)*180 / DX_PI_F)		//ラジアンから角度に
