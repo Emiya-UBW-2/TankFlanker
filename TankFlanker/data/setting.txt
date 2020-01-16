@@ -1,5 +1,5 @@
 usegrab(1or0)=1
-ANTI(1~4)=1
+ANTI(1~4)=2
 YSync(1or0)=1
 fps(30or60or120)=60.000000
 windowmode(1or0)=1

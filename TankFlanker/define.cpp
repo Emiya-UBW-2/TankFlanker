@@ -10,10 +10,6 @@ Myclass::Myclass() {
 	char mstr[64]; /*tank*/
 	int mdata;     /*tank*/
 
-	//int SetUseMaxTextureSize( int Size ) ;// 使用するテクスチャーの最大サイズを設定する( デフォルトではグラフィックスデバイスが対応している最大テクスチャーサイズ、引数に 0 を渡すとデフォルト設定になります )
-	//int GetMaxGraphTextureSize( int *SizeX, int *SizeY ) ;// グラフィックスデバイスが対応している最大テクスチャサイズを取得する
-	//
-
 	SetOutApplicationLogValidFlag(FALSE); /*log*/
 
 	mdata = FileRead_open("data/setting.txt", FALSE);
@@ -40,13 +36,13 @@ Myclass::Myclass() {
 
 	FileRead_close(mdata);
 
-
-	SetMainWindowText("Tank Flanker"); /*name*/
+	if (ANTI >= 2)
+		SetFullSceneAntiAliasingMode(ANTI, 3); /*アンチエイリアス*/
 	//SetWindowStyleMode(4);			    /**/
 	//SetWindowUserCloseEnableFlag(FALSE);		    /*alt+F4対処*/
+	SetMainWindowText("Tank Flanker");		    /*name*/
 	SetAeroDisableFlag(TRUE);			    /**/
 	SetUsePixelLighting(TRUE);			    /*ピクセルライティング*/
-	if (ANTI >= 2) {} /*アンチエイリアス*/		    /*動作不全のため一旦削除*/
 	SetWaitVSyncFlag(YSync);			    /*垂直同期*/
 	ChangeWindowMode(windowmode);			    /*窓表示*/
 	SetUseDirect3DVersion(DX_DIRECT3D_11);		    /*directX ver*/
@@ -56,12 +52,11 @@ Myclass::Myclass() {
 	Effekseer_Init(8000);				    /*Effekseer*/
 	SetChangeScreenModeGraphicsSystemResetFlag(FALSE);  /*Effekseer*/
 	Effekseer_SetGraphicsDeviceLostCallbackFunctions(); /*Effekseer*/
-	//Effekseer_InitDistortion(1.0f);		    /*エフェクトの歪み*/
-	SetAlwaysRunFlag(TRUE);			  /*background*/
-	SetUseZBuffer3D(TRUE);			  /*zbufuse*/
-	SetWriteZBuffer3D(TRUE);		  /*zbufwrite*/
-	MV1SetLoadModelReMakeNormal(TRUE);	/*法線*/
-	MV1SetLoadModelPhysicsWorldGravity(M_GR); /*重力*/
+	SetAlwaysRunFlag(TRUE);				    /*background*/
+	SetUseZBuffer3D(TRUE);				    /*zbufuse*/
+	SetWriteZBuffer3D(TRUE);			    /*zbufwrite*/
+	MV1SetLoadModelReMakeNormal(TRUE);		    /*法線*/
+	MV1SetLoadModelPhysicsWorldGravity(M_GR);	    /*重力*/
 	//車両数取得
 	hFind = FindFirstFile("data/tanks/*", &win32fdt);
 	if (hFind != INVALID_HANDLE_VALUE) {
@@ -494,18 +489,17 @@ void Myclass::set_viewrad(VECTOR_ref vv) {
 	view = vv;
 	view_r = vv;
 }
-void Myclass::set_view_r(int wheel,bool life) {
+void Myclass::set_view_r(int wheel, bool life) {
 	int mousex, mousey; /*mouse*/
 	GetMousePoint(&mousex, &mousey);
 	view = DxLib::VGet(
 	    std::clamp(view.x() + (float)(mousey - dispy / 2) / dispy * dispy / 480 * 1.0f, deg2rad(-35), deg2rad(35)),
 	    view.y() + (float)(mousex - dispx / 2) / dispx * dispx / 640 * 1.0f,
-	    std::clamp(view.z() + (float)wheel / 10.0f, life? 0.1f : 0.11f, 2.f));
+	    std::clamp(view.z() + (float)wheel / 10.0f, life ? 0.1f : 0.11f, 2.f));
 	view_r += (view - view_r).Scale(0.1f);
 	if (view.z() == 0.1f)
 		view_r = view;
 	SetCursorPos(x_r(960), y_r(540));
-	
 }
 void Myclass::Screen_Flip(LONGLONG waits) {
 	ScreenFlip();
@@ -879,17 +873,17 @@ void HUMANS::start_humananime(int p1) {
 //
 MAPS::MAPS(int map_size, float draw_dist, int shadow_size) {
 	groundx = map_size * 1024; /*ノーマルマップのサイズ*/
-	drawdist = draw_dist;      /*木の遠近*/
+	drawdist = draw_dist;	   /*木の遠近*/
 	shadowx = shadow_size;
 	int shadowsize = (1 << (10 + shadowx));
 	//shadow----------------------------------------------------------------------------------------//
-	shadow_near = MakeShadowMap(shadowsize, shadowsize);     /*近影*/
+	shadow_near = MakeShadowMap(shadowsize, shadowsize);	 /*近影*/
 	SetShadowMapAdjustDepth(shadow_near, 0.0005f);		 /*ずれを小さくするため*/
 	shadow_seminear = MakeShadowMap(shadowsize, shadowsize); /*近影*/
-	shadow_far = MakeShadowMap(shadowsize, shadowsize);      /*マップ用*/
+	shadow_far = MakeShadowMap(shadowsize, shadowsize);	 /*マップ用*/
 	//map-------------------------------------------------------------------------------------------//
 	SetUseASyncLoadFlag(TRUE);
-	sky_sun = GraphHandle::Load("data/sun.png");       /*太陽*/
+	sky_sun = GraphHandle::Load("data/sun.png");	   /*太陽*/
 	texo = GraphHandle::Load("data/nm.png");	   /*轍*/
 	texp = GraphHandle::Make(groundx, groundx, FALSE); /*ノーマルマップ*/
 	texn = GraphHandle::Make(groundx, groundx, FALSE); /*実マップ*/
@@ -906,9 +900,9 @@ void MAPS::set_map_readyb(size_t set) {
 	texm = GraphHandle::Load("data/"s + mapper.at(set) + "/SandDesert_04_00344_NM.png");  /*nor*/
 	m_model = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/map.mv1");		      /*map*/
 	sky_model = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/sky/model_sky.mv1");   /*sky*/
-	graph = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/grass.png");	    /*grass*/
-	grass = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/grass/grass.mv1");	 /*grass*/
-	GgHandle = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/gg.png");	    /*地面草*/
+	graph = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/grass.png");	      /*grass*/
+	grass = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/grass/grass.mv1");	      /*grass*/
+	GgHandle = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/gg.png");	      /*地面草*/
 	SetUseASyncLoadFlag(FALSE);
 	return;
 }
@@ -931,7 +925,7 @@ bool MAPS::set_map_ready() {
 
 	MV1SetupCollInfo(m_model.get(), 0, map_x / 5, map_x / 5, map_y / 5);
 	SetFogStartEnd(10.0f, 1400.0f); /*fog*/
-	SetFogColor(150, 150, 175);     /*fog*/
+	SetFogColor(150, 150, 175);	/*fog*/
 	SetLightDirection(lightvec.get());
 	SetShadowMapLightDirection(shadow_near, lightvec.get());
 	SetShadowMapLightDirection(shadow_seminear, lightvec.get());
@@ -963,7 +957,7 @@ bool MAPS::set_map_ready() {
 	RefMesh = MV1GetReferenceMesh(grass.get(), -1, TRUE); /*参照用メッシュの取得*/
 
 	IndexNum = RefMesh.PolygonNum * 3 * grasss; /*インデックスの数を取得*/
-	VerNum = RefMesh.VertexNum * grasss;	/*頂点の数を取得*/
+	VerNum = RefMesh.VertexNum * grasss;	    /*頂点の数を取得*/
 
 	grassver.resize(VerNum);   /*頂点データとインデックスデータを格納するメモリ領域の確保*/
 	grassind.resize(IndexNum); /*頂点データとインデックスデータを格納するメモリ領域の確保*/
@@ -978,7 +972,7 @@ bool MAPS::set_map_ready() {
 		if (HitPoly.HitFlag)
 			MV1SetMatrix(grass.get(), MMult(MGetScale(VGet((float)(200 + GetRand(400)) / 100.0f, (float)(25 + GetRand(100)) / 100.0f, (float)(200 + GetRand(400)) / 100.0f)), MMult(MMult(MGetRotY(deg2rad(GetRand(360))), MGetRotVec2(VGet(0, 1.f, 0), HitPoly.Normal)), MGetTranslate(HitPoly.HitPosition))));
 		//上省
-		MV1RefreshReferenceMesh(grass.get(), -1, TRUE);       /*参照用メッシュの更新*/
+		MV1RefreshReferenceMesh(grass.get(), -1, TRUE);	      /*参照用メッシュの更新*/
 		RefMesh = MV1GetReferenceMesh(grass.get(), -1, TRUE); /*参照用メッシュの取得*/
 		for (size_t j = 0; j < size_t(RefMesh.VertexNum); ++j) {
 			grassver[j + vnum].pos = RefMesh.Vertexs[j].Position;
@@ -1509,11 +1503,11 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 			PlaySoundMem(t.se[10 + GetRand(16)].get(), DX_PLAYTYPE_BACK, TRUE);
 			c.vec = c.vec + VScale(t.hitres[hitnear.value()].Normal, (c.vec % t.hitres[hitnear.value()].Normal) * -2.0f);
 			c.pos = c.vec.Scale(0.1f) + t.hitres[hitnear.value()].HitPosition;
+		}
+		if (hitnear)
+			break;
 	}
-	if (hitnear)
-		break;
-}
-return (hitnear.has_value());
+	return (hitnear.has_value());
 }
 void set_gunrad(players& play, float rat_r) {
 	for (int i = 0; i < 4; ++i) {
