@@ -53,11 +53,14 @@ enum animeid {
 	ANIME_LtoR = 3,
 	ANIME_R = 4,
 	ANIME_RtoL = 5,
-	ANIME_nom = 6,
-	ANIME_sit = 7,
-	ANIME_eye = 8,
-	ANIME_voi = 9,
-	ANIME_out = 10,
+	ANIME_title = 6,
+
+	ANIME_nom = 0,
+	ANIME_sit = 1,
+	ANIME_eye = 2,
+	ANIME_voi = 3,
+	ANIME_out = 4,
+
 	ANIME_voice = 2 //ボイス数
 };
 enum cpu {
@@ -77,10 +80,8 @@ enum Key {
 	KEY_SHOTGAN = 0x200
 };
 enum Bone {
-	//転輪、履帯用フレーム
-	bone_wheel = 11,
 	//砲塔内
-	bone_hatch = 5,	   //カメラ
+	bone_hatch = 5,    //カメラ
 	bone_in_turret = 6 //人配置フレーム
 };
 enum Effect {
@@ -113,7 +114,7 @@ struct EffectS {
 };
 struct Hit {
 	bool flug{ false }; /**/
-	int use{ 0 };	    /*使用フレーム*/
+	int use{ 0 };       /*使用フレーム*/
 	MV1ModelHandle pic; /*弾痕モデル*/
 };
 struct switches {
@@ -131,19 +132,19 @@ struct vehicle {
 	float vehicle_RD = 0.0f;	  /*旋回速度*/
 	float armer[4] = { 0 };		  /*装甲*/
 	bool gun_lim_LR = 0;		  /*砲塔限定旋回の有無*/
-	float gun_lim_[4] = { 0.f };	  /*砲塔旋回制限*/
+	float gun_lim_[4] = { 0.f };      /*砲塔旋回制限*/
 	float gun_RD = 0.0f;		  /*砲塔旋回速度*/
-	float gun_speed[3] = { 0.0f };	  /*弾速*/
-	float pene[3] = { 0.0f };	  /*貫通*/
+	float gun_speed[3] = { 0.0f };    /*弾速*/
+	float pene[3] = { 0.0f };	 /*貫通*/
 	int ammotype[3] = { 0 };	  /*弾種*/
-	std::vector<VECTOR_ref> loc;	  /*フレームの元座標*/
+	std::vector<VECTOR_ref> loc;      /*フレームの元座標*/
 	VECTOR_ref min;			  /*box2D用フレーム*/
 	VECTOR_ref max;			  /*box2D用フレーム*/
 	int turretframe;		  /*砲塔フレーム*/
-	std::array<int, gunc> gunframe;	  /*銃フレーム*/
+	std::array<int, gunc> gunframe;   /*銃フレーム*/
 	std::array<int, gunc> reloadtime; /*リロードタイム*/
 	std::array<float, gunc> ammosize; /*砲口径*/
-	std::array<int, gunc> accuracy;	  /*砲精度*/
+	std::array<int, gunc> accuracy;   /*砲精度*/
 	std::vector<int> youdoframe;
 	std::vector<int> wheelframe;
 	std::array<int, 2> kidoframe;
@@ -172,11 +173,11 @@ struct players {
 	char type{ 0 };		     /*敵味方識別*/
 	std::vector<SoundHandle> se; /*SE*/
 
-	int move{ 0 };	/*キー操作*/
+	int move{ 0 };  /*キー操作*/
 	VECTOR_ref pos; /*座標*/
 	MATRIX ps_r;    /*車体旋回行列*/
 	MATRIX ps_m;    /*車体全体行列*/
-	MATRIX ps_t;	/*砲塔行列*/
+	MATRIX ps_t;    /*砲塔行列*/
 	//std::vector<MATRIX> ps_all;					/*行列*/
 	float yace{ 0.f };				/*加速度*/
 	float speed{ 0.f }, speedrec{ 0.f };		/*速度関連*/
@@ -191,18 +192,19 @@ struct players {
 	int firerad{ 0 };				/*反動角度*/
 	float recorad{ 0.f };				/*弾き反動*/
 	/*cpu関連*/
-	std::optional<size_t> atkf;	      /*cpuのヘイト*/
+	std::optional<size_t> atkf;	   /*cpuのヘイト*/
 	int aim{ 0 };			      /*ヘイトの変更カウント*/
 	size_t wayselect{ 0 }, waynow{ 0 };   /**/
 	std::array<VECTOR_ref, waypc> waypos; /*ウェイポイント*/
-	std::array<int, waypc> wayspd;	      /*速度指定*/
+	std::array<int, waypc> wayspd;	/*速度指定*/
 	int state{ 0 };			      /*ステータス*/
+	int lost_sec{ 0 };		/*見失いカウント*/
 	/**/
 	struct Guns {
 		std::vector<ammos> Ammo; /*確保する弾(arrayでもいい？)*/
-		int loadcnt{ 0 };	 /*装てんカウンター*/
-		size_t useammo{};	 /*使用弾*/
-		float fired{ 0.f };	 /*駐退*/
+		int loadcnt{ 0 };	/*装てんカウンター*/
+		size_t useammo{};	/*使用弾*/
+		float fired{ 0.f };      /*駐退*/
 	} Gun[gunc];
 	/**/
 	int gear{ 0 };		  /*変速*/
@@ -210,8 +212,8 @@ struct players {
 	unsigned int geard{ 0 };  /*キー*/
 	float inertiax, inertiaz; /*慣性*/
 	float wheelrad[3]{ 0.f }; /*履帯の送り、転輪旋回*/
-	VECTOR_ref gunrad;	  /*砲角度*/
-	VECTOR_ref gunrad_rec;	  /*砲角度*/
+	VECTOR_ref gunrad;	/*砲角度*/
+	VECTOR_ref gunrad_rec;    /*砲角度*/
 	float gun_turn{ 0.f };
 	/*弾関連*/
 	int ammotype{ 0 };     /*弾種*/
@@ -219,22 +221,26 @@ struct players {
 	bool hitadd{ false };  /*命中フラグ*/
 	size_t hitid{ 0 };
 	VECTOR_ref iconpos;		     /*UI用*/
-	std::array<EffectS, efs_user> effcs; /*effect*/
-	std::vector<float> Springs;	     /*スプリング*/
+	std::vector<float> Springs;	  /*スプリング*/
 	std::vector<short> HP;		     /*ライフ*/
-	std::vector<pair> hitssort;	     /*当たった順番*/
+	std::vector<pair> hitssort;	  /*当たった順番*/
 	/*弾痕*/
 	int hitbuf;		/*使用弾痕*/
 	std::array<Hit, 3> hit; /**/
+	/*エフェクト*/
+	std::array<EffectS, efs_user> effcs; /*effect*/
+	std::vector<EffectS> gndsmkeffcs;    /*effect*/
+	std::vector<float> gndsmksize;       /*effect*/
+	std::vector<float> gndsmksize_r;     /*effect*/
 	//確保
 	std::vector<MV1_COLL_RESULT_POLY> hitres;
 	/*box2d*/
 	std::unique_ptr<b2Body> body; /**/
-	b2Fixture* playerfix;	      /**/
+	b2Fixture* playerfix;	 /**/
 	/*足物理*/
 	struct Foots {
 		std::unique_ptr<b2Body> body; /**/
-		b2Fixture* playerfix;	      /**/
+		b2Fixture* playerfix;	 /**/
 		VECTOR_ref pos;		      /**/
 	};
 	struct FootWorld {
@@ -251,23 +257,24 @@ struct players {
 class Myclass {
 private:
 	/*setting*/
-	bool usegrab{ false };	  /*人の物理演算のオフ、オン*/
+	bool usegrab{ false };    /*人の物理演算のオフ、オン*/
 	unsigned char ANTI{ 1 };  /*アンチエイリアス倍率*/
-	bool YSync{ true };	  /*垂直同期*/
-	float f_rate{ 60.f };	  /*fps*/
+	bool YSync{ true };       /*垂直同期*/
+	float f_rate{ 60.f };     /*fps*/
 	bool windowmode{ false }; /*ウィンドウor全画面*/
 	float drawdist{ 100.0f }; /*木の描画距離*/
 	int gndx = 8;		  /*地面のクオリティ*/
 	int shadex = 3;		  /*影のクオリティ*/
-	bool USEHOST{ false };	  /**/
-	float se_vol{ 1.f };	  /**/
+	bool USEHOST{ false };    /**/
+	float se_vol{ 1.f };      /**/
 	/**/
 	std::vector<vehicle> vecs;		 /*車輛情報*/
 	VECTOR_ref view, view_r;		 /*通常視点の角度、距離*/
 	std::vector<int> fonts;			 /*フォント*/
 	std::array<SoundHandle, 13> se_;	 /*効果音*/
-	std::array<GraphHandle, 4> ui_reload;	 /*UI用*/
+	std::array<GraphHandle, 4> ui_reload;    /*UI用*/
 	EffekseerEffectHandle effHndle[effects]; /*エフェクトリソース*/
+	EffekseerEffectHandle gndsmkHndle; /*エフェクトリソース*/
 public:
 	Myclass();
 	bool get_usegrab(void) { return usegrab; }
@@ -305,45 +312,57 @@ public:
 	VECTOR_ref get_view_pos(void) { return VScale(VGet(sin(view_r.y()) * cos(view_r.x()), sin(view_r.x()), cos(view_r.y()) * cos(view_r.x())), 15.0f * view_r.z()); }
 	EffekseerEffectHandle& get_effHandle(int p1) noexcept { return effHndle[p1]; }
 	const EffekseerEffectHandle& get_effHandle(int p1) const noexcept { return effHndle[p1]; }
+
+	EffekseerEffectHandle& get_gndhitHandle() noexcept { return gndsmkHndle; }
+	const EffekseerEffectHandle& get_gndhitHandle() const noexcept { return gndsmkHndle; }
+
 	vehicle* get_vehicle(int p1) { return &vecs[p1]; }
 };
 class HUMANS {
 private:
+	//アニメーション
+	struct Anime {
+		int id;
+		float total;
+		float time;
+		float per;
+	};
+	//リソース
 	struct Hmod {
-		MV1ModelHandle obj;
-		int amine[ANIME_out]{ 0 };
-		float alltime[ANIME_out]{ 0.f };
-		std::array<SoundHandle, ANIME_voice> vsound;
+		//
+		MV1ModelHandle model;
+		std::array<SoundHandle, ANIME_voice> sound;
+		//タイトル用モーション
+		std::array<Anime, ANIME_title> amine_title;
 	};
 
 	struct humans {
 		char vflug{ 0 };
 
 		MV1ModelHandle obj;
-		std::array<int, ANIME_out> amine{};
-		std::array<float, ANIME_out> time{};
-		std::array<float, ANIME_out> alltime{};
-		std::array<float, ANIME_out> per{};
+
+		std::array<Anime, ANIME_out> amine;
+
+		std::array<SoundHandle, ANIME_voice> voice_sound; //ハンドル
+
+		std::array<Anime, ANIME_out> voice_anime;
 
 		int neck{ 0 };
 		VECTOR_ref nvec;
-		float voicetime{ 0.f };
-
-		float voicealltime[ANIME_voice]{ 0 };
-		int voices[ANIME_voice]{ 0 };
-		std::array<SoundHandle, ANIME_voice> vsound;
+		float voice_time{ 0.f }; //
 	};
 	bool usegrab{ false };		 /*人の物理演算のオフ、オン*/
 	float f_rate{ 60.f };		 /*fps*/
-	MV1ModelHandle inmodel_handle;	 //中モデル
+	MV1ModelHandle inmodel_handle;   //中モデル
 	bool in_f{ false };		 //中描画スイッチ
 	size_t inflames;		 //inmodelのフレーム数
-	std::vector<humans> hum;	 /**/
-	std::vector<VECTOR_ref> locin;	 /*inmodelのフレーム*/
+	std::vector<VECTOR_ref> locin;   /*inmodelのフレーム*/
 	std::vector<VECTOR_ref> pos_old; /*inmodelの前回のフレーム*/
-	std::vector<std::string> name;	 /**/
+	std::vector<std::string> name;   /**/
 	bool first;			 //初回フラグ
-	std::vector<Hmod> model;
+
+	std::vector<Hmod> mod;
+	std::vector<humans> hum; /**/
 
 public:
 	HUMANS(bool useg, float frates);
@@ -386,16 +405,16 @@ private:
 	GraphHandle sky_sun;			  /*sunpic*/
 	VECTOR_ref lightvec;			  /*light方向*/
 	/*grass*/
-	int grasss = 10000;		/*grassの数*/
+	int grasss = 5000;		/*grassの数*/
 	std::vector<VERTEX3D> grassver; /**/
-	std::vector<DWORD> grassind;	/**/
+	std::vector<DWORD> grassind;    /**/
 	int VerBuf, IndexBuf;		/**/
 	MV1ModelHandle grass;		/*grassモデル*/
 	GraphHandle graph;		/*画像ハンドル*/
 	int IndexNum, VerNum;		/**/
 	GraphHandle GgHandle;		/**/
 	int vnum, pnum;			/**/
-	MV1_REF_POLYGONLIST RefMesh;	/**/
+	MV1_REF_POLYGONLIST RefMesh;    /**/
 	//cam
 	VECTOR_ref camera, viewv, upv; /**/
 	float rat;		       /**/
@@ -435,7 +454,7 @@ private:
 	GraphHandle ui_compass;		      /*UI*/
 	std::vector<GraphHandle> UI_body;     /*UI*/
 	std::vector<GraphHandle> UI_turret;   /*UI*/
-	std::vector<country> UI_main;	      /*国別UI*/
+	std::vector<country> UI_main;	 /*国別UI*/
 	size_t countries = 1;		      /*国数*/
 	float gearf = 0.f;		      /*変速*/
 	float recs = 0.f;		      /*跳弾表現用*/
@@ -449,20 +468,20 @@ private:
 
 public:
 	UIS();
-	void draw_load(void);	       /*ロード画面*/
+	void draw_load(void);	  /*ロード画面*/
 	void set_state(players* play); /*使用するポインタの指定*/
-	void set_reco(void);	       /*反射スイッチ*/
+	void set_reco(void);	   /*反射スイッチ*/
 	void draw_drive();
 	void draw_icon(players& p, int font);
 	void draw_sight(VECTOR_ref aimpos, float ratio, float dist, int font); /*照準UI*/
-	void draw_ui(uint8_t selfammo[], float y_v, int font);			    /*メインUI*/
+	void draw_ui(uint8_t selfammo[], float y_v, int font);		       /*メインUI*/
 	/*debug*/
 	void put_way(void);
 	void end_way(void);
 	void debug(float fps, float time);
 };
 /**/
-void setcv(float neard, float fard, VECTOR_ref cam, VECTOR_ref view, VECTOR_ref up, float fov);		     //カメラ情報指定
+void setcv(float neard, float fard, VECTOR_ref cam, VECTOR_ref view, VECTOR_ref up, float fov);		  //カメラ情報指定
 void getdist(VECTOR_ref& startpos, VECTOR_ref vec, float& dist, float& getdists, float speed, float fps); //startposに測距情報を出力
 //effect
 void set_effect(EffectS* efh, VECTOR_ref pos, VECTOR_ref nor);

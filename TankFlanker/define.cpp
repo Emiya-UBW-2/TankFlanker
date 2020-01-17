@@ -56,7 +56,7 @@ Myclass::Myclass() {
 	SetUseZBuffer3D(TRUE);				    /*zbufuse*/
 	SetWriteZBuffer3D(TRUE);			    /*zbufwrite*/
 	MV1SetLoadModelReMakeNormal(TRUE);		    /*法線*/
-	MV1SetLoadModelPhysicsWorldGravity(M_GR);	    /*重力*/
+	MV1SetLoadModelPhysicsWorldGravity(M_GR);	   /*重力*/
 	//車両数取得
 	hFind = FindFirstFile("data/tanks/*", &win32fdt);
 	if (hFind != INVALID_HANDLE_VALUE) {
@@ -303,6 +303,9 @@ bool Myclass::set_veh(void) {
 	const auto c_ffff00 = GetColor(255, 255, 0);
 	const auto c_ff0000 = GetColor(255, 0, 0);
 	//読み込みミス現状なさそう？
+
+	gndsmkHndle = EffekseerEffectHandle::load("data/effect/gndsmk.efk");
+
 	for (int j = 0, k = 0; j < effects; ++j, ++k) {
 		for (size_t i = 0; i < f_rate && ProcessMessage() == 0; ++i) {
 			effHndle[j] = EffekseerEffectHandle::load("data/effect/" + std::to_string(j) + ".efk");
@@ -493,13 +496,13 @@ void Myclass::set_view_r(int wheel, bool life) {
 	int mousex, mousey; /*mouse*/
 	GetMousePoint(&mousex, &mousey);
 	view = DxLib::VGet(
-	    std::clamp(view.x() + (float)(mousey - dispy / 2) / dispy * dispy / 480 * 1.0f, deg2rad(-35), deg2rad(35)),
-	    view.y() + (float)(mousex - dispx / 2) / dispx * dispx / 640 * 1.0f,
+	    std::clamp(view.x() + (float)(mousey - dispy / 2) / dispy * 1.0f, deg2rad(-35), deg2rad(35)),
+	    view.y() + (float)(mousex - dispx / 2) / dispx * 1.0f,
 	    std::clamp(view.z() + (float)wheel / 10.0f, life ? 0.1f : 0.11f, 2.f));
 	view_r += (view - view_r).Scale(0.1f);
 	if (view.z() == 0.1f)
 		view_r = view;
-	SetCursorPos(x_r(960), y_r(540));
+	SetCursorPos(dispx / 2, dispy / 2);
 }
 void Myclass::Screen_Flip(LONGLONG waits) {
 	ScreenFlip();
@@ -530,28 +533,27 @@ HUMANS::HUMANS(bool useg, float frates) {
 	else
 		MV1SetLoadModelUsePhysicsMode(DX_LOADMODEL_PHYSICS_LOADCALC);
 
-	int i = 0;
 	hFind = FindFirstFile("data/chara/*", &win32fdt);
 	if (hFind != INVALID_HANDLE_VALUE) {
 		do {
 			if ((win32fdt.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && (win32fdt.cFileName[0] != '.')) {
 				name.emplace_back(win32fdt.cFileName);
-
-				model.resize(i + 1);
-				model.back().obj = MV1ModelHandle::Load("data/chara/"s + name.back() + "/model.mv1");
-				for (size_t j = 0; j < ANIME_RtoL + 1; ++j) {
-					model.back().amine[j] = MV1AttachAnim(model.back().obj.get(), int(j), -1, TRUE);
-					model.back().alltime[j] = MV1GetAttachAnimTotalTime(model.back().obj.get(), model.back().amine[j]);
-					MV1SetAttachAnimBlendRate(model[i].obj.get(), model[i].amine[j], 0.0f);
-					MV1SetAttachAnimTime(model[i].obj.get(), model[i].amine[j], 0.f);
+				mod.resize(mod.size() + 1);
+				mod.back().model = MV1ModelHandle::Load("data/chara/"s + name.back() + "/model.mv1");
+				{
+					//タイトル用アニメーション追加
+					int j = 0;
+					for (auto& s : mod.back().amine_title) {
+						s.id = MV1AttachAnim(mod.back().model.get(), j++, -1, TRUE);
+						s.total = MV1GetAttachAnimTotalTime(mod.back().model.get(), s.id);
+					}
+					//車長ボイス
+					SetUseASyncLoadFlag(TRUE);
+					int k = 0;
+					for (auto& s : mod.back().sound)
+						s = SoundHandle::Load("data/chara/"s + name.back() + "/voice/" + std::to_string(k++) + ".wav");
+					SetUseASyncLoadFlag(FALSE);
 				}
-				//車長ボイス
-				SetUseASyncLoadFlag(TRUE);
-				for (size_t k = 0; k < ANIME_voice; ++k) {
-					model[i].vsound[k] = SoundHandle::Load("data/chara/"s + name.back() + "/voice/" + std::to_string(k) + ".wav");
-				}
-				SetUseASyncLoadFlag(FALSE);
-				i++;
 			}
 		} while (FindNextFile(hFind, &win32fdt));
 	} //else{ return false; }
@@ -599,25 +601,27 @@ bool HUMANS::set_humans(const MV1ModelHandle& inmod) {
 			setcv(1.0f, 100.0f, VGet(0, 2.f, -2.f), VGet(0, 1.0f, 0), VGet(0, 1.0f, 0), 45.0f);
 			SetLightDirection(VSub(VGet(0, 2.f, -2.f), VGet(0, 1.0f, 0)));
 
-			MV1SetPosition(model[sel].obj.get(), VGet(0, 0, 0));
-			MV1SetRotationXYZ(model[sel].obj.get(), VGet(0, 0, 0));
-			MV1DrawModel(model[sel].obj.get());
+			MV1SetPosition(mod[sel].model.get(), VGet(0, 0, 0));
+			MV1SetRotationXYZ(mod[sel].model.get(), VGet(0, 0, 0));
+			MV1DrawModel(mod[sel].model.get());
 
-			for (size_t k = 0; k < ANIME_RtoL + 1; k++)
+			for (size_t k = 0; k < ANIME_title; k++) {
 				if (k != j)
-					MV1SetAttachAnimBlendRate(model[sel].obj.get(), model[sel].amine[k], 0.0f);
-			MV1SetAttachAnimBlendRate(model[sel].obj.get(), model[sel].amine[j], 1.0f);
-			MV1SetAttachAnimTime(model[sel].obj.get(), model[sel].amine[j], time);
+					MV1SetAttachAnimBlendRate(mod[sel].model.get(), mod[sel].amine_title[k].id, 0.0f);
+				else
+					MV1SetAttachAnimBlendRate(mod[sel].model.get(), mod[sel].amine_title[k].id, 1.0f);
+			}
+			MV1SetAttachAnimTime(mod[sel].model.get(), mod[sel].amine_title[j].id, time);
 
 			time += 30.f / f_rate;
-			if (time >= model[sel].alltime[j]) {
+			if (time >= mod[sel].amine_title[j].total) {
 				time = 0.f;
-				++j %= (ANIME_RtoL + 1);
+				++j %= ANIME_title;
 			}
 			if (!first)
-				MV1PhysicsResetState(model[sel].obj.get());
+				MV1PhysicsResetState(mod[sel].model.get());
 			else
-				MV1PhysicsCalculation(model[sel].obj.get(), 1000.0f / f_rate);
+				MV1PhysicsCalculation(mod[sel].model.get(), 1000.0f / f_rate);
 
 			first = true;
 
@@ -638,7 +642,7 @@ bool HUMANS::set_humans(const MV1ModelHandle& inmod) {
 					m = c_ff0000;
 					x = std::min<uint8_t>(x + 1, 2);
 					if (x == 1) {
-						++sel %= model.size();
+						++sel %= mod.size();
 						first = false;
 					}
 				}
@@ -657,7 +661,7 @@ bool HUMANS::set_humans(const MV1ModelHandle& inmod) {
 					y = std::min<uint8_t>(y + 1, 2);
 					if (y == 1) {
 						if (--sel < 0)
-							sel = int(model.size() - 1);
+							sel = int(mod.size() - 1);
 						first = false;
 					}
 				}
@@ -704,7 +708,7 @@ bool HUMANS::set_humans(const MV1ModelHandle& inmod) {
 	}
 
 	for (auto&& h : hum) {
-		h.obj = model[sel].obj.Duplicate();
+		h.obj = mod[sel].model.Duplicate();
 		//色調
 		for (int j = 0; j < h.obj.material_num(); ++j) {
 			MV1SetMaterialDifColor(h.obj.get(), j, GetColorF(0.5f, 0.5f, 0.5f, 1.0f));
@@ -713,17 +717,20 @@ bool HUMANS::set_humans(const MV1ModelHandle& inmod) {
 		}
 		//アニメーション
 		for (size_t j = 0; j < ANIME_out; ++j) {
-			h.amine[j] = MV1AttachAnim(h.obj.get(), int(j), -1, TRUE);
-			h.alltime[j] = MV1GetAttachAnimTotalTime(h.obj.get(), h.amine[j]);
-			h.time[j] = 0.0f;
-			h.per[j] = 0.f;
+			h.amine[j].id = MV1AttachAnim(h.obj.get(), int(ANIME_title + j), -1, TRUE);
+			h.amine[j].total = MV1GetAttachAnimTotalTime(h.obj.get(), h.amine[j].id);
+			h.amine[j].time = 0.0f;
 		}
+		h.amine[ANIME_nom].per = 1.f;
+		h.amine[ANIME_sit].per = 1.f;
+		h.amine[ANIME_eye].per = 1.f;
+		h.amine[ANIME_voi].per = 0.f;
 	}
 	//車長には口パクアニメーション
-	for (size_t i = 0; i < ANIME_voice; ++i) {
-		hum[0].voices[i] = MV1AttachAnim(hum[0].obj.get(), int(ANIME_out + i), -1, TRUE);
-		hum[0].voicealltime[i] = MV1GetAttachAnimTotalTime(hum[0].obj.get(), hum[0].voices[i]);
-		hum[0].vsound[i] = model[sel].vsound[i].Duplicate();
+	for (size_t j = 0; j < ANIME_voice; ++j) {
+		hum[0].voice_anime[j].id = MV1AttachAnim(hum[0].obj.get(), int(ANIME_title + ANIME_out + j), -1, TRUE);
+		hum[0].voice_anime[j].total = MV1GetAttachAnimTotalTime(hum[0].obj.get(), hum[0].voice_anime[j].id);
+		hum[0].voice_sound[j] = mod[sel].sound[j].Duplicate();
 	}
 	//
 	MV1SetMatrix(inmodel_handle.get(), MGetTranslate(VGet(0, 0, 0)));
@@ -742,7 +749,7 @@ bool HUMANS::set_humans(const MV1ModelHandle& inmod) {
 	return true;
 }
 void HUMANS::set_humanvc_vol(unsigned char size) {
-	for (auto&& v : hum[0].vsound)
+	for (auto&& v : hum[0].voice_sound)
 		ChangeVolumeSoundMem(size, v.get());
 }
 void HUMANS::set_humanmove(const players& player, VECTOR_ref rad) {
@@ -754,7 +761,7 @@ void HUMANS::set_humanmove(const players& player, VECTOR_ref rad) {
 	MV1SetMatrix(inmodel_handle.get(), player.ps_m);
 	MV1SetFrameUserLocalMatrix(inmodel_handle.get(), player.ptr->turretframe, player.ps_t);
 	MV1SetFrameUserLocalMatrix(inmodel_handle.get(), player.ptr->gunframe[0], MMult(MMult(MGetRotX(player.gunrad.y()), (locin[player.ptr->gunframe[0]] - locin[player.ptr->turretframe]).Mtrans()), player.ps_t));
-	MV1SetFrameUserLocalMatrix(inmodel_handle.get(), player.ptr->gunframe[0], (player.ptr->loc[player.ptr->gunframe[0] + 1] - player.ptr->loc[player.ptr->gunframe[0]] + VGet(0, 0, player.Gun[0].fired)).Mtrans());
+	MV1SetFrameUserLocalMatrix(inmodel_handle.get(), player.ptr->gunframe[0] + 1, (player.ptr->loc[player.ptr->gunframe[0] + 1] - player.ptr->loc[player.ptr->gunframe[0]] + VGet(0, 0, player.Gun[0].fired)).Mtrans());
 	//7,6だけ車体乗人
 	for (int i = bone_hatch; i < inflames; ++i) {
 		if (i == 7 || i == 8)
@@ -775,18 +782,17 @@ void HUMANS::set_humanmove(const players& player, VECTOR_ref rad) {
 		auto& h = hum.front();
 		/*座る*/
 		if (player.speed >= 30.f / 3.6f)
-			differential(h.per[ANIME_sit], 1.f, 0.1f);
+			differential(h.amine[ANIME_sit].per, 1.f, 0.1f);
 		else
-			h.per[ANIME_sit] *= 0.9f;
+			h.amine[ANIME_sit].per *= 0.9f;
 		//voice
-		h.per[ANIME_eye] = 1.f;
+		h.amine[ANIME_eye].per = 1.f;
 		if (h.vflug == -1)
-			h.per[ANIME_voi] *= 0.9f;
+			h.amine[ANIME_voi].per *= 0.9f;
 		else
-			differential(h.per[ANIME_voi], 1.f, 0.1f);
-		h.per[ANIME_nom] = 1.0f - h.per[ANIME_voi];
+			differential(h.amine[ANIME_voi].per, 1.f, 0.1f);
+		h.amine[ANIME_nom].per = 1.0f - h.amine[ANIME_voi].per;
 	}
-	std::for_each(hum.begin() + 1, hum.end(), [](HUMANS::humans& e) { e.per = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 0 }; });
 	//反映
 	for (int k = 0; k < divi; ++k) {
 		int fnum = bone_in_turret;
@@ -808,24 +814,24 @@ void HUMANS::set_humanmove(const players& player, VECTOR_ref rad) {
 					    MGetRotY(std::clamp(atanf(sin(rad.y() - (player.gunrad.x() - player.yrad))), deg2rad(-40), deg2rad(40))))));
 				//voice
 				if (h.vflug != -1) {
-					if (h.voicetime < h.voicealltime[h.vflug]) {
-						if (h.voicetime == 0.0f)
-							PlaySoundMem(h.vsound[h.vflug].get(), DX_PLAYTYPE_BACK, TRUE);
-						MV1SetAttachAnimTime(h.obj.get(), h.voices[h.vflug], h.voicetime);
-						h.voicetime += 30.0f / divi / f_rate; //
+					if (h.voice_time < h.voice_anime[h.vflug].total) {
+						if (h.voice_time == 0.0f)
+							PlaySoundMem(h.voice_sound[h.vflug].get(), DX_PLAYTYPE_BACK, TRUE);
+						MV1SetAttachAnimTime(h.obj.get(), h.voice_anime[h.vflug].id, h.voice_time);
+						h.voice_time += 30.0f / divi / f_rate; //
 					}
 					else {
 						h.vflug = -1;
-						h.voicetime = 0.0f;
+						h.voice_time = 0.0f;
 					}
 				}
 			}
 			for (size_t j = 0; j < ANIME_out; ++j) {
-				MV1SetAttachAnimBlendRate(h.obj.get(), h.amine[j], h.per[j]);
-				MV1SetAttachAnimTime(h.obj.get(), h.amine[j], h.time[j]);
-				h.time[j] += 30.0f / divi / f_rate; //
-				if (j != ANIME_eye && h.time[j] >= h.alltime[j])
-					h.time[j] = 0.0f;
+				MV1SetAttachAnimBlendRate(h.obj.get(), h.amine[j].id, h.amine[j].per);
+				MV1SetAttachAnimTime(h.obj.get(), h.amine[j].id, h.amine[j].time);
+				h.amine[j].time += 30.0f / divi / f_rate; //
+				if (j != ANIME_eye && h.amine[j].time >= h.amine[j].total)
+					h.amine[j].time = 0.0f;
 			}
 			//
 			if (usegrab) {
@@ -843,7 +849,7 @@ void HUMANS::set_humanmove(const players& player, VECTOR_ref rad) {
 	first = true;
 }
 void HUMANS::draw_human(size_t p1) {
-	if (hum[p1].per[ANIME_sit] <= 0.5f)
+	if (hum[p1].amine[ANIME_sit].per <= 0.5f)
 		MV1DrawModel(hum[p1].obj.get());
 }
 void HUMANS::draw_humanall() {
@@ -855,9 +861,8 @@ void HUMANS::delete_human(void) {
 	inmodel_handle.Dispose();
 	for (auto&& h : hum) {
 		h.obj.Dispose();
-		for (size_t k = 0; k < ANIME_voice; ++k) {
-			h.vsound[k].Dispose();
-		}
+		for (auto& s : h.voice_sound)
+			s.Dispose();
 	}
 	hum.clear();
 	locin.clear();
@@ -868,22 +873,22 @@ void HUMANS::start_humanvoice(std::int8_t p1) {
 }
 void HUMANS::start_humananime(int p1) {
 	for (auto&& h : hum)
-		h.time.at(p1) = 0.0f;
+		h.amine[p1].time = 0.0f;
 }
 //
 MAPS::MAPS(int map_size, float draw_dist, int shadow_size) {
 	groundx = map_size * 1024; /*ノーマルマップのサイズ*/
-	drawdist = draw_dist;	   /*木の遠近*/
+	drawdist = draw_dist;      /*木の遠近*/
 	shadowx = shadow_size;
 	int shadowsize = (1 << (10 + shadowx));
 	//shadow----------------------------------------------------------------------------------------//
-	shadow_near = MakeShadowMap(shadowsize, shadowsize);	 /*近影*/
+	shadow_near = MakeShadowMap(shadowsize, shadowsize);     /*近影*/
 	SetShadowMapAdjustDepth(shadow_near, 0.0005f);		 /*ずれを小さくするため*/
 	shadow_seminear = MakeShadowMap(shadowsize, shadowsize); /*近影*/
-	shadow_far = MakeShadowMap(shadowsize, shadowsize);	 /*マップ用*/
+	shadow_far = MakeShadowMap(shadowsize, shadowsize);      /*マップ用*/
 	//map-------------------------------------------------------------------------------------------//
 	SetUseASyncLoadFlag(TRUE);
-	sky_sun = GraphHandle::Load("data/sun.png");	   /*太陽*/
+	sky_sun = GraphHandle::Load("data/sun.png");       /*太陽*/
 	texo = GraphHandle::Load("data/nm.png");	   /*轍*/
 	texp = GraphHandle::Make(groundx, groundx, FALSE); /*ノーマルマップ*/
 	texn = GraphHandle::Make(groundx, groundx, FALSE); /*実マップ*/
@@ -900,9 +905,9 @@ void MAPS::set_map_readyb(size_t set) {
 	texm = GraphHandle::Load("data/"s + mapper.at(set) + "/SandDesert_04_00344_NM.png");  /*nor*/
 	m_model = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/map.mv1");		      /*map*/
 	sky_model = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/sky/model_sky.mv1");   /*sky*/
-	graph = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/grass.png");	      /*grass*/
-	grass = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/grass/grass.mv1");	      /*grass*/
-	GgHandle = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/gg.png");	      /*地面草*/
+	graph = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/grass.png");	    /*grass*/
+	grass = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/grass/grass.mv1");	 /*grass*/
+	GgHandle = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/gg.png");	    /*地面草*/
 	SetUseASyncLoadFlag(FALSE);
 	return;
 }
@@ -925,7 +930,7 @@ bool MAPS::set_map_ready() {
 
 	MV1SetupCollInfo(m_model.get(), 0, map_x / 5, map_x / 5, map_y / 5);
 	SetFogStartEnd(10.0f, 1400.0f); /*fog*/
-	SetFogColor(150, 150, 175);	/*fog*/
+	SetFogColor(150, 150, 175);     /*fog*/
 	SetLightDirection(lightvec.get());
 	SetShadowMapLightDirection(shadow_near, lightvec.get());
 	SetShadowMapLightDirection(shadow_seminear, lightvec.get());
@@ -957,7 +962,7 @@ bool MAPS::set_map_ready() {
 	RefMesh = MV1GetReferenceMesh(grass.get(), -1, TRUE); /*参照用メッシュの取得*/
 
 	IndexNum = RefMesh.PolygonNum * 3 * grasss; /*インデックスの数を取得*/
-	VerNum = RefMesh.VertexNum * grasss;	    /*頂点の数を取得*/
+	VerNum = RefMesh.VertexNum * grasss;	/*頂点の数を取得*/
 
 	grassver.resize(VerNum);   /*頂点データとインデックスデータを格納するメモリ領域の確保*/
 	grassind.resize(IndexNum); /*頂点データとインデックスデータを格納するメモリ領域の確保*/
@@ -972,7 +977,7 @@ bool MAPS::set_map_ready() {
 		if (HitPoly.HitFlag)
 			MV1SetMatrix(grass.get(), MMult(MGetScale(VGet((float)(200 + GetRand(400)) / 100.0f, (float)(25 + GetRand(100)) / 100.0f, (float)(200 + GetRand(400)) / 100.0f)), MMult(MMult(MGetRotY(deg2rad(GetRand(360))), MGetRotVec2(VGet(0, 1.f, 0), HitPoly.Normal)), MGetTranslate(HitPoly.HitPosition))));
 		//上省
-		MV1RefreshReferenceMesh(grass.get(), -1, TRUE);	      /*参照用メッシュの更新*/
+		MV1RefreshReferenceMesh(grass.get(), -1, TRUE);       /*参照用メッシュの更新*/
 		RefMesh = MV1GetReferenceMesh(grass.get(), -1, TRUE); /*参照用メッシュの取得*/
 		for (size_t j = 0; j < size_t(RefMesh.VertexNum); ++j) {
 			grassver[j + vnum].pos = RefMesh.Vertexs[j].Position;
@@ -1254,7 +1259,7 @@ void UIS::draw_icon(players& p, int font) {
 	//font18.DrawStringFormat
 	if (p.HP[0] != 0)
 		if (p.iconpos.z() > 0.0f && p.iconpos.z() < 1.0f)
-			DrawFormatStringToHandle((int)p.iconpos.x(), (int)p.iconpos.y(), (p.type == TEAM) ? c_00ff00 : c_ff0000, font, "%dm", (int)(p.pos - pplayer->pos).size());
+			DrawFormatStringToHandle((int)p.iconpos.x(), (int)p.iconpos.y(), (p.type == TEAM) ? c_00ff00 : c_ff0000, font, "%dm : %d", (int)(p.pos - pplayer->pos).size(), p.lost_sec);
 }
 void UIS::draw_sight(VECTOR_ref aimpos, float ratio, float dist, int font) {
 	DrawRotaGraph(x_r(960), y_r(540), (float)y_r(2), deg2rad(-dist / 20), UI_main[pplayer->ptr->countryc].ui_sight[1].get(), TRUE);
@@ -1278,8 +1283,9 @@ void UIS::draw_ui(uint8_t selfammo[], float y_v, int font) {
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(128.0f * pow(1.0f - (float)pplayer->Gun[0].loadcnt / (float)pplayer->ptr->reloadtime[0], 10)));
 		if (selfammo[0] == 0 && selfammo[1] == 0)
 			DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[3].get(), TRUE);
-		else
+		else {
 			DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[(pplayer->ammotype - 1) % 3].get(), TRUE);
+		}
 	}
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
 	if (pplayer->Gun[0].loadcnt == 0)
@@ -1499,10 +1505,12 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 			if (t.hitssort.begin()->second == (std::numeric_limits<float>::max)())
 				continue;
 			hitnear = t.hitssort.begin()->first;
-			set_effect(&play.effcs[ef_reco2], t.hitres[hitnear.value()].HitPosition, t.hitres[hitnear.value()].Normal);
-			PlaySoundMem(t.se[10 + GetRand(16)].get(), DX_PLAYTYPE_BACK, TRUE);
-			c.vec = c.vec + VScale(t.hitres[hitnear.value()].Normal, (c.vec % t.hitres[hitnear.value()].Normal) * -2.0f);
-			c.pos = c.vec.Scale(0.1f) + t.hitres[hitnear.value()].HitPosition;
+			if (hitnear) {
+				set_effect(&play.effcs[ef_reco2], t.hitres[hitnear.value()].HitPosition, t.hitres[hitnear.value()].Normal);
+				PlaySoundMem(t.se[10 + GetRand(16)].get(), DX_PLAYTYPE_BACK, TRUE);
+				c.vec = c.vec + VScale(t.hitres[hitnear.value()].Normal, (c.vec % t.hitres[hitnear.value()].Normal) * -2.0f);
+				c.pos = c.vec.Scale(0.1f) + t.hitres[hitnear.value()].HitPosition;
+			}
 		}
 		if (hitnear)
 			break;

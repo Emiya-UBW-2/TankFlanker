@@ -78,6 +78,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					{
 						const auto mdata = FileRead_open(("stage/" + stage + "/team/" + std::to_string(p.id) + ".txt").c_str(), FALSE);
 						//char mstr[64]; /*tank*/
+						std::fill(std::begin(p.wayspd), std::end(p.wayspd), 2);
 						p.use = (p.id == 0) ? m : 1; //2;
 						p.pos = VGet(20.0f * p.id, 0.0f, -400.0f);
 						FileRead_close(mdata);
@@ -88,6 +89,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					{
 						const auto mdata = FileRead_open(("stage/" + stage + "/enemy/" + std::to_string(p.id - teamc) + ".txt").c_str(), FALSE);
 						//char mstr[64]; /*tank*/
+						std::fill(std::begin(p.wayspd), std::end(p.wayspd), 3);
 						p.use = 0; //1; // p.id % parts->get_vehc();
 						p.pos = VGet(20.0f * (p.id - teamc), 0.0f, 400.0f);
 						FileRead_close(mdata);
@@ -98,7 +100,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		for (auto&& p : player) {
 			p.yrad = DX_PI_F * p.type;
 			std::fill(std::begin(p.waypos), std::end(p.waypos), p.pos);
-			std::fill(std::begin(p.wayspd), std::end(p.wayspd), 2);
 			/*vehsから引き継ぎ*/
 			p.ptr = parts->get_vehicle(p.use);
 		}
@@ -194,6 +195,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 			//
 			p.hitres.resize(p.ptr->colmodel.mesh_num());
+			p.gndsmkeffcs.resize(p.ptr->wheelframe.size());
+			p.gndsmksize.resize(p.ptr->wheelframe.size());
+			p.gndsmksize_r.resize(p.ptr->wheelframe.size());
 		}
 		//物理set
 		for (auto&& p : player) {
@@ -316,6 +320,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		const auto c_ffffff = GetColor(255, 255, 255);
 		const auto c_3232ff = GetColor(50, 50, 255);
 		/*メインループ*/
+		selfammo[0] = 0;
+		selfammo[1] = 0;
 		aim.flug = false; /*照準*/
 		map.flug = false; /*マップ*/
 		rat_aim = 3.f;    /*照準視点　倍率*/
@@ -337,6 +343,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		PlaySoundMem(player[0].se[31].get(), DX_PLAYTYPE_LOOP, TRUE);
 		for (auto& p : player) {
 			p.gunrad_rec = VGet(0, 0, 0);
+			for (auto& g : p.gndsmkeffcs) {
+				g.handle = parts->get_gndhitHandle().Play3D();
+			}
 			p.effcs[ef_smoke2].handle = parts->get_effHandle(ef_smoke2).Play3D();
 			p.effcs[ef_smoke3].handle = parts->get_effHandle(ef_smoke2).Play3D();
 			PlaySoundMem(p.se[0].get(), DX_PLAYTYPE_LOOP, TRUE);
@@ -540,7 +549,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 							aim_r -= 10.0f;
 					}
 					else
-						parts->set_view_r(GetMouseWheelRotVol(),player[0].HP[0]>0);
+						parts->set_view_r(GetMouseWheelRotVol(), player[0].HP[0] > 0);
 				}
 				differential(rat_r, ratio, 0.1f); /*倍率、測距*/
 			}
@@ -566,7 +575,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 							if ((p.waypos[p.waynow] - p.pos).size() >= 10.0) {
 								p.move |= KEY_GOFLONT;
 								VECTOR_ref tempv = (p.waypos[p.waynow] - p.pos).Norm();
-								if ((p.zvec.z() * tempv.x() + p.zvec.x() * tempv.z()) < 0)
+								if ((p.zvec.z() * tempv.x() - p.zvec.x() * tempv.z()) < 0)
 									p.move |= KEY_GOLEFT_;
 								else
 									p.move |= KEY_GORIGHT;
@@ -579,8 +588,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 								for (auto& t : player) {
 									if (p.type == t.type || t.HP[0] == 0)
 										continue;
-									if ((t.pos - p.pos).size() <= 500.0f) //見つける
-										if (p.aim != p.atkf) {	//前狙った敵でないか
+
+									const auto HitPoly = mapparts->get_gnd_hit(p.obj.frame(p.ptr->gunframe[0]), t.obj.frame(t.ptr->gunframe[0]));
+									if (!HitPoly.HitFlag && (t.pos - p.pos).size() <= 500.0f) //見つける
+										if (p.aim != p.atkf) {				 //前狙った敵でないか
 											p.aim = 0;
 											p.atkf = t.id;
 											break;
@@ -632,9 +643,22 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 												p.move |= KEY_SHOTGAN;
 										}
 									}
+									const auto HitPoly = mapparts->get_gnd_hit(p.obj.frame(p.ptr->gunframe[0]), t.obj.frame(t.ptr->gunframe[0]));
+									if (HitPoly.HitFlag) {
+										p.lost_sec++;
+										if (p.lost_sec>5.f*frate) {
+											p.lost_sec = 0;
+											p.aim = int(p.atkf.value());
+											p.atkf.reset();
+										}
+									}
+									else {
+										p.lost_sec = 0;
+									}
+
 									if (t.HP[0] == 0 || p.aim > 5) {
 										p.aim = int(p.atkf.value());
-										p.atkf = std::nullopt;
+										p.atkf.reset();
 									}
 								}
 							}
@@ -643,7 +667,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 								if (p.id != t.id && t.HP[0] > 0) {
 									if ((t.pos - p.pos).size() <= 10.0) {
 										VECTOR_ref tempv = (t.pos - p.pos).Norm();
-										if ((p.zvec.z() * tempv.x() + p.zvec.x() * tempv.z()) > 0) {
+										if ((p.zvec.z() * tempv.x() - p.zvec.x() * tempv.z()) > 0) {
 											p.move |= KEY_GOLEFT_;
 											p.move &= ~KEY_GORIGHT;
 										}
@@ -732,7 +756,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					p.znorrec = p.znor;
 					//vec
 					if (p.HP[5] == 0 || p.HP[6] == 0) { //p.zvec.x()
-						p.vec = p.zvec.Scale(p.ptr->loc[p.ptr->wheelframe[0]].x() * sin(p.yadd) * ((p.HP[6] == 0) - (p.HP[5] == 0)));
+						p.vec = p.zvec.Scale(p.ptr->loc[p.ptr->wheelframe[0]].x() * sin(p.yadd) * ((p.HP[5] == 0) - (p.HP[6] == 0)));
 					}
 					else {
 						p.vec = p.zvec.Scale(p.speed);
@@ -792,9 +816,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 							mapparts->set_normal(&p.xnor, &p.znor, p.pos);
 							p.nor = VTransform(VGet(0, 1.f, 0), MMult(MGetRotX(p.xnor), MGetRotZ(p.znor)));
 							/*0.1km/h以内の時かキーを押していないときに減速*/
-							if (((0.1f / 3.6f) / frate) < -p.speed && (p.move & KEY_GOBACK_) == 0 ||//バック
-							    ((0.1f / 3.6f) / frate) < p.speed && (p.move & KEY_GOFLONT) == 0 ||//前進
-							    ((0.1f / 3.6f) / frate) > abs(p.speed) && (p.move & KEY_GOBACK_) == 0 && (p.move & KEY_GOFLONT) == 0)//停止
+							if (((0.1f / 3.6f) / frate) < -p.speed && (p.move & KEY_GOBACK_) == 0 ||				  //バック
+							    ((0.1f / 3.6f) / frate) < p.speed && (p.move & KEY_GOFLONT) == 0 ||					  //前進
+							    ((0.1f / 3.6f) / frate) > abs(p.speed) && (p.move & KEY_GOBACK_) == 0 && (p.move & KEY_GOFLONT) == 0) //停止
 								p.speed *= 0.95f;
 							/*turn*/
 							if ((p.move & KEY_GOLEFT_) == 0 && (p.move & KEY_GORIGHT) == 0)
@@ -851,15 +875,23 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						if (guns == 0)
 							MV1SetFrameUserLocalMatrix(p.colobj.get(), 3 + 1, mtemp);
 					}
-					for (auto& w : p.ptr->wheelframe) {
-						MV1ResetFrameUserLocalMatrix(p.obj.get(), w);
-						const auto HitPoly = mapparts->get_gnd_hit(p.obj.frame(w) + p.nor.Scale(1.0f), p.obj.frame(w) + p.nor.Scale(-0.2f));
-						if (HitPoly.HitFlag)
-							p.Springs[w] = std::min<float>(p.Springs[w] + 1.0f / frate, 1.0f - (VECTOR_ref(HitPoly.HitPosition) - p.obj.frame(w) - p.nor.Scale(1.0f)).size());
-						else
-							p.Springs[w] = std::max<float>(p.Springs[w] - 0.2f / frate, -0.2f);
-						MV1SetFrameUserLocalMatrix(p.obj.get(), w, (p.ptr->loc[w] + p.nor.Scale(p.Springs[w])).Mtrans());
-						MV1SetFrameUserLocalMatrix(p.obj.get(), w + 1, MMult(MGetRotX(p.wheelrad[signbit(p.ptr->loc[w + 1].x()) + 1]), (p.ptr->loc[w + 1] - p.ptr->loc[w]).Mtrans()));
+					{
+						size_t i = 0;
+						for (auto& w : p.ptr->wheelframe) {
+							MV1ResetFrameUserLocalMatrix(p.obj.get(), w);
+							const auto HitPoly = mapparts->get_gnd_hit(p.obj.frame(w) + p.nor.Scale(1.0f), p.obj.frame(w) + p.nor.Scale(-0.2f));
+							if (HitPoly.HitFlag) {
+								p.Springs[w] = std::min<float>(p.Springs[w] + 1.0f / frate, 1.0f - (VECTOR_ref(HitPoly.HitPosition) - p.obj.frame(w) - p.nor.Scale(1.0f)).size());
+								p.gndsmksize[i] = 0.01f + abs(p.speed / p.ptr->speed_flont[3]);
+							}
+							else {
+								p.Springs[w] = std::max<float>(p.Springs[w] - 0.2f / frate, -0.2f);
+								differential(p.gndsmksize[i], 0.01f, 0.1f);
+							}
+							MV1SetFrameUserLocalMatrix(p.obj.get(), w, (p.ptr->loc[w] + p.nor.Scale(p.Springs[w])).Mtrans());
+							MV1SetFrameUserLocalMatrix(p.obj.get(), w + 1, MMult(MGetRotX(p.wheelrad[signbit(p.ptr->loc[w + 1].x()) + 1]), (p.ptr->loc[w + 1] - p.ptr->loc[w]).Mtrans()));
+							i++;
+						}
 					}
 					for (auto& w : p.ptr->youdoframe)
 						MV1SetFrameUserLocalMatrix(p.obj.get(), w, MMult(MGetRotX(p.wheelrad[signbit(p.ptr->loc[w].x()) + 1]), p.ptr->loc[w].Mtrans()));
@@ -908,7 +940,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 								const auto x = atan2(-v.y(), std::hypot(v.x(), v.z())) - deg2rad((float)(GetRand(p.ptr->accuracy[guns] * 2) - p.ptr->accuracy[guns]) / 10000.f);
 								a.vec = VGet(cos(x) * sin(y), -sin(x), cos(x) * cos(y));
 								//
-								++p.Gun[guns].useammo %= ammoc;
+								++p.Gun[guns].useammo;
+								p.Gun[guns].useammo %= ammoc;
 								++p.Gun[guns].loadcnt;
 								if (guns == 0) {
 									set_effect(&p.effcs[ef_fire], p.obj.frame(p.ptr->gunframe[guns] + 1).get(), (p.obj.frame(p.ptr->gunframe[guns] + 1) - p.obj.frame(p.ptr->gunframe[guns])).get());
@@ -988,6 +1021,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					for (int i = 0; i < efs_user; ++i)
 						if (i != ef_smoke1 && i != ef_smoke2 && i != ef_smoke3)
 							set_pos_effect(&p.effcs[i], parts->get_effHandle(i));
+
+					for (size_t i = 0; i < p.ptr->wheelframe.size(); i++) {
+						differential(p.gndsmksize_r[i], p.gndsmksize[i], 0.1f);
+						p.gndsmkeffcs[i].handle.SetPos(p.obj.frame(p.ptr->wheelframe[i]));
+						p.gndsmkeffcs[i].handle.SetScale(p.gndsmksize_r[i], p.gndsmksize_r[i], p.gndsmksize_r[i]);
+						//p.gndsmkeffcs[i].handle.SetColor
+					}
 					p.effcs[ef_smoke1].handle.SetPos(p.obj.frame(p.ptr->engineframe));
 					p.effcs[ef_smoke2].handle.SetPos(p.obj.frame(p.ptr->smokeframe[0]));
 					p.effcs[ef_smoke3].handle.SetPos(p.obj.frame(p.ptr->smokeframe[1]));
@@ -1026,8 +1066,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					}
 				}
 				else {
-					cam = humanparts->get_campos();
-					view = humanparts->get_neckpos();
+					view = humanparts->get_campos();
+					cam = humanparts->get_neckpos();
+
+					//cam = humanparts->get_campos();
+					//view = humanparts->get_neckpos();
 					upvec = player[0].nor;
 				}
 			}
@@ -1256,8 +1299,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		humanparts->delete_human();
 		for (auto& p : player) {
 			/*エフェクト*/
+			for (auto& g : p.gndsmkeffcs)
+				g.handle.Dispose();
 			for (auto&& e : p.effcs)
 				e.handle.Dispose();
+			p.gndsmkeffcs.clear();
+			p.gndsmksize.clear();
+			p.gndsmksize_r.clear();
+			p.hitres.clear();
 			/*Box2D*/
 			delete p.playerfix->GetUserData();
 			p.playerfix->SetUserData(NULL);
