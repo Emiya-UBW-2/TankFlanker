@@ -1369,7 +1369,8 @@ void UIS::debug(float fps, float time) {
 	const auto c_ffffff = GetColor(255, 255, 255);
 	DrawLine(100, 100 + 200 - 166, 100 + 60 * 5, 100 + 200 - 166, GetColor(0, 255, 0));
 	DrawBox(100, 100 + 0, 100 + 60 * 5, 100 + 200, GetColor(255, 0, 0), FALSE);
-	DrawFormatString(100, 100 + 0, c_ffffff, "%05.2ffps (%.2fms)", fps, time);
+	DrawFormatString(100, 100 + 0, c_ffffff, "%05.2ffps ( %.2fms)(total %.2fms)", fps, time, 1000.0f / fps);
+
 	DrawFormatString(100, 100 + 18, c_ffffff, "%d(%.2fms)", 0, waydeb[0]);
 	for (size_t j = 1; j < std::size(waydeb); ++j) {
 		DrawFormatString(100, int(100 + 18 + j * 18), c_ffffff, "%d(%.2fms)", j, waydeb[j] - waydeb[j - 1u]);
