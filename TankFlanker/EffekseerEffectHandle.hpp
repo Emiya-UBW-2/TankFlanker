@@ -157,8 +157,8 @@ public:
 	    @param	y	Y方向拡大率
 	    @param	z	Z方向拡大率
 	*/
-	void SetScale(float x, float y, float z) const noexcept {
-		SetScalePlayingEffekseer3DEffect(this->handle_, x, y, z);
+	void SetScale(float size) const noexcept {
+		SetScalePlayingEffekseer3DEffect(this->handle_, size, size, size);
 	}
 	/**
 	    @brief	再生中の3D表示のエフェクトの再生速度を取得する。

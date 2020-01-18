@@ -781,7 +781,7 @@ void HUMANS::set_humanmove(const players& player, VECTOR_ref rad) {
 	{
 		auto& h = hum.front();
 		/*座る*/
-		if (player.speed >= 30.f / 3.6f)
+		if (player.spd >= 30.f / 3.6f)
 			differential(h.amine[ANIME_sit].per, 1.f, 0.1f);
 		else
 			h.amine[ANIME_sit].per *= 0.9f;
@@ -1259,7 +1259,7 @@ void UIS::draw_icon(players& p, int font) {
 	//font18.DrawStringFormat
 	if (p.HP[0] != 0)
 		if (p.iconpos.z() > 0.0f && p.iconpos.z() < 1.0f)
-			DrawFormatStringToHandle((int)p.iconpos.x(), (int)p.iconpos.y(), (p.type == TEAM) ? c_00ff00 : c_ff0000, font, "%dm : %d", (int)(p.pos - pplayer->pos).size(), p.lost_sec);
+			DrawFormatStringToHandle((int)p.iconpos.x(), (int)p.iconpos.y(), (p.type == TEAM) ? c_00ff00 : c_ff0000, font, "%dm : %d", (int)(p.mine.pos - pplayer->mine.pos).size(), p.lost_sec);
 }
 void UIS::draw_sight(VECTOR_ref aimpos, float ratio, float dist, int font) {
 	DrawRotaGraph(x_r(960), y_r(540), (float)y_r(2), deg2rad(-dist / 20), UI_main[pplayer->ptr->countryc].ui_sight[1].get(), TRUE);
@@ -1296,7 +1296,7 @@ void UIS::draw_ui(uint8_t selfammo[], float y_v, int font) {
 	/*速度計*/
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 	DrawExtendGraph(x_r(0), y_r(888), x_r(192), y_r(1080), UI_main[pplayer->ptr->countryc].ui_sight[3].get(), TRUE);
-	DrawRotaGraph(x_r(96), y_r(984), x_r(192) / 152, deg2rad(120.0f * pplayer->speed / pplayer->ptr->speed_flont[3] - 60.f), UI_main[pplayer->ptr->countryc].ui_sight[4].get(), TRUE);
+	DrawRotaGraph(x_r(96), y_r(984), x_r(192) / 152, deg2rad(120.0f * pplayer->spd / pplayer->ptr->speed_flont[3] - 60.f), UI_main[pplayer->ptr->countryc].ui_sight[4].get(), TRUE);
 
 	SetDrawArea(x_r(192), y_r(892), x_r(192 + 40), y_r(892 + 54));
 	DrawRotaGraph(x_r(192 + 40 / 2), y_r(892 + 54 / 2 + (int)(54.0f * gearf)), (double)x_r(40) / 40.0, 0.f, UI_main[pplayer->ptr->countryc].ui_sight[5].get(), TRUE);
@@ -1452,20 +1452,21 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 					//空間装甲、モジュール
 					if (t.hitres[k].HitFlag) {
 						set_effect(&play.effcs[ef_reco], t.hitres[k].HitPosition, t.hitres[k].Normal);
-						t.HP[k] = std::max<short>(t.HP[k] - 50, 0);
+						t.HP[k] = std::max<short>(t.HP[k] - 30, 0);//
 						c.pene /= 2.0f;
 						c.speed /= 2.f;
 					}
 				}
 			}
 			//ダメージ面に当たった時に装甲値に勝てるかどうか
-			if (hitnear) {
-				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 0 + 3 * t.hitbuf, MMult(MGetTranslate(t.hitres[hitnear.value()].HitPosition), MInverse(t.ps_m)));
-				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 1 + 3 * t.hitbuf, MMult(MGetTranslate(VAdd(t.hitres[hitnear.value()].Normal, t.hitres[hitnear.value()].HitPosition)), MInverse(t.ps_m)));
-				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 2 + 3 * t.hitbuf, MMult(((c.vec * t.hitres[hitnear.value()].Normal).Scale(-1.f) + t.hitres[hitnear.value()].HitPosition).Mtrans(), MInverse(t.ps_m)));
+			if (hitnear.has_value()) {
+				const auto k = hitnear.value();
+				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 0 + 3 * t.hitbuf, MMult(MGetTranslate(t.hitres[k].HitPosition), MInverse(t.ps_m)));
+				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 1 + 3 * t.hitbuf, MMult(MGetTranslate(VAdd(t.hitres[k].Normal, t.hitres[k].HitPosition)), MInverse(t.ps_m)));
+				MV1SetFrameUserLocalMatrix(t.colobj.get(), 9 + 2 + 3 * t.hitbuf, MMult(((c.vec * t.hitres[k].Normal).Scale(-1.f) + t.hitres[k].HitPosition).Mtrans(), MInverse(t.ps_m)));
 				//
-				set_effect(&play.effcs[ef_reco], t.hitres[hitnear.value()].HitPosition, t.hitres[hitnear.value()].Normal);
-				if (c.pene > t.ptr->armer[hitnear.value()] * (1.0f / abs(VDot(c.vec.Norm(), t.hitres[hitnear.value()].Normal)))) {
+				set_effect(&play.effcs[ef_reco], t.hitres[k].HitPosition, t.hitres[k].Normal);
+				if (c.pene > t.ptr->armer[k] * (1.0f / abs(VDot(c.vec.Norm(), t.hitres[k].Normal)))) {
 					if (t.HP[0] != 0) {
 						PlaySoundMem(t.se[29 + GetRand(1)].get(), DX_PLAYTYPE_BACK, TRUE);
 						set_effect(&t.effcs[ef_bomb], t.obj.frame(t.ptr->engineframe), VGet(0, 0, 0));
@@ -1482,18 +1483,18 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 				else {
 					PlaySoundMem(t.se[10 + GetRand(16)].get(), DX_PLAYTYPE_BACK, TRUE);
 					if (t.recoadd == false) {
-						t.recorad = atan2(t.hitres[hitnear.value()].HitPosition.x - t.pos.x(), t.hitres[hitnear.value()].HitPosition.z - t.pos.z());
+						t.recorad = atan2(t.hitres[k].HitPosition.x - t.mine.pos.x(), t.hitres[k].HitPosition.z - t.mine.pos.z());
 						t.recoadd = true;
 					}
-					c.vec += VScale(t.hitres[hitnear.value()].Normal, (c.vec % t.hitres[hitnear.value()].Normal) * -2.0f);
-					c.pos = c.vec.Scale(0.1f) + t.hitres[hitnear.value()].HitPosition;
+					c.vec += VScale(t.hitres[k].Normal, (c.vec % t.hitres[k].Normal) * -2.0f);
+					c.pos = c.vec.Scale(0.1f) + t.hitres[k].HitPosition;
 					c.pene /= 2.0f;
 					c.speed /= 2.f;
 					t.hit[t.hitbuf].use = 1;
 				}
 				{
 					float asize = play.ptr->ammosize[gun_s] * 100.f;
-					MV1SetScale(t.hit[t.hitbuf].pic.get(), VGet(asize / abs(VDot(c.vec.Norm(), t.hitres[hitnear.value()].Normal)), asize, asize)); //
+					MV1SetScale(t.hit[t.hitbuf].pic.get(), VGet(asize / abs(VDot(c.vec.Norm(), t.hitres[k].Normal)), asize, asize)); //
 				}
 				t.hit[t.hitbuf].flug = true;
 				++t.hitbuf %= 3;
@@ -1505,14 +1506,14 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 			if (t.hitssort.begin()->second == (std::numeric_limits<float>::max)())
 				continue;
 			hitnear = t.hitssort.begin()->first;
-			if (hitnear) {
+			if (hitnear.has_value()) {
 				set_effect(&play.effcs[ef_reco2], t.hitres[hitnear.value()].HitPosition, t.hitres[hitnear.value()].Normal);
 				PlaySoundMem(t.se[10 + GetRand(16)].get(), DX_PLAYTYPE_BACK, TRUE);
 				c.vec = c.vec + VScale(t.hitres[hitnear.value()].Normal, (c.vec % t.hitres[hitnear.value()].Normal) * -2.0f);
 				c.pos = c.vec.Scale(0.1f) + t.hitres[hitnear.value()].HitPosition;
 			}
 		}
-		if (hitnear)
+		if (hitnear.has_value())
 			break;
 	}
 	return (hitnear.has_value());
@@ -1545,10 +1546,10 @@ bool set_shift(players& play) {
 	int gearrec = play.gear;
 	/*自動変速機*/
 	if (play.gear > 0 && play.gear <= 3)
-		if (play.speed >= play.ptr->speed_flont[play.gear - 1] * 0.9)
+		if (play.spd >= play.ptr->speed_flont[play.gear - 1] * 0.9)
 			++play.gear;
 	if (play.gear < 0 && play.gear >= -3)
-		if (play.speed <= play.ptr->speed_back[-play.gear - 1] * 0.9)
+		if (play.spd <= play.ptr->speed_back[-play.gear - 1] * 0.9)
 			--play.gear;
 
 	if ((play.move & KEY_GOFLONT) == 0 && play.gear > 0)
