@@ -1052,7 +1052,7 @@ void MAPS::draw_map_sky(void) {
 
 	MV1SetPosition(sky_model.get(), camera.get());
 	MV1DrawModel(sky_model.get());
-	DrawBillboard3D((camera + VScale(lightvec.Norm(), -80.0f)).get(), 0.5f, 0.5f, 10.0f, 0.0f, sky_sun.get(), TRUE);
+	DrawBillboard3D((camera + VScale(lightvec.Norm(), -80.0f)).get(), 0.5f, 0.5f, 3.0f, 0.0f, sky_sun.get(), TRUE);
 
 	SetFogEnable(TRUE);
 	SetUseLighting(TRUE);
@@ -1145,21 +1145,26 @@ void MAPS::exit_shadow(void) {
 	SetUseShadowMap(1, -1);
 	SetUseShadowMap(2, -1);
 }
-void MAPS::set_normal(float* xnor, float* znor, VECTOR_ref position) {
+void MAPS::set_normal(VECTOR_ref& nor, VECTOR_ref position) {
+	float x_nor = atan2f(nor.z(), nor.y());
+	float z_nor = atan2f(-nor.x(), nor.y());
+
 	/*X*/
 	const auto r0_0 = get_gnd_hit(position + VGet(0.0f, 2.0f, -0.5f), position + VGet(0.0f, -2.0f, -0.5f));
 	if (r0_0.HitFlag) {
 		const auto r0_1 = get_gnd_hit(position + VGet(0.0f, 2.0f, 0.5f), position + VGet(0.0f, -2.0f, 0.5f));
 		if (r0_1.HitFlag)
-			differential(*xnor, atan2(r0_0.HitPosition.y - r0_1.HitPosition.y, 1.0f), 0.05f);
+			differential(x_nor, atan2(r0_0.HitPosition.y - r0_1.HitPosition.y, 1.0f), 0.05f);
 	}
 	/*Z*/
 	const auto r1_0 = get_gnd_hit(position + VGet(0.5f, 2.0f, 0.0f), position + VGet(0.5f, -2.0f, 0.0f));
 	if (r1_0.HitFlag) {
 		const auto r1_1 = get_gnd_hit(position + VGet(-0.5f, 2.0f, 0.0f), position + VGet(-0.5f, -2.0f, 0.0f));
 		if (r1_1.HitFlag)
-			differential(*znor, atan2(r1_0.HitPosition.y - r1_1.HitPosition.y, 1.0f), 0.05f);
+			differential(z_nor, atan2(r1_0.HitPosition.y - r1_1.HitPosition.y, 1.0f), 0.05f);
 	}
+
+	nor = VTransform(VGet(0, 1.f, 0), MMult(MGetRotX(x_nor), MGetRotZ(z_nor)));
 }
 //
 UIS::UIS() {
@@ -1474,7 +1479,7 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 
 						if (play.hitadd == false) {
 							play.hitadd = true;
-							play.hitid = t.id;
+							play.hitid = int(t.id);
 						}
 					}
 					c.flug = false;
@@ -1483,9 +1488,10 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 				}
 				else {
 					PlaySoundMem(t.se[10 + GetRand(16)].get(), DX_PLAYTYPE_BACK, TRUE);
-					if (t.recoadd == false) {
-						t.recorad = atan2(t.hitres[k].HitPosition.x - t.mine.pos.x(), t.hitres[k].HitPosition.z - t.mine.pos.z());
-						t.recoadd = true;
+					if (t.recorad == 180) {
+						float rad = atan2(t.hitres[k].HitPosition.x - t.mine.pos.x(), t.hitres[k].HitPosition.z - t.mine.pos.z());
+						t.recovec = VGet(cos(rad), 0, -sin(rad));
+						t.recorad = 0;
 					}
 					c.vec += VScale(t.hitres[k].Normal, (c.vec % t.hitres[k].Normal) * -2.0f);
 					c.pos = c.vec.Scale(0.1f) + t.hitres[k].HitPosition;

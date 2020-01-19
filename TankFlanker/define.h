@@ -100,6 +100,7 @@ enum Effect {
 };
 
 struct ammos {
+	bool hit{ false };
 	bool flug{ false };
 	int cnt = 0;
 	int color = 0;
@@ -162,78 +163,68 @@ namespace std {
 		}
 	};
 };
-struct b2Pats {
-	std::unique_ptr<b2Body> body; /**/
-	b2Fixture* playerfix;	      /**/
-	VECTOR_ref pos;		      /**/
-};
 
 struct players {
-	/*情報*/
-	int id{ 0 };					/*ID*/
-	vehicle* ptr;					/*vehicle*/
-	MV1ModelHandle obj;				/*モデル*/
-	MV1ModelHandle colobj;				/*コリジョン*/
-	char type{ 0 };					/*敵味方識別*/
-	std::vector<SoundHandle> se;			/*SE*/
-	int move{ 0 };					/*キー操作*/
-	MATRIX ps_m, ps_t;				/*車体行列,砲塔行列*/
-	float yace{ 0.f };				/*y方向加速度*/
-	float spd{ 0.f }, speedrec{ 0.f };		/*速度関連*/
-	float accel{ 0.f };				/*加速度*/
-	VECTOR_ref vec;					/*移動ベクトル*/
-	float xnor{ 0.f }, znor{ 0.f }, znorrec{ 0.f }; /*法線角度*/
-	VECTOR_ref nor;					/*法線*/
-	VECTOR_ref zvec;				/*前向きベクトル*/
-	float yrad{ 0.f };				/*角度*/
-	float yadd{ 0.f };				/*角速度*/
-	int recoall{ 0 };				/*弾き角度*/
-	int firerad{ 0 };				/*反動角度*/
-	float recorad{ 0.f };				/*弾き反動*/
-	std::optional<size_t> atkf;			/*cpu ヘイト*/
-	int aim{ 0 };					/*cpu ヘイトの変更カウント*/
-	size_t wayselect{ 0 }, waynow{ 0 };		/*cpu */
-	std::array<VECTOR_ref, waypc> waypos;		/*cpu ウェイポイント*/
-	std::array<int, waypc> wayspd;			/*cpu 速度指定*/
-	int state{ 0 };					/*cpu ステータス*/
-	int lost_sec{ 0 };				/*cpu 見失いカウント*/
-	/**/
-	struct Guns {
-		std::vector<ammos> Ammo; /*確保する弾(arrayでもいい？)*/
-		int loadcnt{ 0 };	 /*装てんカウンター*/
-		size_t useammo{};	 /*使用弾*/
-		float fired{ 0.f };	 /*駐退*/
-	} Gun[gunc];
-	/**/
-	int gear{ 0 };		  /*変速*/
-	unsigned int gearu{ 0 };  /*キー*/
-	unsigned int geard{ 0 };  /*キー*/
-	float inertiax, inertiaz; /*慣性*/
-	float wheelrad[3]{ 0.f }; /*履帯の送り、転輪旋回*/
-	VECTOR_ref gunrad;	  /*砲角度*/
-	VECTOR_ref gunrad_rec;	  /*砲角度*/
-	float gun_turn{ 0.f };
-	/*弾関連*/
-	int ammotype{ 0 };     /*弾種*/
-	bool recoadd{ false }; /*弾きフラグ*/
-	bool hitadd{ false };  /*命中フラグ*/
-	size_t hitid{ 0 };
-	VECTOR_ref iconpos;	    /*UI用*/
-	std::vector<float> Springs; /*スプリング*/
-	std::vector<short> HP;	    /*ライフ*/
-	std::vector<pair> hitssort; /*当たった順番*/
-	/*弾痕*/
-	int hitbuf;		/*使用弾痕*/
-	std::array<Hit, 3> hit; /**/
-	/*エフェクト*/
-	std::array<EffectS, efs_user> effcs; /*effect*/
-	std::vector<EffectS> gndsmkeffcs;    /*effect*/
-	std::vector<float> gndsmksize;	     /*effect*/
-	//確保
-	std::vector<MV1_COLL_RESULT_POLY> hitres;
-	/*box2d*/
-	b2Pats mine;
-	/*足*/
+	int camf{ false };			  /*撃破カメラ*/
+	size_t id{ 0 };				  /*ID*/
+	vehicle* ptr;				  /*vehicle*/
+	MV1ModelHandle obj;			  /*モデル*/
+	MV1ModelHandle colobj;			  /*コリジョン*/
+	uint8_t type{ 0 };			  /*敵味方識別*/
+	std::vector<SoundHandle> se;		  /*SE*/
+	size_t move{ 0 };				  /*キー操作*/
+	MATRIX ps_m, ps_t;			  /*車体行列,砲塔行列*/
+	float yace{ 0.f };			  /*y方向加速度*/
+	VECTOR_ref vec;				  /*移動ベクトル*/
+	VECTOR_ref nor;				  /*法線ベクトル*/
+	VECTOR_ref zvec;			  /*前向ベクトル*/
+	float spd{ 0.f };			  /*速度関連*/
+	float accel{ 0.f };			  /*加速度*/
+	float yrad{ 0.f };			  /*角度*/
+	float yadd{ 0.f };			  /*角速度*/
+	int recorad{ 0 };			  /*弾き角度*/
+	int firerad{ 0 };			  /*反動角度*/
+	VECTOR_ref recovec;			  /*弾きベクトル*/
+	std::optional<size_t> atkf;		  /*cpu ヘイト*/
+	int aim{ 0 };				  /*cpu ヘイトの変更カウント*/
+	size_t wayselect{ 0 }, waynow{ 0 };	  /*cpu */
+	std::array<VECTOR_ref, waypc> waypos;	  /*cpu ウェイポイント*/
+	std::array<int, waypc> wayspd;		  /*cpu 速度指定*/
+	int state{ 0 };				  /*cpu ステータス*/
+	int lost_sec{ 0 };			  /*cpu 見失いカウント*/
+	struct Guns {				  /**/
+		std::array<ammos, ammoc> Ammo;	  /*確保する弾*/
+		int loadcnt{ 0 };		  /*装てんカウンター*/
+		size_t useammo{};		  /*使用弾*/
+		float fired{ 0.f };		  /*駐退*/
+	} Gun[gunc];				  /*銃、砲全般*/
+	int gear{ 0 };				  /*変速*/
+	unsigned int gearu{ 0 };		  /*キー*/
+	unsigned int geard{ 0 };		  /*キー*/
+	float inertiax;				  /*慣性*/
+	float wheelrad[3]{ 0.f };		  /*履帯の送り、転輪旋回*/
+	VECTOR_ref gunrad;			  /*砲角度*/
+	VECTOR_ref gunrad_rec;			  /*砲角度*/
+	float gun_turn{ 0.f };			  /*砲旋回速度*/
+	int ammotype{ 0 };			  /*弾種*/
+	bool hitadd{ false };			  /*命中フラグ*/
+	int hitid{ 0 };			  /*あてた敵*/
+	VECTOR_ref iconpos;			  /*UI用*/
+	std::vector<float> Springs;		  /*スプリング*/
+	std::vector<short> HP;			  /*ライフ*/
+	std::vector<pair> hitssort;		  /*当たった順番*/
+	int hitbuf;				  /*使用弾痕*/
+	std::array<Hit, 3> hit;			  /*弾痕*/
+	std::array<EffectS, efs_user> effcs;	  /*effect*/
+	std::vector<EffectS> gndsmkeffcs;	  /*effect*/
+	std::vector<float> gndsmksize;		  /*effect*/
+	std::vector<MV1_COLL_RESULT_POLY> hitres; /*確保*/
+	struct b2Pats {
+		std::unique_ptr<b2Body> body; /**/
+		b2Fixture* playerfix;	      /**/
+		VECTOR_ref pos;		      /**/
+	};
+	b2Pats mine; /*box2d*/
 	struct FootWorld {
 		b2World* world;		       /**/
 		b2RevoluteJointDef f_jointDef; /**/
@@ -242,7 +233,7 @@ struct players {
 		std::vector<b2Pats> Yudo;      /**/
 		float LR;
 	};
-	std::array<FootWorld, 2> foot; /**/
+	std::array<FootWorld, 2> foot; /*足*/
 };
 /*CLASS*/
 class Myclass {
@@ -423,7 +414,7 @@ public:
 
 	void ready_shadow(void);
 	void exit_shadow(void);
-	void set_normal(float* xnor, float* znor, VECTOR_ref position); //地面に沿わせる
+	void set_normal(VECTOR_ref& nor, VECTOR_ref position); //地面に沿わせる
 	auto& get_minmap() & { return texp; }
 	const auto& get_minmap() const& noexcept { return texp; }
 
