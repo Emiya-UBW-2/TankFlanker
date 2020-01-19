@@ -172,7 +172,7 @@ struct players {
 	MV1ModelHandle colobj;			  /*コリジョン*/
 	uint8_t type{ 0 };			  /*敵味方識別*/
 	std::vector<SoundHandle> se;		  /*SE*/
-	size_t move{ 0 };				  /*キー操作*/
+	size_t move{ 0 };			  /*キー操作*/
 	MATRIX ps_m, ps_t;			  /*車体行列,砲塔行列*/
 	float yace{ 0.f };			  /*y方向加速度*/
 	VECTOR_ref vec;				  /*移動ベクトル*/
@@ -208,7 +208,7 @@ struct players {
 	float gun_turn{ 0.f };			  /*砲旋回速度*/
 	int ammotype{ 0 };			  /*弾種*/
 	bool hitadd{ false };			  /*命中フラグ*/
-	int hitid{ 0 };			  /*あてた敵*/
+	int hitid{ 0 };				  /*あてた敵*/
 	VECTOR_ref iconpos;			  /*UI用*/
 	std::vector<float> Springs;		  /*スプリング*/
 	std::vector<short> HP;			  /*ライフ*/
@@ -350,7 +350,7 @@ public:
 	HUMANS(bool useg, float frates);
 	bool set_humans(const MV1ModelHandle& inmod);
 	void set_humanvc_vol(unsigned char size);
-	void set_humanmove(const players& player, VECTOR_ref rad);
+	void set_humanmove(const players& player, VECTOR_ref rad, const float frate, const float fps);
 	void draw_human(size_t p1);
 	void draw_humanall();
 	void delete_human(void);
@@ -414,7 +414,7 @@ public:
 
 	void ready_shadow(void);
 	void exit_shadow(void);
-	void set_normal(VECTOR_ref& nor, VECTOR_ref position); //地面に沿わせる
+	void set_normal(VECTOR_ref& nor, VECTOR_ref position, const float frate, const float fps); //地面に沿わせる
 	auto& get_minmap() & { return texp; }
 	const auto& get_minmap() const& noexcept { return texp; }
 

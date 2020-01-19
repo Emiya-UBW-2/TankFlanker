@@ -36,7 +36,7 @@ public:
 	//サイズ変更
 	VECTOR_ref Scale(float p1) const noexcept { return VECTOR_ref(DxLib::VScale(this->value, p1)); }
 	//正規化
-	VECTOR Norm() const noexcept { return DxLib::VNorm(this->value); }
+	VECTOR_ref Norm() const noexcept { return VECTOR_ref(DxLib::VNorm(this->value)); }
 	//サイズ
 	float size() const noexcept { return DxLib::VSize(this->value); }
 	//出力
