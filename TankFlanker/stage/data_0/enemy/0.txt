@@ -1,0 +1,5 @@
+vehicleID=1
+speed=2
+yrad=0
+position.x=0
+position.y=400
