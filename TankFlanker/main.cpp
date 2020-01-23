@@ -92,9 +92,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						p.mine.pos = VGet(xpp, 0.0f, zpp);
 						for (size_t i = 0; i < waypc; i++) {
 							FileRead_gets(mstr, 64, mdata);
-							float xpp = float(std::stoi(getright(mstr)));
+							xpp = float(std::stoi(getright(mstr)));
 							FileRead_gets(mstr, 64, mdata);
-							float zpp = float(std::stoi(getright(mstr)));
+							zpp = float(std::stoi(getright(mstr)));
 							p.waypos[i] = VGet(xpp, 0.0f, zpp);
 							FileRead_gets(mstr, 64, mdata);
 							p.wayspd[i]=int(std::stoi(getright(mstr)));
@@ -118,9 +118,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						p.mine.pos = VGet(xpp, 0.0f, zpp);
 						for (size_t i = 0; i < waypc; i++) {
 							FileRead_gets(mstr, 64, mdata);
-							float xpp = float(std::stoi(getright(mstr)));
+							xpp = float(std::stoi(getright(mstr)));
 							FileRead_gets(mstr, 64, mdata);
-							float zpp = float(std::stoi(getright(mstr)));
+							zpp = float(std::stoi(getright(mstr)));
 							p.waypos[i] = VGet(xpp, 0.0f, zpp);
 							FileRead_gets(mstr, 64, mdata);
 							p.wayspd[i] = int(std::stoi(getright(mstr)));
