@@ -76,7 +76,7 @@ enum Key {
 };
 enum Bone {
 	//砲塔内
-	bone_hatch = 5,    //カメラ
+	bone_hatch = 5,	   //カメラ
 	bone_in_turret = 6 //人配置フレーム
 };
 enum Effect {
@@ -109,7 +109,7 @@ struct EffectS {
 };
 struct Hit {
 	bool flug{ false }; /**/
-	int use{ 0 };       /*使用フレーム*/
+	int use{ 0 };	    /*使用フレーム*/
 	MV1ModelHandle pic; /*弾痕モデル*/
 };
 struct switches {
@@ -125,30 +125,37 @@ struct vehicle {
 	std::array<float, 4> speed_flont; /*前進*/
 	std::array<float, 4> speed_back;  /*後退*/
 	float vehicle_RD = 0.0f;	  /*旋回速度*/
-	std::array<float, 4> armer;       /*装甲*/
+	std::array<float, 4> armer;	  /*装甲*/
 	bool gun_lim_LR = 0;		  /*砲塔限定旋回の有無*/
-	std::array<float, 4> gun_lim_;    /*砲塔旋回制限*/
+	std::array<float, 4> gun_lim_;	  /*砲塔旋回制限*/
 	float gun_RD = 0.0f;		  /*砲塔旋回速度*/
-	std::array<float, 3> gun_speed;   /*弾速*/
-	std::array<float, 3> pene;	/*貫通*/
-	std::array<int, 3> ammotype;      /*弾種*/
-	std::vector<VECTOR_ref> loc;      /*フレームの元座標*/
+	std::array<float, 3> gun_speed;	  /*弾速*/
+	std::array<float, 3> pene;	  /*貫通*/
+	std::array<int, 3> ammotype;	  /*弾種*/
+	std::vector<VECTOR_ref> loc;	  /*フレームの元座標*/
 	VECTOR_ref min;			  /*box2D用フレーム*/
 	VECTOR_ref max;			  /*box2D用フレーム*/
 	int turretframe;		  /*砲塔フレーム*/
 	struct guninfo {
-		int gunframe;   /*銃フレーム*/
+		int gunframe;	/*銃フレーム*/
 		int reloadtime; /*リロードタイム*/
 		float ammosize; /*砲口径*/
-		int accuracy;   /*砲精度*/
+		int accuracy;	/*砲精度*/
 	};
-	std::array<guninfo, gunc> gun_;   /*銃フレーム*/
-	std::vector<int> youdoframe;      /*誘導輪*/
-	std::vector<int> wheelframe;      /*転輪*/
-	std::array<int, 2> kidoframe;     /*起動輪*/
-	std::array<int, 2> smokeframe;    /*排煙*/
-	std::vector<int> upsizeframe;     /*履帯上*/
-	int engineframe;		  /*エンジン*/
+	std::array<guninfo, gunc> gun_; /*銃フレーム*/
+	std::vector<int> youdoframe;	/*誘導輪*/
+	std::vector<int> wheelframe;	/*転輪*/
+	std::array<int, 2> kidoframe;	/*起動輪*/
+	std::array<int, 2> smokeframe;	/*排煙*/
+	std::vector<int> upsizeframe;	/*履帯上*/
+	int engineframe;		/*エンジン*/
+};
+//アニメーション
+struct Anime {
+	int id;
+	float total;
+	float time;
+	float per;
 };
 
 static_assert(std::is_move_constructible_v<vehicle>);
@@ -184,13 +191,13 @@ struct players {
 	VECTOR_ref recovec;			  /*弾きベクトル*/
 	std::optional<size_t> atkf;		  /*cpu ヘイト*/
 	int aim{ 0 };				  /*cpu ヘイトの変更カウント*/
-	size_t wayselect{ 0 }, waynow{ 0 };       /*cpu */
-	std::array<VECTOR_ref, waypc> waypos;     /*cpu ウェイポイント*/
+	size_t wayselect{ 0 }, waynow{ 0 };	  /*cpu */
+	std::array<VECTOR_ref, waypc> waypos;	  /*cpu ウェイポイント*/
 	std::array<int, waypc> wayspd;		  /*cpu 速度指定*/
 	int state{ 0 };				  /*cpu ステータス*/
 	int lost_sec{ 0 };			  /*cpu 見失いカウント*/
 	struct Guns {				  /**/
-		std::array<ammos, ammoc> Ammo;    /*確保する弾*/
+		std::array<ammos, ammoc> Ammo;	  /*確保する弾*/
 		int loadcnt{ 0 };		  /*装てんカウンター*/
 		size_t useammo{};		  /*使用弾*/
 		float fired{ 0.f };		  /*駐退*/
@@ -204,7 +211,7 @@ struct players {
 	VECTOR_ref gunrad_rec;			  /*砲角度*/
 	float gun_turn{ 0.f };			  /*砲旋回速度*/
 	int ammotype{ 0 };			  /*弾種*/
-	std::array <size_t,3> setammo;		  /*搭載弾数*/
+	std::array<size_t, 3> setammo;		  /*搭載弾数*/
 	bool hitadd{ false };			  /*命中フラグ*/
 	int hitid{ 0 };				  /*あてた敵*/
 	VECTOR_ref iconpos;			  /*UI用*/
@@ -213,13 +220,13 @@ struct players {
 	std::vector<pair> hitssort;		  /*当たった順番*/
 	int hitbuf;				  /*使用弾痕*/
 	std::array<Hit, 3> hit;			  /*弾痕*/
-	std::array<EffectS, efs_user> effcs;      /*effect*/
-	std::vector<EffectS> gndsmkeffcs;	 /*effect*/
+	std::array<EffectS, efs_user> effcs;	  /*effect*/
+	std::vector<EffectS> gndsmkeffcs;	  /*effect*/
 	std::vector<float> gndsmksize;		  /*effect*/
 	std::vector<MV1_COLL_RESULT_POLY> hitres; /*確保*/
 	struct b2Pats {
 		std::unique_ptr<b2Body> body; /**/
-		b2Fixture* playerfix;	 /**/
+		b2Fixture* playerfix;	      /**/
 		VECTOR_ref pos;		      /**/
 	};
 	b2Pats mine; /*box2d*/
@@ -237,16 +244,16 @@ struct players {
 class Myclass {
 private:
 	/*setting*/
-	bool usegrab;       /*人の物理演算のオフ、オン*/
+	bool usegrab;	    /*人の物理演算のオフ、オン*/
 	unsigned char ANTI; /*アンチエイリアス倍率*/
-	bool YSync;	 /*垂直同期*/
-	float f_rate;       /*fps*/
+	bool YSync;	    /*垂直同期*/
+	float f_rate;	    /*fps*/
 	bool windowmode;    /*ウィンドウor全画面*/
-	float drawdist;     /*木の描画距離*/
-	int gndx;	   /*地面のクオリティ*/
-	int shadex;	 /*影のクオリティ*/
-	bool USEHOST;       /**/
-	float se_vol;       /**/
+	float drawdist;	    /*木の描画距離*/
+	int gndx;	    /*地面のクオリティ*/
+	int shadex;	    /*影のクオリティ*/
+	bool USEHOST;	    /**/
+	float se_vol;	    /**/
 	/*common*/
 	std::vector<vehicle> vecs;			     /*車輛情報*/
 	VECTOR_ref view, view_r;			     /*通常視点の角度、距離*/
@@ -299,13 +306,6 @@ class HUMANS {
 private:
 	bool usegrab{ false }; /*人の物理演算のオフ、オン*/
 	float f_rate{ 60.f };  /*fps*/
-	//アニメーション
-	struct Anime {
-		int id;
-		float total;
-		float time;
-		float per;
-	};
 	//リソース
 	struct Hmod {
 		//
@@ -326,12 +326,12 @@ private:
 		float voice_time{ 0.f }; //
 	};
 	std::vector<humans> hum;	 /**/
-	MV1ModelHandle inmodel_handle;   //中モデル
+	MV1ModelHandle inmodel_handle;	 //中モデル
 	bool in_f{ false };		 //中描画スイッチ
 	size_t inflames;		 //inmodelのフレーム数
-	std::vector<VECTOR_ref> locin;   /*inmodelのフレーム*/
+	std::vector<VECTOR_ref> locin;	 /*inmodelのフレーム*/
 	std::vector<VECTOR_ref> pos_old; /*inmodelの前回のフレーム*/
-	std::vector<std::string> name;   /**/
+	std::vector<std::string> name;	 /**/
 	players* pplayer;		 /*playerdata*/
 public:
 	HUMANS(bool useg, float frates);
@@ -347,6 +347,41 @@ public:
 	VECTOR_ref get_neckpos() { return hum[0].obj.frame(hum[0].neck); }
 	VECTOR_ref get_campos() { return inmodel_handle.frame(bone_hatch); }
 };
+class SOLDIERS {
+	uint8_t count = 0;
+	float f_rate{ 60.f };	       /*fps*/
+	VECTOR_ref camera, viewv, upv; /*カメラ*/
+	float rat;		       /*倍率*/
+	//リソース
+	MV1ModelHandle model;
+	struct soldiers {
+		size_t id;
+		MV1ModelHandle obj;
+		VECTOR_ref pos;
+		float yrad;
+		std::array<Anime, 12> amine;
+		size_t useanime;
+		std::array<VECTOR_ref, waypc> waypoint;
+		uint8_t waynow;
+		uint8_t HP;
+		std::optional<size_t> atkf; /*cpu ヘイト*/
+		std::array<ammos, ammoc> ammo;
+		size_t useammo;
+	};
+	std::vector<soldiers> sol;	 /**/
+	std::vector<pair> sort; /**/
+	//ammos
+public:
+	SOLDIERS(float frates);
+	void set_camerapos(VECTOR_ref pos, VECTOR_ref vec, VECTOR_ref up, float ratio);
+	void set_soldier(const VECTOR_ref position, const float rad);
+	void set_soldier_vol(unsigned char size);
+	void set_soldiermove(int map);
+	void set_hit(VECTOR_ref pos, VECTOR_ref repos);
+	void draw_soldiersammo();
+	void draw_soldiers();
+	void delete_soldiers(void);
+};
 class MAPS {
 private:
 	/*setting*/
@@ -356,39 +391,39 @@ private:
 	/**/
 	size_t treec = 750; /*木の数*/
 	struct treeinfo {
-		size_t id;	    /**/
+		size_t id;	      /**/
 		MV1ModelHandle nears; /**/
 		MV1ModelHandle fars;  /**/
 		VECTOR_ref pos, rad;  /**/
-		bool hit;	     /**/
+		bool hit;	      /**/
 	};
 	struct trees {
-		MV1ModelHandle mnear;	/**/
-		MV1ModelHandle mfar;	 /**/
+		MV1ModelHandle mnear;	     /**/
+		MV1ModelHandle mfar;	     /**/
 		std::vector<pair> treesort;  /**/
 		std::vector<treeinfo> tree_; /**/
 	} tree;
-	std::array<int, 3> shadowmap;   /*シャドウマップ(近中遠)*/
+	std::array<int, 3> shadowmap;	/*シャドウマップ(近中遠)*/
 	MV1ModelHandle m_model, minmap; /*mapモデル*/
-	GraphHandle dif_gra, nor_gra;   /*mapテクスチャ*/
-	GraphHandle dif_tex, nor_tex;   /*実テクスチャ*/
+	GraphHandle dif_gra, nor_gra;	/*mapテクスチャ*/
+	GraphHandle dif_tex, nor_tex;	/*実テクスチャ*/
 	GraphHandle nor_trk;		/*轍ノーマルテクスチャ*/
 	GraphHandle GgHandle;		/*地面画像*/
-	MV1ModelHandle sky_model;       /*skyモデル*/
+	MV1ModelHandle sky_model;	/*skyモデル*/
 	GraphHandle sky_sun;		/*sunpic*/
 	VECTOR_ref lightvec;		/*light方向*/
 	int grasss = 5000;		/*grassの数*/
 	std::vector<VERTEX3D> grassver; /*grass*/
-	std::vector<DWORD> grassind;    /*grass*/
+	std::vector<DWORD> grassind;	/*grass*/
 	int VerBuf, IndexBuf;		/*grass*/
 	MV1ModelHandle grass;		/*grassモデル*/
 	GraphHandle graph;		/*画像ハンドル*/
 	int IndexNum, VerNum;		/*grass*/
 	int vnum, pnum;			/*grass*/
-	MV1_REF_POLYGONLIST RefMesh;    /*grass*/
-	VECTOR_ref camera, viewv, upv;  /*カメラ*/
+	MV1_REF_POLYGONLIST RefMesh;	/*grass*/
+	VECTOR_ref camera, viewv, upv;	/*カメラ*/
 	float rat;			/*倍率*/
-	VECTOR_ref map_min, map_max;    /*mapsize*/
+	VECTOR_ref map_min, map_max;	/*mapsize*/
 public:
 	MAPS(int map_size, float draw_dist, int shadow_size);
 	void set_map_readyb(size_t set);
@@ -412,6 +447,10 @@ public:
 	auto& get_maxsize() & { return map_max; }
 	const auto& get_maxsize() const& noexcept { return map_max; }
 
+	auto& get_mapobj() & { return m_model; }
+	const auto& get_mapobj() const& noexcept { return m_model; }
+
+
 	int get_map_shadow_near() { return shadowmap[0]; }
 	int get_map_shadow_seminear() { return shadowmap[1]; }
 
@@ -429,7 +468,7 @@ private:
 	GraphHandle ui_compass;		      /*UI*/
 	std::vector<GraphHandle> UI_body;     /*UI*/
 	std::vector<GraphHandle> UI_turret;   /*UI*/
-	std::vector<country> UI_main;	 /*国別UI*/
+	std::vector<country> UI_main;	      /*国別UI*/
 	size_t countries = 1;		      /*国数*/
 	float gearf = 0.f;		      /*変速*/
 	float recs = 0.f;		      /*跳弾表現用*/
@@ -441,11 +480,12 @@ private:
 	LONGLONG waypoint;
 	float waydeb[6];
 	size_t seldeb;
+
 public:
 	UIS();
-	void draw_load(void);	  /*ロード画面*/
+	void draw_load(void);	       /*ロード画面*/
 	void set_state(players* play); /*使用するポインタの指定*/
-	void set_reco(void);	   /*反射スイッチ*/
+	void set_reco(void);	       /*反射スイッチ*/
 	void draw_drive();
 	void draw_icon(players& p, int font, float frate);
 	void draw_sight(VECTOR_ref aimpos, float ratio, float dist, int font); /*照準UI*/

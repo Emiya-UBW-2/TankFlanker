@@ -9,20 +9,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	bool camflug;
 	size_t camcnt[2];
 
-	uint8_t way[2];      /*マウストリガー*/
+	uint8_t way[2];	     /*マウストリガー*/
 	uint8_t selfammo[2]; /*弾種変更キー*/
 
 	std::array<bool, 20> keyget; /*キー用(一時監視)*/
 	std::array<bool, 4> keyget2; /*キー用(常時監視)*/
-	bool out{ false };	   /*終了フラグ*/
+	bool out{ false };	     /*終了フラグ*/
 	std::vector<pair> pssort;    /*playerソート*/
 	std::vector<players> player; /*player*/
-	VECTOR_ref aimpos;	   /*照準器座標確保用*/
-	float aimdist{ 0.f };	/*照準距離確保用*/
-	switches aim, map;	   /*視点変更*/
+	VECTOR_ref aimpos;	     /*照準器座標確保用*/
+	float aimdist{ 0.f };	     /*照準距離確保用*/
+	switches aim, map;	     /*視点変更*/
 	float ratio, rat_r, aim_r;   /*カメラ倍率、実倍率、距離*/
 	float rat_aim;		     /*照準視点倍率*/
-	size_t waysel, choose;       /*指揮視点　指揮車両、マウス選択*/
+	size_t waysel, choose;	     /*指揮視点　指揮車両、マウス選択*/
 	float fps;		     /*fps*/
 	LONGLONG waits;		     /*時間取得*/
 	VECTOR_ref cam, view, upvec; /*カメラ*/
@@ -33,6 +33,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	auto humanparts = std::make_unique<HUMANS>(parts->get_usegrab(), frate);			       /*車内関係*/
 	auto mapparts = std::make_unique<MAPS>(parts->get_gndx(), parts->get_drawdist(), parts->get_shadex()); /*地形、ステージ関係*/
 	auto uiparts = std::make_unique<UIS>();								       /*UI*/
+	auto soldierparts = std::make_unique<SOLDIERS>(frate);						       /*歩兵*/
 	//
 	//parts->autoset_option();//オプション自動セット
 	//parts->write_option(); //オプション書き込み
@@ -63,7 +64,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			mapc = std::stoi(getright(mstr));
 			FileRead_close(mdata);
 		}
-		const size_t teamc = count_team(stage);   /*味方数*/
+		const size_t teamc = count_team(stage);	  /*味方数*/
 		const size_t enemyc = count_enemy(stage); /*敵数*/
 		player.resize(teamc + enemyc);
 		pssort.resize(teamc + enemyc);
@@ -244,7 +245,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			fixtureDef.friction = 0.3f;				    /*デフォルトの摩擦をオーバーライドします*/
 			b2BodyDef bodyDef;					    /*ダイナミックボディを定義します。その位置を設定し、ボディファクトリを呼び出します*/
 			bodyDef.type = b2_dynamicBody;				    /**/
-			bodyDef.position.Set(p.mine.pos.x(), p.mine.pos.z());       /**/
+			bodyDef.position.Set(p.mine.pos.x(), p.mine.pos.z());	    /**/
 			bodyDef.angle = p.yrad;					    /**/
 			p.mine.body.reset(world->CreateBody(&bodyDef));		    /**/
 			p.mine.playerfix = p.mine.body->CreateFixture(&fixtureDef); /*シェイプをボディに追加します*/
@@ -352,11 +353,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		selfammo[1] = 0;
 		aim.flug = false; /*照準*/
 		map.flug = false; /*マップ*/
-		rat_aim = 3.f;    /*照準視点　倍率*/
-		ratio = 1.0f;     /*カメラ　　倍率*/
-		rat_r = ratio;    /*カメラ　　実倍率*/
-		aim_r = 100.0f;   /*照準視点　距離*/
-		waysel = 1;       /*指揮視点　指揮車両*/
+		rat_aim = 3.f;	  /*照準視点　倍率*/
+		ratio = 1.0f;	  /*カメラ　　倍率*/
+		rat_r = ratio;	  /*カメラ　　実倍率*/
+		aim_r = 100.0f;	  /*照準視点　距離*/
+		waysel = 1;	  /*指揮視点　指揮車両*/
 		parts->set_viewrad(VGet(0.f, player[0].yrad, 1.f));
 		SetCursorPos(x_r(960), y_r(540));
 		//
@@ -394,6 +395,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		}
 		humanparts->start_humanvoice(1);
 		//
+		for (size_t i = 0; i < 20; i++) {
+			VECTOR_ref tempvec = VGet(float(i % 10) * 10, 0, -380.f + float(i / 10) * 10 + float(i % 10));
+			auto HitPoly = mapparts->get_gnd_hit(tempvec + VGet(0.0f, mapparts->get_minsize().y(), 0.0f), tempvec + VGet(0.0f, mapparts->get_maxsize().y(), 0.0f));
+			tempvec = HitPoly.HitPosition;
+			soldierparts->set_soldier(tempvec, 0.f);
+		}
+
 		while (ProcessMessage() == 0) {
 			/*fps*/
 			waits = GetNowHiPerformanceCount();
@@ -942,7 +950,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				}
 
 				{
-				//todo : 弾が近くにある時だけ更新するように
+					//todo : 弾が近くにある時だけ更新するように
 					bool colf = false;
 					for (auto& p : player) {
 						for (size_t guns = 0; guns < gunc; ++guns) {
@@ -990,7 +998,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 								}
 								a.speed = p.ptr->gun_speed[p.ammotype] / fps;
 								a.pene = p.ptr->pene[p.ammotype];
-								a.pos = p.obj.frame(g.gunframe).get();
+								a.pos = p.obj.frame(g.gunframe);
 								a.repos = a.pos;
 								a.cnt = 0;
 
@@ -1034,6 +1042,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 								const auto HitPoly = mapparts->get_gnd_hit(c.repos, c.pos);
 								if (HitPoly.HitFlag)
 									c.pos = HitPoly.HitPosition;
+								soldierparts->set_hit(c.pos,c.repos);
 								if (!get_reco(p, player, c, guns))
 									if (HitPoly.HitFlag) {
 										set_effect(&p.effcs[ef_gndhit + guns * (ef_gndhit2 - ef_gndhit)], HitPoly.HitPosition, HitPoly.Normal);
@@ -1042,6 +1051,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 										//c.pene /= 2.0f;
 										c.speed /= 2.f;
 									}
+
 								c.vec = VGet(c.vec.x(), c.vec.y() + m_ac(fps), c.vec.z());
 								c.pene -= 1.0f / fps;
 								c.speed -= 5.f / fps;
@@ -1073,6 +1083,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				mapparts->set_map_track();
 				/*human*/
 				humanparts->set_humanmove(parts->get_view_r(), frate, fps);
+				/*人の移動*/
+				soldierparts->set_soldiermove(mapparts->get_mapobj().get());
 				/*effect*/
 				for (auto& p : player) {
 					for (int i = 0; i < efs_user; ++i)
@@ -1195,7 +1207,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					}
 				}
 			}
-
+			soldierparts->set_camerapos(cam, view, upvec, rat_r);
 			mapparts->set_camerapos(cam, view, upvec, rat_r);
 			/*shadow*/
 			if (keyget[19]) {
@@ -1323,6 +1335,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 					mapparts->ready_shadow();
 					mapparts->draw_map_model();
+
+
 					for (auto& tt : pssort) {
 						if (tt.second == 9999.f)
 							continue;
@@ -1346,6 +1360,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 								}
 						}
 					}
+
+					soldierparts->draw_soldiers();
 					//grass
 					mapparts->draw_grass();
 					//effect
@@ -1361,6 +1377,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 									SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(255.f * std::min<float>(1.f, 4.f * p.Gun[guns].Ammo[i].speed / (p.ptr->gun_speed[p.ammotype] / fps))));
 									DrawCapsule3D(p.Gun[guns].Ammo[i].pos.get(), p.Gun[guns].Ammo[i].repos.get(), p.ptr->gun_[guns].ammosize * ((p.Gun[guns].Ammo[i].pos - cam).size() / 60.f), 4, p.Gun[guns].Ammo[i].color, c_ffffff, TRUE);
 								}
+					soldierparts->draw_soldiersammo();
 					SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 255);
 					SetFogEnable(TRUE);
 					SetUseLighting(TRUE);
@@ -1419,6 +1436,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		//delete
 		mapparts->delete_map();
 		humanparts->delete_human();
+		soldierparts->delete_soldiers();
 		for (auto& p : player) {
 			/*エフェクト*/
 			for (auto& g : p.gndsmkeffcs)

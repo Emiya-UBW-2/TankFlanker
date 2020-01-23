@@ -10,8 +10,8 @@
 #define _2x(p1) float((mapparts->get_maxsize() - mapparts->get_minsize()).x() * int(p1 - dispx / 2) / dispy)
 #define _2y(p1) float((mapparts->get_maxsize() - mapparts->get_minsize()).z() * int(dispy / 2 - p1) / dispy)
 //リサイズ
-#define x_r(p1) (int(p1)*dispx / 1920)
-#define y_r(p1) (int(p1)*dispy / 1080)
+#define x_r(p1) (int(p1) * dispx / 1920)
+#define y_r(p1) (int(p1) * dispy / 1080)
 //マウス判定
 #define inm(x1, y1, x2, y2) (mousex >= x1 && mousex <= x2 && mousey >= y1 && mousey <= y2)
 //重力加速度
