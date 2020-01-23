@@ -1659,7 +1659,7 @@ void SOLDIERS::set_soldiermove(int map, std::vector<players>& play) {
 				{
 					float distp = 9999.f;
 					for (auto& p : play) {
-						if (p.type != s.type)
+						if (p.type != s.type || p.HP[0]==0)
 							continue;
 						if ((p.mine.pos - s.pos).size() < distp) {
 							distp = (p.mine.pos - s.pos).size();
@@ -1762,7 +1762,7 @@ void SOLDIERS::set_soldiermove(int map, std::vector<players>& play) {
 }
 void SOLDIERS::set_hit(VECTOR_ref pos, VECTOR_ref repos) {
 	for (auto& s : sol) {
-		if (s.HP > 0 && Segment_Point_MinLength(pos.get(), repos.get(), (s.pos + VGet(0, 1.f, 0)).get()) < 0.5f) {
+		if (s.HP > 0 && Segment_Point_MinLength(pos.get(), repos.get(), (s.pos + VGet(0, 1.f, 0)).get()) < 1.f) {
 			s.HP = 0;
 			s.yrad += deg2rad(-90 + GetRand(180));
 		}

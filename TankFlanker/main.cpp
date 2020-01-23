@@ -84,16 +84,22 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						FileRead_gets(mstr, 64, mdata);
 						p.ptr = parts->get_vehicle((p.id == 0) ? m : size_t(std::stoi(getright(mstr))));
 						FileRead_gets(mstr, 64, mdata);
-						std::fill(std::begin(p.wayspd), std::end(p.wayspd), int(std::stoi(getright(mstr))));
-						FileRead_gets(mstr, 64, mdata);
 						p.yrad = deg2rad(std::stoi(getright(mstr)));
 						FileRead_gets(mstr, 64, mdata);
 						float xpp = float(std::stoi(getright(mstr)));
 						FileRead_gets(mstr, 64, mdata);
 						float zpp = float(std::stoi(getright(mstr)));
 						p.mine.pos = VGet(xpp, 0.0f, zpp);
+						for (size_t i = 0; i < waypc; i++) {
+							FileRead_gets(mstr, 64, mdata);
+							float xpp = float(std::stoi(getright(mstr)));
+							FileRead_gets(mstr, 64, mdata);
+							float zpp = float(std::stoi(getright(mstr)));
+							p.waypos[i] = VGet(xpp, 0.0f, zpp);
+							FileRead_gets(mstr, 64, mdata);
+							p.wayspd[i]=int(std::stoi(getright(mstr)));
+						}
 						FileRead_close(mdata);
-						std::fill(std::begin(p.waypos), std::end(p.waypos), p.mine.pos);
 					}
 				}
 				else {
@@ -104,16 +110,22 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						FileRead_gets(mstr, 64, mdata);
 						p.ptr = parts->get_vehicle(size_t(std::stoi(getright(mstr))));
 						FileRead_gets(mstr, 64, mdata);
-						std::fill(std::begin(p.wayspd), std::end(p.wayspd), int(std::stoi(getright(mstr))));
-						FileRead_gets(mstr, 64, mdata);
 						p.yrad = deg2rad(std::stoi(getright(mstr)));
 						FileRead_gets(mstr, 64, mdata);
 						float xpp = float(std::stoi(getright(mstr)));
 						FileRead_gets(mstr, 64, mdata);
 						float zpp = float(std::stoi(getright(mstr)));
 						p.mine.pos = VGet(xpp, 0.0f, zpp);
+						for (size_t i = 0; i < waypc; i++) {
+							FileRead_gets(mstr, 64, mdata);
+							float xpp = float(std::stoi(getright(mstr)));
+							FileRead_gets(mstr, 64, mdata);
+							float zpp = float(std::stoi(getright(mstr)));
+							p.waypos[i] = VGet(xpp, 0.0f, zpp);
+							FileRead_gets(mstr, 64, mdata);
+							p.wayspd[i] = int(std::stoi(getright(mstr)));
+						}
 						FileRead_close(mdata);
-						std::fill(std::begin(p.waypos), std::end(p.waypos), p.mine.pos);
 					}
 				}
 				p.setammo[0] = 0;
