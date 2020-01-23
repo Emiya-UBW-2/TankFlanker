@@ -315,7 +315,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						if (vects.x() * f.LR > 0) {
 							f.Yudo.resize(i + 1);
 							b2CircleShape shape;
-							shape.m_radius = 0.1f;
+							shape.m_radius = 0.05f;
 							b2FixtureDef fy_fixtureDef;
 							fy_fixtureDef.shape = &shape;
 							fy_fixtureDef.density = 1.0f;
@@ -396,10 +396,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		humanparts->start_humanvoice(1);
 		//
 		for (size_t i = 0; i < 20; i++) {
-			VECTOR_ref tempvec = VGet(float(i % 10) * 10, 0, -380.f + float(i / 10) * 10 + float(i % 10));
+			VECTOR_ref tempvec = VGet(float(i % 10) * 10, 0, -380.f + float(i / 10) * 300 + float(i % 10));
 			auto HitPoly = mapparts->get_gnd_hit(tempvec + VGet(0.0f, mapparts->get_minsize().y(), 0.0f), tempvec + VGet(0.0f, mapparts->get_maxsize().y(), 0.0f));
 			tempvec = HitPoly.HitPosition;
-			soldierparts->set_soldier(tempvec, 0.f);
+			soldierparts->set_soldier((i<10)? TEAM : ENEMY,tempvec, (i<10)?DX_PI_F : 0.f);
 		}
 
 		while (ProcessMessage() == 0) {
@@ -1042,9 +1042,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 								const auto HitPoly = mapparts->get_gnd_hit(c.repos, c.pos);
 								if (HitPoly.HitFlag)
 									c.pos = HitPoly.HitPosition;
-								soldierparts->set_hit(c.pos,c.repos);
 								if (!get_reco(p, player, c, guns))
 									if (HitPoly.HitFlag) {
+										soldierparts->set_hit(c.pos, c.repos);
 										set_effect(&p.effcs[ef_gndhit + guns * (ef_gndhit2 - ef_gndhit)], HitPoly.HitPosition, HitPoly.Normal);
 										c.vec += VScale(HitPoly.Normal, (c.vec % HitPoly.Normal) * -2.0f);
 										c.pos = c.vec.Scale(0.01f) + HitPoly.HitPosition;
@@ -1084,7 +1084,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				/*human*/
 				humanparts->set_humanmove(parts->get_view_r(), frate, fps);
 				/*人の移動*/
-				soldierparts->set_soldiermove(mapparts->get_mapobj().get());
+				soldierparts->set_soldiermove(mapparts->get_mapobj().get(),player);
 				/*effect*/
 				for (auto& p : player) {
 					for (int i = 0; i < efs_user; ++i)

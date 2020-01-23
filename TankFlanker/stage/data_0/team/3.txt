@@ -1,5 +1,5 @@
-vehicleID=0
-speed=2
+vehicleID=1
+speed=1
 yrad=180
 position.x=60
 position.y=-400

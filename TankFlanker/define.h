@@ -355,6 +355,7 @@ class SOLDIERS {
 	//リソース
 	MV1ModelHandle model;
 	struct soldiers {
+		uint8_t type{ 0 }; /*敵味方識別*/
 		size_t id;
 		MV1ModelHandle obj;
 		VECTOR_ref pos;
@@ -374,9 +375,9 @@ class SOLDIERS {
 public:
 	SOLDIERS(float frates);
 	void set_camerapos(VECTOR_ref pos, VECTOR_ref vec, VECTOR_ref up, float ratio);
-	void set_soldier(const VECTOR_ref position, const float rad);
+	void set_soldier(const uint8_t type, const VECTOR_ref position, const float rad);
 	void set_soldier_vol(unsigned char size);
-	void set_soldiermove(int map);
+	void set_soldiermove(int map, std::vector<players>& play);
 	void set_hit(VECTOR_ref pos, VECTOR_ref repos);
 	void draw_soldiersammo();
 	void draw_soldiers();

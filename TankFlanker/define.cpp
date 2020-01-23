@@ -1580,9 +1580,10 @@ void SOLDIERS::set_camerapos(VECTOR_ref pos, VECTOR_ref vec, VECTOR_ref up, floa
 	upv = up;
 	rat = ratio;
 }
-void SOLDIERS::set_soldier(const VECTOR_ref position, const float rad) {
+void SOLDIERS::set_soldier(const uint8_t type, const VECTOR_ref position, const float rad) {
 	sort.resize(sort.size() + 1);
 	sol.resize(sol.size() + 1);
+	sol.back().type = type;
 	sol.back().atkf.reset();
 	sol.back().id = sol.size() - 1;
 	sol.back().HP = 1;
@@ -1590,7 +1591,7 @@ void SOLDIERS::set_soldier(const VECTOR_ref position, const float rad) {
 	sol.back().waynow = 0;
 	sol.back().obj = model.Duplicate();
 	sol.back().pos = position;
-	std::fill(std::begin(sol.back().waypoint), std::end(sol.back().waypoint), sol.back().pos + VGet(10, 0, 10.f));
+	std::fill(std::begin(sol.back().waypoint), std::end(sol.back().waypoint), sol.back().pos + VGet(0, 0, (sol.back().type == TEAM) ? 100.f : -100.f));
 	sol.back().yrad = rad;
 	for (int j = 0; j < sol.back().obj.material_num(); ++j) {
 		MV1SetMaterialDifColor(sol.back().obj.get(), j, GetColorF(0.5f, 0.5f, 0.5f, 1.0f));
@@ -1608,16 +1609,16 @@ void SOLDIERS::set_soldier(const VECTOR_ref position, const float rad) {
 }
 void SOLDIERS::set_soldier_vol(unsigned char size) {
 }
-void SOLDIERS::set_soldiermove(int map) {
+void SOLDIERS::set_soldiermove(int map, std::vector<players>& play) {
 	//CPU
 	for (auto& s : sol) {
 		if (s.HP > 0) {
 			if (s.atkf.has_value()) {
 				VECTOR_ref tempv = (sol[s.atkf.value()].pos - s.pos).Norm();
 				if (((-cos(s.yrad)) * tempv.x() - (-sin(s.yrad)) * tempv.z()) < 0)
-					s.yrad -= deg2rad(60.f) / f_rate;
+					s.yrad -= deg2rad(120.f) / f_rate;
 				else
-					s.yrad += deg2rad(60.f) / f_rate;
+					s.yrad += deg2rad(120.f) / f_rate;
 
 				if (s.amine[7].time >= s.amine[7].total) {
 					s.useanime = 8;
@@ -1626,16 +1627,16 @@ void SOLDIERS::set_soldiermove(int map) {
 					}
 					if (s.amine[s.useanime].time == 0.0f) {
 						s.ammo[s.useammo].flug = true;
-						s.ammo[s.useammo].speed = 500/f_rate;
-						s.ammo[s.useammo].pos = s.pos+VGet(0,1.f,0);
+						s.ammo[s.useammo].speed = 800 / f_rate;
+						s.ammo[s.useammo].pos = s.pos + VGet(0, 1.3f, 0);
 						s.ammo[s.useammo].repos = s.ammo[s.useammo].pos;
 						s.ammo[s.useammo].cnt = 0;
 						s.ammo[s.useammo].color = GetColor(255, 255, 0);
 
 
-						const auto v = sol[s.atkf.value()].pos + VGet(0, 1.f, 0) - s.ammo[s.useammo].pos;
-						const auto y = atan2(v.x(), v.z()) + deg2rad((float)(GetRand(1000 * 2) - 1000) / 10000.f);
-						const auto x = atan2(-v.y(), std::hypot(v.x(), v.z())) - deg2rad((float)(GetRand(1000 * 2) - 1000) / 10000.f);
+						const auto v = sol[s.atkf.value()].pos + VGet(0, 1.3f, 0) - s.ammo[s.useammo].pos;
+						const auto y = atan2(v.x(), v.z()) + deg2rad((float)(GetRand(6000 * 2) - 6000) / 10000.f);
+						const auto x = atan2(-v.y(), std::hypot(v.x(), v.z())) - deg2rad((float)(GetRand(6000 * 2) - 6000) / 10000.f);
 						s.ammo[s.useammo].vec = VGet(cos(x) * sin(y), -sin(x), cos(x) * cos(y));
 
 						++s.useammo %= ammoc;
@@ -1653,17 +1654,27 @@ void SOLDIERS::set_soldiermove(int map) {
 						s.useanime = 6;
 					}
 				}
-
 			}
 			else {
-				if ((s.waypoint[s.waynow] - s.pos).size() > 3.f) {
+				{
+					float distp = 9999.f;
+					for (auto& p : play) {
+						if (p.type != s.type)
+							continue;
+						if ((p.mine.pos - s.pos).size() < distp) {
+							distp = (p.mine.pos - s.pos).size();
+							std::fill(std::begin(s.waypoint), std::end(s.waypoint), p.mine.pos - p.zvec.Scale(5.f));
+						}
+					}
+				}
+				if ((s.waypoint[s.waynow] - s.pos).size() > 6.f) {
 
 					VECTOR_ref tempv = (s.waypoint[s.waynow] - s.pos).Norm();
 					if (((-cos(s.yrad)) * tempv.x() - (-sin(s.yrad)) * tempv.z()) < 0)
-						s.yrad -= deg2rad(60.f) / f_rate;
+						s.yrad -= deg2rad(120.f) / f_rate;
 					else
-						s.yrad += deg2rad(60.f) / f_rate;
-					float spd = ((float(200 + GetRand(1600)) / 100) / 3.6f) / f_rate;
+						s.yrad += deg2rad(120.f) / f_rate;
+					float spd = ((float(500 + GetRand(1000)) / 100) / 3.6f) / f_rate;
 					s.pos += VGet(-sin(s.yrad) * spd, 0, -cos(s.yrad) * spd);
 					s.useanime = 5;
 					if (s.amine[s.useanime].time >= s.amine[s.useanime].total)
@@ -1671,7 +1682,7 @@ void SOLDIERS::set_soldiermove(int map) {
 
 					if (count % 30 == s.id % 30) {
 						for (auto& t : sol) {
-							if (s.id == t.id || t.HP==0)
+							if (s.type == t.type || s.id == t.id || t.HP == 0 || (s.pos - t.pos).size() > 200)
 								continue;
 							const auto hit = MV1CollCheck_Line(map, 0, (s.pos + VGet(0, 1.f, 0)).get(), (t.pos + VGet(0, 1.f, 0)).get());
 							if (!hit.HitFlag) {
@@ -1700,7 +1711,15 @@ void SOLDIERS::set_soldiermove(int map) {
 				const auto hit = MV1CollCheck_Line(map, 0, c.repos.get(), c.pos.get());
 				if (hit.HitFlag)
 					c.pos = hit.HitPosition;
-				if (c.cnt>0)
+
+				for (auto& p : play) {
+					if (Segment_Point_MinLength(c.pos.get(), c.repos.get(), (p.mine.pos + VGet(0, 1.f, 0)).get()) < 3.f) {
+						c.flug = false;
+						continue;
+					}
+				}
+
+				if (c.cnt > 0)
 					set_hit(c.pos, c.repos);
 
 				if (hit.HitFlag) {
@@ -1710,7 +1729,7 @@ void SOLDIERS::set_soldiermove(int map) {
 					c.speed /= 2.f;
 				}
 
-				c.vec = VGet(c.vec.x(), c.vec.y() + m_ac(f_rate), c.vec.z());
+				c.vec = VGet(c.vec.x(), c.vec.y() + m_ac(f_rate / 2), c.vec.z());
 				c.speed -= 5.f / f_rate;
 				c.cnt++;
 				if (c.cnt > (f_rate * 3.f) || c.speed <= 0.f)
@@ -1718,11 +1737,13 @@ void SOLDIERS::set_soldiermove(int map) {
 			}
 	}
 	//
-	if (count % 60 == 0) {
+	if (count % 30 == 0) {
 		for (auto& s : sol) {
 			const auto hit = MV1CollCheck_Line(map, 0, (s.pos + VGet(0, 500, 0)).get(), (s.pos + VGet(0, -500, 0)).get());
 			s.pos = hit.HitPosition;
 		}
+	}
+	if (count % 60 == 0) {
 		count = 0;
 	}
 	count++;
@@ -1735,7 +1756,7 @@ void SOLDIERS::set_soldiermove(int map) {
 				s.amine[j].per *= 0.9f;
 			MV1SetAttachAnimBlendRate(s.obj.get(), s.amine[j].id, s.amine[j].per);
 			MV1SetAttachAnimTime(s.obj.get(), s.amine[j].id, s.amine[j].time);
-			s.amine[j].time += float(25 + GetRand(10)) / f_rate; //
+			s.amine[j].time += float(15 + GetRand(30)) / f_rate; //
 		}
 	}
 }
@@ -1751,8 +1772,8 @@ void SOLDIERS::draw_soldiersammo() {
 	for (auto& s : sol)
 		for (size_t i = 0; i < ammoc; ++i)
 			if (s.ammo[i].flug) {
-				SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(255.f * std::min<float>(1.f, 4.f * s.ammo[i].speed / (500 / f_rate))));
-				DrawCapsule3D(s.ammo[i].pos.get(), s.ammo[i].repos.get(), 0.0075 * ((s.ammo[i].pos - camera).size() / 60.f), 4, s.ammo[i].color, GetColor(255,255,255), TRUE);
+				SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(255.f * std::min<float>(1.f, 4.f * s.ammo[i].speed / (800 / f_rate))));
+				DrawCapsule3D(s.ammo[i].pos.get(), s.ammo[i].repos.get(), 0.0075 * ((s.ammo[i].pos - camera).size() / 60.f), 4, s.ammo[i].color, GetColor(255, 255, 255), TRUE);
 			}
 }
 void SOLDIERS::draw_soldiers() {
