@@ -1,0 +1,124 @@
+#define x	0
+#define y	1
+
+dim veh,9
+ddim rad,9
+dim position,2,9
+dim waypos,4,2,9
+
+repeat 9 : i=cnt
+	notesel a
+	noteload str(i)+".txt"
+	noteget b,0
+	veh.i = int(strmid(b,instr(b,0,"=")+1,strlen(b)))
+	noteget b,1
+	rad.i = deg2rad(double(strmid(b,instr(b,0,"=")+1,strlen(b))))
+	noteget b,2+x
+	position.x.i = int(strmid(b,instr(b,0,"=")+1,strlen(b)))
+	noteget b,2+y
+	position.y.i = int(strmid(b,instr(b,0,"=")+1,strlen(b)))
+	repeat 4
+		noteget b,4+cnt*3+x
+		waypos.cnt.x.i = int(strmid(b,instr(b,0,"=")+1,strlen(b)))
+		noteget b,4+cnt*3+y
+		waypos.cnt.y.i = int(strmid(b,instr(b,0,"=")+1,strlen(b)))
+	loop
+loop
+
+screen 0,1000,1000,0,0,0
+onkey gosub *select
+
+tol=0//0~8
+sel=0//0~4
+
+repeat
+redraw 0
+	ofsx=600
+	ofsy=600
+	rat=2
+
+	getkey ms,1
+	if(ms=1){
+		getkey pk,80
+		if(pk=1){
+			position.x.tol = mousex*rat - ofsx
+			position.y.tol = -(mousey*rat - ofsy)
+		}else{
+			waypos.sel.x.tol = mousex*rat - ofsx
+			waypos.sel.y.tol = -(mousey*rat - ofsy)
+		}
+	}
+
+	color 128,128,128
+	boxf
+	
+	color 0,0,255
+	boxf (-500+ofsx)/rat,(-500+ofsy)/rat,(500+ofsx)/rat,(500+ofsy)/rat
+	repeat 9 
+		i=cnt
+		if(i=tol){
+			ref=1
+		}else{
+			ref=2
+		}
+		
+		//mes "Ôçp "+ veh.i + " : pos ("+ position.x.i+","+ position.y.i+")rad("+rad.i+")"
+		xp = position.x.i/rat+ofsx/rat
+		yp = -position.y.i/rat+ofsy/rat
+		color 255/ref,255/ref,255/ref
+		circle xp-5,yp-5,xp+5,yp+5
+
+		line waypos.0.x.i/rat+ofsx/rat,-waypos.0.y.i/rat+ofsy/rat,xp,yp
+		repeat 3
+			color 255/ref,255/ref,0/ref
+			line waypos.cnt.x.i/rat+ofsx/rat,-waypos.cnt.y.i/rat+ofsy/rat,waypos.(cnt+1).x.i/rat+ofsx/rat,-waypos.(cnt+1).y.i/rat+ofsy/rat
+		loop
+		repeat 4
+			xp = waypos.cnt.x.i/rat+ofsx/rat
+			yp = -waypos.cnt.y.i/rat+ofsy/rat
+			color 0,(128+128.0*sin(deg2rad(cnt*80/4)))/ref,0
+			circle xp-5,yp-5,xp+5,yp+5
+		loop
+	loop
+	
+	pos 0,0
+	color 255,255,255
+	mes "("+tol+","+sel+")"
+	mes "Num‚Åplayer‘I‘ğ,ABCD‚ÅŒo˜H‘I‘ğ"
+	
+redraw 1
+await 0
+loop
+
+
+
+end
+
+*select
+	if((iparam-65>=0) & (iparam-65<4)){
+		sel=iparam-65
+	}
+	if((iparam-48>=0) & (iparam-48<9)){
+		tol = iparam-48
+	}
+
+
+	if(iparam=13){
+		repeat 9 : i=cnt
+			notesel a
+			noteadd "vehicleID="+veh.i , 0 , 1
+			noteadd "yrad="+int(rad2deg(rad.i)) , 1 , 1
+
+			noteadd "position.x="+int(position.x.i) , 2+x , 1
+			noteadd "position.y="+int(position.y.i) , 2+y , 1
+
+			repeat 4
+				noteadd "way"+(cnt+1)+".x="+int(waypos.cnt.x.i) , 4+cnt*3+x , 1
+				noteadd "way"+(cnt+1)+".y="+int(waypos.cnt.y.i) , 4+cnt*3+y , 1
+				noteadd "speed."+(cnt+1)+"="+1 , 4+cnt*3+2 , 1
+			loop
+			notesave str(i)+".txt"
+
+		loop
+	}
+return

@@ -1,13 +1,13 @@
 vehicleID=1
 yrad=180
-position.x=-80
+position.x=-76
 position.y=-480
-way1.x=-80
-way1.y=-360
+way1.x=-82
+way1.y=-358
 speed.1=1
 way2.x=-80
 way2.y=-200
-speed.2=2
+speed.2=1
 way3.x=-80
 way3.y=500
 speed.3=1
