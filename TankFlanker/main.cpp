@@ -408,7 +408,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		humanparts->start_humanvoice(1);
 		//
 		for (size_t i = 0; i < 20; i++) {
-			VECTOR_ref tempvec = VGet(float(i % 10) * 10, 0, -380.f + float(i / 10) * 300 + float(i % 10));
+			VECTOR_ref tempvec = VGet(float(i % 10) * 10, 0, -480.f * ((i < 10) ? 1.f : -1.f));
 			auto HitPoly = mapparts->get_gnd_hit(tempvec + VGet(0.0f, mapparts->get_minsize().y(), 0.0f), tempvec + VGet(0.0f, mapparts->get_maxsize().y(), 0.0f));
 			tempvec = HitPoly.HitPosition;
 			soldierparts->set_soldier((i<10)? TEAM : ENEMY,tempvec, (i<10)?DX_PI_F : 0.f);
