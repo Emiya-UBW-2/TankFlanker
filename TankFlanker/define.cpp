@@ -1682,7 +1682,7 @@ void SOLDIERS::set_soldiermove(int map, std::vector<players>& play) {
 
 					if (count % 30 == s.id % 30) {
 						for (auto& t : sol) {
-							if (s.type == t.type || s.id == t.id || t.HP == 0 || (s.pos - t.pos).size() > 200)
+							if (s.type == t.type || s.id == t.id || t.HP == 0 || (s.pos - t.pos).size() > 350)
 								continue;
 							const auto hit = MV1CollCheck_Line(map, 0, (s.pos + VGet(0, 1.f, 0)).get(), (t.pos + VGet(0, 1.f, 0)).get());
 							if (!hit.HitFlag) {

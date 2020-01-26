@@ -191,6 +191,7 @@ struct players {
 	VECTOR_ref recovec;			  /*弾きベクトル*/
 	std::optional<size_t> atkf;		  /*cpu ヘイト*/
 	int aim{ 0 };				  /*cpu ヘイトの変更カウント*/
+	bool selc;				  /**/
 	size_t wayselect{ 0 }, waynow{ 0 };	  /*cpu */
 	std::array<VECTOR_ref, waypc> waypos;	  /*cpu ウェイポイント*/
 	std::array<int, waypc> wayspd;		  /*cpu 速度指定*/

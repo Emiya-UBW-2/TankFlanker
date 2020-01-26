@@ -97,7 +97,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 							zpp = float(std::stoi(getright(mstr)));
 							p.waypos[i] = VGet(xpp, 0.0f, zpp);
 							FileRead_gets(mstr, 64, mdata);
-							p.wayspd[i]=int(std::stoi(getright(mstr)));
+							p.wayspd[i] = int(std::stoi(getright(mstr)));
 						}
 						FileRead_close(mdata);
 					}
@@ -411,7 +411,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			VECTOR_ref tempvec = VGet(float(i % 10) * 10, 0, -480.f * ((i < 10) ? 1.f : -1.f));
 			auto HitPoly = mapparts->get_gnd_hit(tempvec + VGet(0.0f, mapparts->get_minsize().y(), 0.0f), tempvec + VGet(0.0f, mapparts->get_maxsize().y(), 0.0f));
 			tempvec = HitPoly.HitPosition;
-			soldierparts->set_soldier((i<10)? TEAM : ENEMY,tempvec, (i<10)?DX_PI_F : 0.f);
+			soldierparts->set_soldier((i < 10) ? TEAM : ENEMY, tempvec, (i < 10) ? DX_PI_F : 0.f);
 		}
 
 		while (ProcessMessage() == 0) {
@@ -620,18 +620,28 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 								else
 									p.gear = p.wayspd[p.waynow]; /*変速 */
 
+								p.selc = false;
 								for (auto& t : player) {
 									if (p.type == t.type || t.HP[0] == 0)
 										continue;
 
 									const auto HitPoly = mapparts->get_gnd_hit(p.obj.frame(p.ptr->gun_[0].gunframe), t.obj.frame(t.ptr->gun_[0].gunframe));
 									if (!HitPoly.HitFlag && (t.mine.pos - p.mine.pos).size() <= 500.0f) //見つける
-										if (p.aim != t.id) {					    //前狙った敵でないか
-											p.aim = 0;
+									{
+										p.selc = true;
+										if (p.aim != t.id) { //前狙った敵でないか
 											p.atkf = t.id;
+											p.aim = 0;
 											p.lost_sec = 0;
 											break;
 										}
+									}
+								}
+								if (p.selc && !p.atkf.has_value()) {
+									p.atkf = p.aim;
+									p.aim = 0;
+									p.lost_sec = 0;
+									break;
 								}
 							}
 							else {
@@ -1096,7 +1106,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				/*human*/
 				humanparts->set_humanmove(parts->get_view_r(), frate, fps);
 				/*人の移動*/
-				soldierparts->set_soldiermove(mapparts->get_mapobj().get(),player);
+				soldierparts->set_soldiermove(mapparts->get_mapobj().get(), player);
 				/*effect*/
 				for (auto& p : player) {
 					for (int i = 0; i < efs_user; ++i)
