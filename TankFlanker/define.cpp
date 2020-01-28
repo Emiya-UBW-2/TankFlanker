@@ -32,8 +32,9 @@ Myclass::Myclass() {
 	FileRead_gets(mstr, 64, mdata);
 	USEHOST = bool(std::stoul(getright(mstr)));
 	FileRead_gets(mstr, 64, mdata);
+	USEPIXEL = bool(std::stoul(getright(mstr)));
+	FileRead_gets(mstr, 64, mdata);
 	se_vol = float(std::stoul(getright(mstr))) / 100.f;
-
 	FileRead_close(mdata);
 
 	if (ANTI >= 2)
@@ -42,7 +43,7 @@ Myclass::Myclass() {
 	//SetWindowUserCloseEnableFlag(FALSE);		    /*alt+F4対処*/
 	SetMainWindowText("Tank Flanker");		    /*name*/
 	SetAeroDisableFlag(TRUE);			    /**/
-	SetUsePixelLighting(TRUE);			    /*ピクセルライティング*/
+	SetUsePixelLighting(USEPIXEL);			    /*ピクセルライティング*/
 	SetWaitVSyncFlag(YSync);			    /*垂直同期*/
 	ChangeWindowMode(windowmode);			    /*窓表示*/
 	SetUseDirect3DVersion(DX_DIRECT3D_11);		    /*directX ver*/
@@ -56,7 +57,7 @@ Myclass::Myclass() {
 	SetUseZBuffer3D(TRUE);				    /*zbufuse*/
 	SetWriteZBuffer3D(TRUE);			    /*zbufwrite*/
 	MV1SetLoadModelReMakeNormal(TRUE);		    /*法線*/
-	MV1SetLoadModelPhysicsWorldGravity(M_GR);	    /*重力*/
+	MV1SetLoadModelPhysicsWorldGravity(M_GR);	   /*重力*/
 	//SetSysCommandOffFlag(TRUE)//強制ポーズ対策()
 	//車両数取得
 	hFind = FindFirstFile("data/tanks/*", &win32fdt);
@@ -182,6 +183,7 @@ void Myclass::autoset_option(void) {
 					FileRead_gets(mstr, 64, mdata);
 					FileRead_gets(mstr, 64, mdata);
 					FileRead_gets(mstr, 64, mdata); //se
+					FileRead_gets(mstr, 64, mdata); //se
 					FileRead_close(mdata);
 
 					find = true;
@@ -220,6 +222,7 @@ void Myclass::autoset_option(void) {
 					FileRead_gets(mstr, 64, mdata);
 					USEHOST = bool(std::stoul(getright(mstr)));
 					FileRead_gets(mstr, 64, mdata); //se
+					FileRead_gets(mstr, 64, mdata); //se
 					FileRead_close(mdata);
 
 					find = true;
@@ -250,6 +253,7 @@ void Myclass::write_option(void) {
 	outputfile << "groundx(1~16)=" + std::to_string(gndx) + "\n";
 	outputfile << "shadow(0~3)=" + std::to_string(shadex) + "\n";
 	outputfile << "hostpass(1or0)=" + std::to_string(USEHOST) + "\n";
+	outputfile << "pixellighting(1or0)=" + std::to_string(USEPIXEL) + "\n";
 	outputfile << "se_vol(100~0)=" + std::to_string(se_vol * 100.f) + "\n"; //
 	outputfile.close();
 }
@@ -400,6 +404,7 @@ int Myclass::window_choosev(void) {
 		font18.DrawStringFormat(x_r(0), y_r(18 * 7), c_00ff00, " 地面のクォリティ     : x%d", gndx);
 		font18.DrawStringFormat(x_r(0), y_r(18 * 8), c_00ff00, " 影のクォリティ       : x%d", shadex);
 		font18.DrawStringFormat(x_r(0), y_r(18 * 9), c_00ff00, " ホストパスエフェクト : %s", USEHOST ? "TRUE" : "FALSE");
+		font18.DrawStringFormat(x_r(0), y_r(18 * 10), c_00ff00, " ピクセルライティング : %s", USEPIXEL ? "TRUE" : "FALSE");
 		//
 		GetMousePoint(&mousex, &mousey);
 		if (inm(x_r(360), y_r(340), x_r(400), y_r(740))) {
@@ -849,17 +854,17 @@ void HUMANS::start_humananime(int p1) {
 //
 MAPS::MAPS(int map_size, float draw_dist, int shadow_size) {
 	groundx = map_size * 1024; /*ノーマルマップのサイズ*/
-	drawdist = draw_dist;	   /*木の遠近*/
+	drawdist = draw_dist;      /*木の遠近*/
 	shadowx = shadow_size;
 	int shadowsize = (1 << (10 + shadowx));
 	//shadow
 	for (auto& s : shadowmap)
 		s = MakeShadowMap(shadowsize, shadowsize); /*近影*/
-	SetShadowMapAdjustDepth(shadowmap[0], 0.0005f);	   /*ずれを小さくするため*/
+	SetShadowMapAdjustDepth(shadowmap[0], 0.0005f);    /*ずれを小さくするため*/
 	//map
 	SetUseASyncLoadFlag(TRUE);
-	sky_sun = GraphHandle::Load("data/sun.png");	      /*太陽*/
-	nor_trk = GraphHandle::Load("data/nm.png");	      /*轍*/
+	sky_sun = GraphHandle::Load("data/sun.png");	  /*太陽*/
+	nor_trk = GraphHandle::Load("data/nm.png");	   /*轍*/
 	dif_tex = GraphHandle::Make(groundx, groundx, FALSE); /*ノーマルマップ*/
 	nor_tex = GraphHandle::Make(groundx, groundx, FALSE); /*実マップ*/
 	SetUseASyncLoadFlag(FALSE);
@@ -869,12 +874,12 @@ void MAPS::set_map_readyb(size_t set) {
 	lightvec = VGet(0.5f, -0.2f, -0.5f);
 	std::array<const char*, 2> mapper{ "map", "map" }; // TODO: 書き換える
 	SetUseASyncLoadFlag(TRUE);
-	tree.mnear = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/tree/model.mv1");	 /*近木*/
-	tree.mfar = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/tree/model2.mv1");	 /*遠木*/
+	tree.mnear = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/tree/model.mv1");	/*近木*/
+	tree.mfar = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/tree/model2.mv1");	/*遠木*/
 	dif_gra = GraphHandle::Load("data/"s + mapper.at(set) + "/SandDesert_04_00344_FWD.png"); /*nor*/
-	nor_gra = GraphHandle::Load("data/"s + mapper.at(set) + "/SandDesert_04_00344_NM.png");	 /*nor*/
+	nor_gra = GraphHandle::Load("data/"s + mapper.at(set) + "/SandDesert_04_00344_NM.png");  /*nor*/
 	m_model = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/map.mv1");			 /*map*/
-	sky_model = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/sky/model_sky.mv1");	 /*sky*/
+	sky_model = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/sky/model_sky.mv1");      /*sky*/
 	graph = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/grass.png");		 /*grass*/
 	grass = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/grass/grass.mv1");		 /*grass*/
 	GgHandle = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/gg.png");		 /*地面草*/
@@ -904,7 +909,7 @@ bool MAPS::set_map_ready() {
 
 	MV1SetupCollInfo(m_model.get(), 0, int((map_max - map_min).x()) / 5, int((map_max - map_min).y()) / 5, int((map_max - map_min).z()) / 5);
 	SetFogStartEnd(10.0f, 1400.0f); /*fog*/
-	SetFogColor(150, 150, 175);	/*fog*/
+	SetFogColor(150, 150, 175);     /*fog*/
 	SetLightDirection(lightvec.get());
 	for (auto& s : shadowmap)
 		SetShadowMapLightDirection(s, lightvec.get());
@@ -933,7 +938,7 @@ bool MAPS::set_map_ready() {
 	RefMesh = MV1GetReferenceMesh(grass.get(), -1, TRUE); /*参照用メッシュの取得*/
 
 	IndexNum = RefMesh.PolygonNum * 3 * grasss; /*インデックスの数を取得*/
-	VerNum = RefMesh.VertexNum * grasss;	    /*頂点の数を取得*/
+	VerNum = RefMesh.VertexNum * grasss;	/*頂点の数を取得*/
 
 	grassver.resize(VerNum);   /*頂点データとインデックスデータを格納するメモリ領域の確保*/
 	grassind.resize(IndexNum); /*頂点データとインデックスデータを格納するメモリ領域の確保*/
@@ -948,7 +953,7 @@ bool MAPS::set_map_ready() {
 		if (HitPoly.HitFlag)
 			MV1SetMatrix(grass.get(), MMult(MGetScale(VGet((float)(200 + GetRand(400)) / 100.0f, (float)(25 + GetRand(100)) / 100.0f, (float)(200 + GetRand(400)) / 100.0f)), MMult(MMult(MGetRotY(deg2rad(GetRand(360))), MGetRotVec2(VGet(0, 1.f, 0), HitPoly.Normal)), MGetTranslate(HitPoly.HitPosition))));
 		//上省
-		MV1RefreshReferenceMesh(grass.get(), -1, TRUE);	      /*参照用メッシュの更新*/
+		MV1RefreshReferenceMesh(grass.get(), -1, TRUE);       /*参照用メッシュの更新*/
 		RefMesh = MV1GetReferenceMesh(grass.get(), -1, TRUE); /*参照用メッシュの取得*/
 		for (int j = 0; j < RefMesh.VertexNum; ++j) {
 			auto& g = grassver[j + vnum];
@@ -1105,7 +1110,7 @@ void MAPS::exit_shadow(void) {
 	for (int i = 0; i < shadowmap.size(); ++i)
 		SetUseShadowMap(i, -1);
 }
-void MAPS::set_normal(VECTOR_ref& nor, VECTOR_ref position, const float frate, const float fps) {
+void MAPS::set_normal(VECTOR_ref& nor, MATRIX& ps_n, VECTOR_ref position, const float frate, const float fps) {
 	float x_nor = atan2f(nor.z(), nor.y());
 	float z_nor = atan2f(-nor.x(), nor.y());
 
@@ -1123,7 +1128,7 @@ void MAPS::set_normal(VECTOR_ref& nor, VECTOR_ref position, const float frate, c
 		if (r1_1.HitFlag)
 			fpsdiff(z_nor, atan2(r1_0.HitPosition.y - r1_1.HitPosition.y, 1.0f), 0.05f);
 	}
-
+	ps_n = MMult(MGetRotX(x_nor), MGetRotZ(z_nor));
 	nor = VTransform(VGet(0, 1.f, 0), MMult(MGetRotX(x_nor), MGetRotZ(z_nor)));
 }
 //
@@ -1225,8 +1230,16 @@ void UIS::draw_icon(players& p, int font, float frate) {
 	//font18.DrawStringFormat
 	if (p.HP[0] != 0 && ((p.lost_sec != -1 && p.type == ENEMY) || (p.type == TEAM)))
 		if (p.iconpos.z() > 0.0f && p.iconpos.z() < 1.0f) {
-			SetDrawBlendMode(DX_BLENDMODE_ALPHA, int(255.f * (1.f - float(p.lost_sec) / (5.f * frate))));
-			DrawFormatStringToHandle((int)p.iconpos.x(), (int)p.iconpos.y(), (p.type == TEAM) ? c_00ff00 : c_ff0000, font, "%dm\n%s", (int)(p.mine.pos - pplayer->mine.pos).size(), p.ptr->name.c_str());
+			if (p.type == ENEMY) {
+				SetDrawBlendMode(DX_BLENDMODE_ALPHA, int(255.f * (1.f - float(p.lost_sec) / (5.f * frate))));
+				DrawFormatStringToHandle((int)p.iconpos.x() - GetDrawFormatStringWidthToHandle(font, "%dm", (int)(p.mine.pos - pplayer->mine.pos).size()) / 2, (int)p.iconpos.y(), c_ff0000, font, "%dm", (int)(p.mine.pos - pplayer->mine.pos).size());
+				DrawFormatStringToHandle((int)p.iconpos.x() - GetDrawFormatStringWidthToHandle(font, "%s", p.ptr->name.c_str()) / 2, (int)p.iconpos.y() + y_r(20), c_ff0000, font, "%s", p.ptr->name.c_str());
+			}
+			else {
+				SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+				DrawFormatStringToHandle((int)p.iconpos.x() - GetDrawFormatStringWidthToHandle(font, "%dm", (int)(p.mine.pos - pplayer->mine.pos).size()) / 2, (int)p.iconpos.y(), c_00ff00, font, "%dm", (int)(p.mine.pos - pplayer->mine.pos).size());
+				DrawFormatStringToHandle((int)p.iconpos.x() - GetDrawFormatStringWidthToHandle(font, "%s", p.ptr->name.c_str()) / 2, (int)p.iconpos.y() + y_r(20), c_00ff00, font, "%s", p.ptr->name.c_str());
+			}
 		}
 }
 void UIS::draw_sight(VECTOR_ref aimpos, float ratio, float dist, int font) {
@@ -1319,6 +1332,7 @@ void UIS::draw_ui(uint8_t selfammo[], float y_v, int font) {
 			SetDrawBright(255, 255, 255);
 		DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, double(-y_v - pplayer->yrad + pplayer->gunrad.x()), UI_turret[i].get(), TRUE);
 	}
+	DrawFormatStringToHandle(x_r(0), y_r(1080 - 200), GetColor(255, 255, 255), font, "[LIFE : %d]", pplayer->HP[0]);
 }
 /*debug*/
 void UIS::put_way(void) {
@@ -1453,16 +1467,17 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 				set_effect(&play.effcs[ef_reco], t.hitres[k].HitPosition, t.hitres[k].Normal);
 				if (c.pene > t.ptr->armer[k] * (1.0f / abs(c.vec.Norm() % t.hitres[k].Normal))) {
 					if (t.HP[0] != 0) {
-						PlaySoundMem(t.se[29 + GetRand(1)].get(), DX_PLAYTYPE_BACK, TRUE);
-						set_effect(&t.effcs[ef_bomb], t.obj.frame(t.ptr->engineframe), VGet(0, 0, 0));
-
-						if (play.hitadd == false) {
-							play.hitadd = true;
-							play.hitid = int(t.id);
+						if (t.HP[0] == 1) {
+							PlaySoundMem(t.se[29 + GetRand(1)].get(), DX_PLAYTYPE_BACK, TRUE);
+							set_effect(&t.effcs[ef_bomb], t.obj.frame(t.ptr->engineframe), VGet(0, 0, 0));
+							if (play.hitadd == false) {
+								play.hitadd = true;
+								play.hitid = int(t.id);
+							}
 						}
 					}
 					c.flug = false;
-					t.HP[0] = 0;
+					t.HP[0] = std::max<short>(t.HP[0] - 1, 0); //
 					t.hit[t.hitbuf].use = 0;
 				}
 				else {
@@ -1497,6 +1512,10 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 				PlaySoundMem(t.se[10 + GetRand(16)].get(), DX_PLAYTYPE_BACK, TRUE);
 				c.vec = c.vec + VScale(t.hitres[hitnear.value()].Normal, (c.vec % t.hitres[hitnear.value()].Normal) * -2.0f);
 				c.pos = c.vec.Scale(0.1f) + t.hitres[hitnear.value()].HitPosition;
+
+				if (hitnear.value() >= 5 && hitnear.value() < t.HP.size()) {
+					t.HP[hitnear.value()] = std::max<short>(t.HP[hitnear.value()] - 13, 0); //
+				}
 			}
 		}
 		if (hitnear.has_value())
@@ -1659,7 +1678,7 @@ void SOLDIERS::set_soldiermove(int map, std::vector<players>& play) {
 				{
 					float distp = 9999.f;
 					for (auto& p : play) {
-						if (p.type != s.type || p.HP[0]==0)
+						if (p.type != s.type || p.HP[0] == 0)
 							continue;
 						if ((p.mine.pos - s.pos).size() < distp) {
 							distp = (p.mine.pos - s.pos).size();
@@ -1773,7 +1792,7 @@ void SOLDIERS::draw_soldiersammo() {
 		for (size_t i = 0; i < ammoc; ++i)
 			if (s.ammo[i].flug) {
 				SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(255.f * std::min<float>(1.f, 4.f * s.ammo[i].speed / (800 / f_rate))));
-				DrawCapsule3D(s.ammo[i].pos.get(), s.ammo[i].repos.get(), 0.0075 * ((s.ammo[i].pos - camera).size() / 60.f), 4, s.ammo[i].color, GetColor(255, 255, 255), TRUE);
+				DrawCapsule3D(s.ammo[i].pos.get(), s.ammo[i].repos.get(), 0.0075f * ((s.ammo[i].pos - camera).size() / 60.f), 4, s.ammo[i].color, GetColor(255, 255, 255), TRUE);
 			}
 }
 void SOLDIERS::draw_soldiers() {

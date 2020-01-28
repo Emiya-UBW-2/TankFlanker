@@ -177,7 +177,7 @@ struct players {
 	uint8_t type{ 0 };			  /*敵味方識別*/
 	std::vector<SoundHandle> se;		  /*SE*/
 	size_t move{ 0 };			  /*キー操作*/
-	MATRIX ps_m, ps_t;			  /*車体行列,砲塔行列*/
+	MATRIX ps_m, ps_t,ps_n;			  /*車体行列,砲塔行列,法線行列*/
 	float yace{ 0.f };			  /*y方向加速度*/
 	VECTOR_ref vec;				  /*移動ベクトル*/
 	VECTOR_ref nor;				  /*法線ベクトル*/
@@ -218,13 +218,16 @@ struct players {
 	VECTOR_ref iconpos;			  /*UI用*/
 	std::vector<float> Springs;		  /*スプリング*/
 	std::vector<short> HP;			  /*ライフ*/
+	std::array<short,2> footfix;		  /*履帯修復*/
 	std::vector<pair> hitssort;		  /*当たった順番*/
 	int hitbuf;				  /*使用弾痕*/
 	std::array<Hit, 3> hit;			  /*弾痕*/
 	std::array<EffectS, efs_user> effcs;	  /*effect*/
 	std::vector<EffectS> gndsmkeffcs;	  /*effect*/
 	std::vector<float> gndsmksize;		  /*effect*/
+
 	std::vector<MV1_COLL_RESULT_POLY> hitres; /*確保*/
+	bool checkhit;				  /*判定の更新をするか*/
 	struct b2Pats {
 		std::unique_ptr<b2Body> body; /**/
 		b2Fixture* playerfix;	      /**/
@@ -254,6 +257,7 @@ private:
 	int gndx;	    /*地面のクオリティ*/
 	int shadex;	    /*影のクオリティ*/
 	bool USEHOST;	    /**/
+	bool USEPIXEL;      /*ピクセルライティングの利用*/
 	float se_vol;	    /**/
 	/*common*/
 	std::vector<vehicle> vecs;			     /*車輛情報*/
@@ -440,7 +444,7 @@ public:
 
 	void ready_shadow(void);
 	void exit_shadow(void);
-	void set_normal(VECTOR_ref& nor, VECTOR_ref position, const float frate, const float fps); //地面に沿わせる
+	void set_normal(VECTOR_ref& nor, MATRIX& ps_n, VECTOR_ref position, const float frate, const float fps); //地面に沿わせる
 	auto& get_minmap() & { return dif_tex; }
 	const auto& get_minmap() const& noexcept { return dif_tex; }
 

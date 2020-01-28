@@ -9,20 +9,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	bool camflug;
 	size_t camcnt[2];
 
-	uint8_t way[2];	     /*マウストリガー*/
+	uint8_t way[2];      /*マウストリガー*/
 	uint8_t selfammo[2]; /*弾種変更キー*/
 
 	std::array<bool, 20> keyget; /*キー用(一時監視)*/
 	std::array<bool, 4> keyget2; /*キー用(常時監視)*/
-	bool out{ false };	     /*終了フラグ*/
+	bool out{ false };	   /*終了フラグ*/
 	std::vector<pair> pssort;    /*playerソート*/
 	std::vector<players> player; /*player*/
-	VECTOR_ref aimpos;	     /*照準器座標確保用*/
-	float aimdist{ 0.f };	     /*照準距離確保用*/
-	switches aim, map;	     /*視点変更*/
+	VECTOR_ref aimpos;	   /*照準器座標確保用*/
+	float aimdist{ 0.f };	/*照準距離確保用*/
+	switches aim, map;	   /*視点変更*/
 	float ratio, rat_r, aim_r;   /*カメラ倍率、実倍率、距離*/
 	float rat_aim;		     /*照準視点倍率*/
-	size_t waysel, choose;	     /*指揮視点　指揮車両、マウス選択*/
+	size_t waysel, choose;       /*指揮視点　指揮車両、マウス選択*/
 	float fps;		     /*fps*/
 	LONGLONG waits;		     /*時間取得*/
 	VECTOR_ref cam, view, upvec; /*カメラ*/
@@ -64,7 +64,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			mapc = std::stoi(getright(mstr));
 			FileRead_close(mdata);
 		}
-		const size_t teamc = count_team(stage);	  /*味方数*/
+		const size_t teamc = count_team(stage);   /*味方数*/
 		const size_t enemyc = count_enemy(stage); /*敵数*/
 		player.resize(teamc + enemyc);
 		pssort.resize(teamc + enemyc);
@@ -201,7 +201,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			//HP
 			p.HP.resize(p.ptr->colmodel.mesh_num());
 			/*0123は装甲部分なので詰め込む*/
-			p.HP[0] = 1; //life
+			p.HP[0] = 2; //life
 			for (size_t i = 4; i < p.HP.size(); ++i) {
 				p.HP[i] = 100;
 			} //spaceARMER
@@ -257,7 +257,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			fixtureDef.friction = 0.3f;				    /*デフォルトの摩擦をオーバーライドします*/
 			b2BodyDef bodyDef;					    /*ダイナミックボディを定義します。その位置を設定し、ボディファクトリを呼び出します*/
 			bodyDef.type = b2_dynamicBody;				    /**/
-			bodyDef.position.Set(p.mine.pos.x(), p.mine.pos.z());	    /**/
+			bodyDef.position.Set(p.mine.pos.x(), p.mine.pos.z());       /**/
 			bodyDef.angle = p.yrad;					    /**/
 			p.mine.body.reset(world->CreateBody(&bodyDef));		    /**/
 			p.mine.playerfix = p.mine.body->CreateFixture(&fixtureDef); /*シェイプをボディに追加します*/
@@ -365,11 +365,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		selfammo[1] = 0;
 		aim.flug = false; /*照準*/
 		map.flug = false; /*マップ*/
-		rat_aim = 3.f;	  /*照準視点　倍率*/
-		ratio = 1.0f;	  /*カメラ　　倍率*/
-		rat_r = ratio;	  /*カメラ　　実倍率*/
-		aim_r = 100.0f;	  /*照準視点　距離*/
-		waysel = 1;	  /*指揮視点　指揮車両*/
+		rat_aim = 3.f;    /*照準視点　倍率*/
+		ratio = 1.0f;     /*カメラ　　倍率*/
+		rat_r = ratio;    /*カメラ　　実倍率*/
+		aim_r = 100.0f;   /*照準視点　距離*/
+		waysel = 1;       /*指揮視点　指揮車両*/
 		parts->set_viewrad(VGet(0.f, player[0].yrad, 1.f));
 		SetCursorPos(x_r(960), y_r(540));
 		//
@@ -493,6 +493,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						ratio = 1.0f;
 					}
 					map.flug = false;
+				}
+				/*履帯蘇生*/
+				for (auto&& p : player) {
+					if (p.HP[0] > 0)
+						for (size_t i = 5; i <= 6; ++i) {
+							if (p.HP[i] == 0) {
+								p.footfix[i - 5]++;
+								if (p.footfix[i - 5]>=20*frate) {
+									p.footfix[i - 5] = 0;
+									p.HP[i] = 100;
+								}
+							}
+						}
 				}
 				/*死んだときは無効*/
 				if (player[0].HP[0] == 0) {
@@ -811,11 +824,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					}
 					fpsdiff(p.inertiax, p.accel, 0.02f);
 					//vec
-					if (p.HP[5] == 0 || p.HP[6] == 0) { //p.zvec.x()
-						p.vec = p.zvec.Scale(p.ptr->loc[p.ptr->wheelframe[0]].x() * sin(p.yadd) * ((p.HP[5] == 0) - (p.HP[6] == 0)));
-					}
-					else {
-						p.vec = p.zvec.Scale(p.spd);
+					{
+						VECTOR_ref tvect = VGet(0, 0, 0);
+						if (p.HP[5] == 0 || p.HP[6] == 0) { //p.zvec.x()
+							tvect = p.zvec.Scale(p.ptr->loc[p.ptr->wheelframe[0]].x() * sin(p.yadd) * ((p.HP[5] == 0) - (p.HP[6] == 0)));
+						}
+						else {
+							tvect = p.zvec.Scale(p.spd);
+						}
+						p.vec += (tvect - p.vec).Scale(0.05f);
 					}
 					//
 
@@ -875,7 +892,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						if (HitPoly.HitFlag) {
 							p.yace = 0.0f;
 							p.mine.pos = VGet(p.mine.body->GetPosition().x, HitPoly.HitPosition.y, p.mine.body->GetPosition().y);
-							mapparts->set_normal(p.nor, p.mine.pos, frate, fps);
+							mapparts->set_normal(p.nor, p.ps_n, p.mine.pos, frate, fps);
 							/*0.1km/h以内の時かキーを押していないときに減速*/
 							if (((0.1f / 3.6f) / fps) < -p.spd && (p.move & KEY_GOBACK_) == 0 ||					//バック
 							    ((0.1f / 3.6f) / fps) < p.spd && (p.move & KEY_GOFLONT) == 0 ||					//前進
@@ -915,9 +932,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 							    MGetRotAxis(VGet(cos(p.gunrad.x()), 0, -sin(p.gunrad.x())), sin(deg2rad(p.firerad)) * deg2rad(p.ptr->gun_[0].ammosize * 1000 / 75 * 5)),
 							    MGetRotAxis(p.recovec.get(), sin(deg2rad(p.recorad)) * deg2rad(5))),
 							MGetRotX(atan(p.inertiax))),
-						    MMult(
-							MGetRotY(-p.yrad),
-							MGetRotVec2(VGet(0, 1.f, 0), p.nor.get())));
+						    MMult(MGetRotY(-p.yrad), p.ps_n));
 						/*砲塔移動*/
 						p.ps_m = MMult(mat, p.mine.pos.Mtrans());
 						/*砲塔行列*/
@@ -969,32 +984,25 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						}
 					}
 					/*collition*/
+					p.checkhit = false;
 				}
+				/*collition*/
+				for (auto& p : player) {
+					for (size_t guns = 0; guns < gunc; ++guns) {
+						for (auto& c : p.Gun[guns].Ammo) {
+							if (c.flug) {
+								for (auto& t : player) {
+									if (p.id == t.id || (Segment_Point_MinLength(c.pos.get(), c.repos.get(), t.mine.pos.get()) > c.speed) || t.checkhit)
+										continue;
 
-				{
-					//todo : 弾が近くにある時だけ更新するように
-					bool colf = false;
-					for (auto& p : player) {
-						for (size_t guns = 0; guns < gunc; ++guns) {
-							for (auto& c : p.Gun[guns].Ammo) {
-								colf = c.flug;
-								if (colf)
-									break;
+									for (int i = 0; i < t.ptr->colmodel.mesh_num(); ++i)
+										MV1RefreshCollInfo(t.colobj.get(), -1, i);
+									t.checkhit = true;
+								}
 							}
-							if (colf)
-								break;
-						}
-						if (colf)
-							break;
-					}
-					if (colf) {
-						for (auto& p : player) {
-							for (int i = 0; i < p.ptr->colmodel.mesh_num(); ++i)
-								MV1RefreshCollInfo(p.colobj.get(), -1, i);
 						}
 					}
 				}
-
 				for (auto& p : player) {
 					/*反動*/
 					if (p.firerad < 180) {
@@ -1149,9 +1157,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 							//*
 							//砲身
 							cam = player[0].obj.frame(player[0].ptr->gun_[0].gunframe + 1);
-							cam += (player[0].nor * (player[0].obj.frame(player[0].ptr->gun_[0].gunframe + 1) - player[0].obj.frame(player[0].ptr->gun_[0].gunframe))).Norm().Scale(-0.5f);
-
 							view = player[0].obj.frame(player[0].ptr->gun_[0].gunframe);
+							cam += (player[0].nor * (player[0].obj.frame(player[0].ptr->gun_[0].gunframe + 1) - player[0].obj.frame(player[0].ptr->gun_[0].gunframe))).Norm().Scale(-0.5f);
 							view += (player[0].nor * (player[0].obj.frame(player[0].ptr->gun_[0].gunframe + 1) - player[0].obj.frame(player[0].ptr->gun_[0].gunframe))).Norm().Scale(-0.5f);
 							upvec = player[0].nor;
 							ratio = 0.5f;
@@ -1185,7 +1192,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				if (i == -1)
 					i = ammoc - 1;
 				if (p.Gun[0].Ammo[i].flug) {
-					//camflug = true;
+					camflug = true;
 					if (aim.flug)
 						rat_aim = ratio;
 				}
@@ -1248,9 +1255,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				for (auto& p : player) {
 					if (p.id == 0)
 						continue;
-					DrawLine(x2_(p.mine.pos.x()), y2_(p.mine.pos.z()), x2_(p.waypos[p.waynow].x()), y2_(p.waypos[p.waynow].z()), c_ff0000, 3);
-					for (int i = int(p.waynow); i < waypc - 1; ++i)
-						DrawLine(x2_(p.waypos[i].x()), y2_(p.waypos[i].z()), x2_(p.waypos[i + 1].x()), y2_(p.waypos[i + 1].z()), GetColor(255, 255 * i / waypc, 0), 3);
+					if (p.type == TEAM) {
+						DrawLine(x2_(p.mine.pos.x()), y2_(p.mine.pos.z()), x2_(p.waypos[p.waynow].x()), y2_(p.waypos[p.waynow].z()), c_ff0000, 3);
+						for (int i = int(p.waynow); i < waypc - 1; ++i)
+							DrawLine(x2_(p.waypos[i].x()), y2_(p.waypos[i].z()), x2_(p.waypos[i + 1].x()), y2_(p.waypos[i + 1].z()), GetColor(255, 255 * i / waypc, 0), 3);
+					}
+					else {
+						DrawLine(
+						    x2_(p.mine.pos.x()),
+						    y2_(p.mine.pos.z()),
+						    x2_(p.mine.pos.x() + (p.waypos[p.waynow].x() - p.mine.pos.x()) / 5.f),
+						    y2_(p.mine.pos.z() + (p.waypos[p.waynow].z() - p.mine.pos.z()) / 5.f),
+						    c_ff0000, 3);
+					}
 				}
 				for (auto& p : player)
 					DrawCircle(x2_(p.mine.pos.x()), y2_(p.mine.pos.z()), 5, (p.type == TEAM) ? (p.HP[0] == 0) ? c_008000 : c_00ff00 : (p.HP[0] == 0) ? c_800000 : c_ff0000, TRUE);
