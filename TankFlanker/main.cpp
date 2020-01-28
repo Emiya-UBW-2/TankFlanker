@@ -9,20 +9,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	bool camflug;
 	size_t camcnt[2];
 
-	uint8_t way[2];      /*マウストリガー*/
+	uint8_t way[2];	     /*マウストリガー*/
 	uint8_t selfammo[2]; /*弾種変更キー*/
 
 	std::array<bool, 20> keyget; /*キー用(一時監視)*/
 	std::array<bool, 4> keyget2; /*キー用(常時監視)*/
-	bool out{ false };	   /*終了フラグ*/
+	bool out{ false };	     /*終了フラグ*/
 	std::vector<pair> pssort;    /*playerソート*/
 	std::vector<players> player; /*player*/
-	VECTOR_ref aimpos;	   /*照準器座標確保用*/
-	float aimdist{ 0.f };	/*照準距離確保用*/
-	switches aim, map;	   /*視点変更*/
+	VECTOR_ref aimpos;	     /*照準器座標確保用*/
+	float aimdist{ 0.f };	     /*照準距離確保用*/
+	switches aim, map;	     /*視点変更*/
 	float ratio, rat_r, aim_r;   /*カメラ倍率、実倍率、距離*/
 	float rat_aim;		     /*照準視点倍率*/
-	size_t waysel, choose;       /*指揮視点　指揮車両、マウス選択*/
+	size_t waysel, choose;	     /*指揮視点　指揮車両、マウス選択*/
 	float fps;		     /*fps*/
 	LONGLONG waits;		     /*時間取得*/
 	VECTOR_ref cam, view, upvec; /*カメラ*/
@@ -64,7 +64,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			mapc = std::stoi(getright(mstr));
 			FileRead_close(mdata);
 		}
-		const size_t teamc = count_team(stage);   /*味方数*/
+		const size_t teamc = count_team(stage);	  /*味方数*/
 		const size_t enemyc = count_enemy(stage); /*敵数*/
 		player.resize(teamc + enemyc);
 		pssort.resize(teamc + enemyc);
@@ -257,7 +257,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			fixtureDef.friction = 0.3f;				    /*デフォルトの摩擦をオーバーライドします*/
 			b2BodyDef bodyDef;					    /*ダイナミックボディを定義します。その位置を設定し、ボディファクトリを呼び出します*/
 			bodyDef.type = b2_dynamicBody;				    /**/
-			bodyDef.position.Set(p.mine.pos.x(), p.mine.pos.z());       /**/
+			bodyDef.position.Set(p.mine.pos.x(), p.mine.pos.z());	    /**/
 			bodyDef.angle = p.yrad;					    /**/
 			p.mine.body.reset(world->CreateBody(&bodyDef));		    /**/
 			p.mine.playerfix = p.mine.body->CreateFixture(&fixtureDef); /*シェイプをボディに追加します*/
@@ -365,11 +365,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		selfammo[1] = 0;
 		aim.flug = false; /*照準*/
 		map.flug = false; /*マップ*/
-		rat_aim = 3.f;    /*照準視点　倍率*/
-		ratio = 1.0f;     /*カメラ　　倍率*/
-		rat_r = ratio;    /*カメラ　　実倍率*/
-		aim_r = 100.0f;   /*照準視点　距離*/
-		waysel = 1;       /*指揮視点　指揮車両*/
+		rat_aim = 3.f;	  /*照準視点　倍率*/
+		ratio = 1.0f;	  /*カメラ　　倍率*/
+		rat_r = ratio;	  /*カメラ　　実倍率*/
+		aim_r = 100.0f;	  /*照準視点　距離*/
+		waysel = 1;	  /*指揮視点　指揮車両*/
 		parts->set_viewrad(VGet(0.f, player[0].yrad, 1.f));
 		SetCursorPos(x_r(960), y_r(540));
 		//
@@ -407,11 +407,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		}
 		humanparts->start_humanvoice(1);
 		//
-		for (size_t i = 0; i < 20; i++) {
-			VECTOR_ref tempvec = VGet(float(i % 10) * 10, 0, -480.f * ((i < 10) ? 1.f : -1.f));
+		for (size_t i = 0; i < 100; i++) {
+			VECTOR_ref tempvec = VGet(-10 * 5 + float(i % 10) * 10, 0, -480.f * ((i < 50) ? 1.f : -1.f) + float(i / 10) * 10 * ((i < 50) ? 1.f : -1.f));
 			auto HitPoly = mapparts->get_gnd_hit(tempvec + VGet(0.0f, mapparts->get_minsize().y(), 0.0f), tempvec + VGet(0.0f, mapparts->get_maxsize().y(), 0.0f));
 			tempvec = HitPoly.HitPosition;
-			soldierparts->set_soldier((i < 10) ? TEAM : ENEMY, tempvec, (i < 10) ? DX_PI_F : 0.f);
+			soldierparts->set_soldier((i < 50) ? TEAM : ENEMY, tempvec, (i < 50) ? DX_PI_F : 0.f);
 		}
 
 		while (ProcessMessage() == 0) {
@@ -500,7 +500,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						for (size_t i = 5; i <= 6; ++i) {
 							if (p.HP[i] == 0) {
 								p.footfix[i - 5]++;
-								if (p.footfix[i - 5]>=20*frate) {
+								if (p.footfix[i - 5] >= 20 * frate) {
 									p.footfix[i - 5] = 0;
 									p.HP[i] = 100;
 								}

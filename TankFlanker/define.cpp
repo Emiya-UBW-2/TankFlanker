@@ -906,7 +906,6 @@ bool MAPS::set_map_ready() {
 	map_max = MV1GetMeshMaxPosition(m_model.get(), 0);
 
 
-
 	MV1SetupCollInfo(m_model.get(), 0, int((map_max - map_min).x()) / 5, int((map_max - map_min).y()) / 5, int((map_max - map_min).z()) / 5);
 	SetFogStartEnd(10.0f, 1400.0f); /*fog*/
 	SetFogColor(150, 150, 175);     /*fog*/
@@ -1588,9 +1587,11 @@ bool set_shift(players& play) {
 }
 
 SOLDIERS::SOLDIERS(float frates) {
+	using namespace std::literals;
 	f_rate = frates;
 	SetUseASyncLoadFlag(TRUE);
-	model = MV1ModelHandle::Load("data/soldier/model.mv1"); /*兵士*/
+	for (size_t i = 0; i < model.size(); i++)
+		model[i] = MV1ModelHandle::Load("data/soldier/model"s + std::to_string(i) + ".mv1"); /*兵士*/
 	SetUseASyncLoadFlag(FALSE);
 }
 void SOLDIERS::set_camerapos(VECTOR_ref pos, VECTOR_ref vec, VECTOR_ref up, float ratio) {
@@ -1608,7 +1609,7 @@ void SOLDIERS::set_soldier(const uint8_t type, const VECTOR_ref position, const 
 	sol.back().HP = 1;
 	sol.back().useammo = 0;
 	sol.back().waynow = 0;
-	sol.back().obj = model.Duplicate();
+	sol.back().obj = model[GetRand(1)].Duplicate();
 	sol.back().pos = position;
 	std::fill(std::begin(sol.back().waypoint), std::end(sol.back().waypoint), sol.back().pos + VGet(0, 0, (sol.back().type == TEAM) ? 100.f : -100.f));
 	sol.back().yrad = rad;
@@ -1646,7 +1647,7 @@ void SOLDIERS::set_soldiermove(int map, std::vector<players>& play) {
 					}
 					if (s.amine[s.useanime].time == 0.0f) {
 						s.ammo[s.useammo].flug = true;
-						s.ammo[s.useammo].speed = 800 / f_rate;
+						s.ammo[s.useammo].speed = 600 / f_rate;
 						s.ammo[s.useammo].pos = s.pos + VGet(0, 1.3f, 0);
 						s.ammo[s.useammo].repos = s.ammo[s.useammo].pos;
 						s.ammo[s.useammo].cnt = 0;
@@ -1654,8 +1655,8 @@ void SOLDIERS::set_soldiermove(int map, std::vector<players>& play) {
 
 
 						const auto v = sol[s.atkf.value()].pos + VGet(0, 1.3f, 0) - s.ammo[s.useammo].pos;
-						const auto y = atan2(v.x(), v.z()) + deg2rad((float)(GetRand(6000 * 2) - 6000) / 10000.f);
-						const auto x = atan2(-v.y(), std::hypot(v.x(), v.z())) - deg2rad((float)(GetRand(6000 * 2) - 6000) / 10000.f);
+						const auto y = atan2(v.x(), v.z()) + deg2rad((float)(GetRand(10000 * 2) - 10000) / 10000.f);
+						const auto x = atan2(-v.y(), std::hypot(v.x(), v.z())) - deg2rad((float)(GetRand(10000 * 2) - 10000) / 10000.f);
 						s.ammo[s.useammo].vec = VGet(cos(x) * sin(y), -sin(x), cos(x) * cos(y));
 
 						++s.useammo %= ammoc;
@@ -1687,12 +1688,22 @@ void SOLDIERS::set_soldiermove(int map, std::vector<players>& play) {
 					}
 				}
 				if ((s.waypoint[s.waynow] - s.pos).size() > 6.f) {
-
 					VECTOR_ref tempv = (s.waypoint[s.waynow] - s.pos).Norm();
+
+					for (auto& t : sol) {
+						if (t.id == s.id)
+							continue;
+						if ((t.pos - s.pos).size() < 1.f) {
+							tempv = (s.pos - t.pos).Norm();
+							break;
+						}
+					}
+
 					if (((-cos(s.yrad)) * tempv.x() - (-sin(s.yrad)) * tempv.z()) < 0)
 						s.yrad -= deg2rad(120.f) / f_rate;
 					else
 						s.yrad += deg2rad(120.f) / f_rate;
+
 					float spd = ((float(500 + GetRand(1000)) / 100) / 3.6f) / f_rate;
 					s.pos += VGet(-sin(s.yrad) * spd, 0, -cos(s.yrad) * spd);
 					s.useanime = 5;
@@ -1701,7 +1712,7 @@ void SOLDIERS::set_soldiermove(int map, std::vector<players>& play) {
 
 					if (count % 30 == s.id % 30) {
 						for (auto& t : sol) {
-							if (s.type == t.type || s.id == t.id || t.HP == 0 || (s.pos - t.pos).size() > 350)
+							if (s.type == t.type || s.id == t.id || t.HP == 0 || (s.pos - t.pos).size() > 550)
 								continue;
 							const auto hit = MV1CollCheck_Line(map, 0, (s.pos + VGet(0, 1.f, 0)).get(), (t.pos + VGet(0, 1.f, 0)).get());
 							if (!hit.HitFlag) {
@@ -1775,7 +1786,7 @@ void SOLDIERS::set_soldiermove(int map, std::vector<players>& play) {
 				s.amine[j].per *= 0.9f;
 			MV1SetAttachAnimBlendRate(s.obj.get(), s.amine[j].id, s.amine[j].per);
 			MV1SetAttachAnimTime(s.obj.get(), s.amine[j].id, s.amine[j].time);
-			s.amine[j].time += float(15 + GetRand(30)) / f_rate; //
+			s.amine[j].time += 30.f / f_rate; //
 		}
 	}
 }
@@ -1789,16 +1800,16 @@ void SOLDIERS::set_hit(VECTOR_ref pos, VECTOR_ref repos) {
 }
 void SOLDIERS::draw_soldiersammo() {
 	for (auto& s : sol)
-		for (size_t i = 0; i < ammoc; ++i)
+		for (size_t i = 0; i < ammoc; i+=2)
 			if (s.ammo[i].flug) {
-				SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(255.f * std::min<float>(1.f, 4.f * s.ammo[i].speed / (800 / f_rate))));
+				SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(255.f * std::min<float>(1.f, 4.f * s.ammo[i].speed / (600 / f_rate))));
 				DrawCapsule3D(s.ammo[i].pos.get(), s.ammo[i].repos.get(), 0.0075f * ((s.ammo[i].pos - camera).size() / 60.f), 4, s.ammo[i].color, GetColor(255, 255, 255), TRUE);
 			}
 }
 void SOLDIERS::draw_soldiers() {
 	size_t cnt = 0;
 	for (auto& t : sol) {
-		if (CheckCameraViewClip(t.pos.get()))
+		if (CheckCameraViewClip_Box((t.pos - VGet(-0.5f, 0, -0.5f)).get(), (t.pos - VGet(0.5f, 2.0f, 0.5f)).get()) == TRUE || (camera - t.pos).size() > 550)
 			sort[t.id] = pair(t.id, 9999.f);
 		else
 			sort[t.id] = pair(t.id, (t.pos - camera).size());
@@ -1806,7 +1817,7 @@ void SOLDIERS::draw_soldiers() {
 	std::sort(sort.begin(), sort.end(), [](const pair& x, const pair& y) { return x.second < y.second; });
 
 	for (auto& tt : sort) {
-		if (tt.second == 9999.f || cnt++ > 20)
+		if (tt.second == 9999.f || cnt++ >75)
 			break;
 		MV1DrawModel(sol[tt.first].obj.get());
 	}
