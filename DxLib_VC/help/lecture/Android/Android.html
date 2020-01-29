@@ -1,0 +1,321 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="ja-JP">
+	<HEAD>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <TITLE>ＤＸライブラリ置き場　Androidアプリ開発の注意点など</TITLE>
+	<link rel="shortcut icon" href="../../DxLib.ico">
+	<link rel="stylesheet" href="../../style.css" type="text/css">
+	</HEAD>
+	<BODY BGCOLOR="#ffffff" TEXT="#000000" LINK="#0033CC" VLINK="#800040">
+	<div class="NormalFont">
+	<TABLE ALIGN="CENTER" WIDTH=1300  CELLSPACING=0 CELLPADDING=0 >
+		<TR>
+		<TD ALIGN="CENTER">
+		<FONT SIZE="6" COLOR="#000000"><B>
+			Androidアプリ開発の基礎的な情報や注意点など
+		</B></FONT>
+		</TD></TR>
+		<TR><TD>
+		<HR>
+		<FONT SIZE="3" COLOR="#000000"><B>
+		<BR>
+
+		　ここでは Androidアプリ開発に関するの基礎的な情報や注意点などを載せます。<BR><BR>
+
+		<A HREF="#R1">1.Androidアプリで使用するファイルの追加方法<BR><BR></A>
+
+		<A HREF="#R2">2.Androidアプリで使用する文字コードは『UTF-8』であることについて<BR><BR></A>
+
+		<A HREF="#R3">3.Androidアプリのセーブファイルを保存するフォルダーパスについて<BR><BR></A>
+
+		<A HREF="#R4">4.Androidアプリではグローバル変数が 0 で初期化されることを前提としてはいけないことについて<BR><BR></A>
+
+		<A HREF="#R5">5.Androidアプリでは char は符号なし( unsigned )型です<BR><BR></A>
+
+		<A HREF="#R6">6.定義済みマクロ __ANDROID__ を使った Windowsアプリとのプログラムファイルの共有について<BR><BR><BR><BR></A>
+
+		<A NAME="R1">
+		<FONT COLOR="#008800">
+		1.Androidアプリで使用するファイルの追加方法<BR><BR>
+		</FONT>
+		</A>
+
+		 　 　Windowsソフトではソフトで使用する画像ファイルやサウンドファイルは実行ファイルと同じフォルダや、<BR>
+		　　実行ファイルと同じフォルダに置いたフォルダの中に配置したりしますが、Androidアプリはビルドすると<BR>
+		　　<FONT COLOR="#770000">拡張子 apk のファイルにアプリの実行に必要なファイルが全部入る</FONT>仕組みになっているため、<BR>
+		　　Windowsソフトと異なり Androidアプリはアプリ内で使用するファイルを <FONT COLOR="#770000">Androidアプリのプロジェクトに<BR>
+		　　VisualStudio Community 2015 の『ソリューションエクスプローラー』を使用して追加</FONT>する必要があります。<BR><BR>
+
+		　　　以下にその手順を載せます。<BR><BR>
+
+		<FONT COLOR="#550088">
+
+		　　①　VisualStudio Community 2015 で Androidアプリのプロジェクトを開いた状態では、<BR>
+		　　　　<FONT COLOR="#770000">『ソリューションエクスプローラー』</FONT>と書かれているリストには<FONT COLOR="#770000">『(プロジェクト名).Packaging』</FONT>と<BR>
+		　　　　書かれている項目がありますので、そこで右クリックをして表示されるプルダウンメニューから<BR>
+		　　　　<FONT COLOR="#770000">『追加(D)』→『新しいフォルダー(D)』</FONT>を選択して<FONT COLOR="#770000">『(プロジェクト名).Packaging』の下に<BR>
+		　　　　一つフォルダーを追加</FONT>します。<BR><BR>
+
+		　　②　追加したフォルダーは<FONT COLOR="#770000">『新しいフォルダー』</FONT>となっていますので、右クリックして表示される<BR>
+		　　　　プルダウンメニューから<FONT COLOR="#770000">『名前の変更(M)』を選び名前を『assets』に変更</FONT>します。<BR><BR>
+
+		　　③　<FONT COLOR="#770000">『assets』</FONT>フォルダーを右クリックして表示されるプルダウンメニューから<FONT COLOR="#770000">『追加(D)』→『既存の項目(G)』</FONT>を<BR>
+		　　　　選択するとファイルを選択するウインドウが表示されますので、ここでアプリで<FONT COLOR="#770000">使用したい画像ファイルや<BR>
+		　　　　サウンドファイルを選択してから『追加(A)』ボタンをクリック</FONT>して<FONT COLOR="#770000">『assets』フォルダに追加</FONT>します。<BR><BR>
+
+		</FONT>
+
+		　　　以上です、これで<FONT COLOR="#770000">『(プロジェクト名).Packaging』</FONT>の下に作った<FONT COLOR="#770000">『assets』フォルダーに追加したファイルは<BR>
+		　　Androidアプリの apkファイルに含まれる</FONT>ことになり、Androidアプリのプログラム内で <FONT COLOR="#770000">LoadGraph や<BR>
+		　　LoadSoundMem などの関数を使用して読み込めるファイル</FONT>となります。<BR><BR>
+
+		　　あと、<FONT COLOR="#770000">『assets』</FONT>フォルダに含まれるファイルに関する<FONT COLOR="#770000">注意点や補足</FONT>は以下の通りです。<BR><BR><BR>
+
+		　　　　<FONT COLOR="#0000dd">LoadGraph や LoadSoundMem で参照されるフォルダは『assets』フォルダです</FONT><BR><BR>
+
+		　　　　　　つまり<FONT COLOR="#770000">『assets』</FONT>フォルダに<FONT COLOR="#770000">『Test.bmp』</FONT>というファイルを入れた場合、<FONT COLOR="#770000">LoadGraph</FONT> で読み込む際のパスは<BR>
+		　　　　　　<FONT COLOR="#770000">LoadGraph( "Test.bmp" ) ;</FONT> となります。( <FONT COLOR="#770000">LoadGraph( "assets\\Test.bmp" ) ; ではありません</FONT> )<BR><BR>
+
+		　　　　<FONT COLOR="#0000dd">apk ファイルに含めることができるファイルのファイル名で使用できる文字は半角文字の英数字・一部記号文字のみです</FONT><BR><BR>
+
+		　　　　　　<FONT COLOR="#770000">全角文字の英数字・記号・日本語など</FONT>はビルドの際に<FONT COLOR="#770000">『認識できない文字』としてエラー</FONT>になってしまいますので<BR>
+		　　　　　　注意してください。<BR><BR>
+
+		　　　　<FONT COLOR="#0000dd">Windowsソフトと異なり英語の大文字・小文字が区別されます</FONT><BR><BR>
+
+		　　　　　　<FONT COLOR="#770000">Windowsソフト</FONT>では『<FONT COLOR="#770000">Test.bmp</FONT>』というファイルを読み込む際は LoadGraph( "<FONT COLOR="#770000">test.bmp</FONT>" ) ; と記述しても<BR>
+		　　　　　　LoadGraph( "<FONT COLOR="#770000">TEST.BMP</FONT>" ) ; と記述しても正常に読み込むことができますが、<FONT COLOR="#770000">Androidアプリでは大文字と小文字は<BR>
+		　　　　　　区別される</FONT>ので正確に LoadGraph( "<FONT COLOR="#770000">Test.bmp</FONT>" ) ; と記述する必要があります。<BR><BR>
+
+		　　　　<FONT COLOR="#0000dd">ファイルの削除や追加はすべて VisualStudio Community 2015 の『ソリューションエクスプローラー』上で行う必要があります</FONT><BR><BR>
+
+		　　　　　　<FONT COLOR="#770000">『assets』</FONT>フォルダに追加したファイルやフォルダは、プロジェクトの実際のフォルダ内に追加されるため、<BR>
+		　　　　　　Windows標準ソフトの<FONT COLOR="#770000">『エクスプローラー』</FONT>などで確認することができてしまいますが、<BR>
+		　　　　　　<FONT COLOR="#770000">VisualStudio Community 2015 がビルド時に apk ファイルに含めてくれるのはあくまで<BR>
+		　　　　　　VisualStudio Community 2015 内の『ソリューションエクスプローラー』を使用して<BR>
+		　　　　　　追加・削除されたファイル・フォルダのみ</FONT>ですので、<FONT COLOR="#770000">必ず apk ファイルに含めたいファイルの追加や削除は<BR>
+		　　　　　　VisualStudio Community 2015 の『ソリューションエクスプローラー』を使用して行うようにしてください</FONT>。<BR>
+		　　　　　　( <FONT COLOR="#770000">『エクスプローラー』上の『assets』フォルダに直接ファイルやフォルダを追加したり削除したりしても、<BR>
+		　　　　　　　無視されてしまいます</FONT> )<BR><BR>
+
+		　　　　<FONT COLOR="#0000dd">『assets』フォルダに追加したファイルは、コピーが作成されます</FONT><BR><BR>
+
+		　　　　　　つまり、<FONT COLOR="#770000">『assets』</FONT>フォルダに追加したファイルに対して、<FONT COLOR="#770000">追加後に内容を変更しても『assets』フォルダに追加した<BR>
+		　　　　　　ファイルにはその変更は反映されません</FONT>ので、その変更を<FONT COLOR="#770000">『assets』</FONT>フォルダ内のファイルにも反映したい場合は<BR>
+		　　　　　　<FONT COLOR="#770000">一度『ソリューションエクスプローラー』上で『assets』フォルダ内の該当のファイルを削除して、改めてファイルを<BR>
+		　　　　　　『assets』フォルダに追加する操作を行う必要</FONT>があります。<BR><BR>
+
+		　　　　<FONT COLOR="#0000dd">『assets』フォルダに追加したファイル名の大文字・小文字を『ソリューションエクスプローラー』上で変更しても反映されないことがあります</FONT><BR><BR>
+
+		　　　　　　そのため、<FONT COLOR="#770000">『ソリューションエクスプローラー』</FONT>上に表示されている大文字・小文字の通りにファイル名を指定しても<BR>
+		　　　　　　読み込みに失敗することがあります。<BR>
+		　　　　　　このような場合は、<FONT COLOR="#770000">一度『ソリューションエクスプローラー』から該当するファイル・フォルダを削除して、<BR>
+		　　　　　　改めてファイル・フォルダを追加する必要</FONT>があります。<BR><BR><BR><BR>
+
+
+
+		<A NAME="R2">
+		<FONT COLOR="#008800">
+		2.Androidアプリで使用する文字コードは『UTF-8』であることについて<BR><BR>
+		</FONT>
+		</A>
+
+		　　　普段何気なく使用している txt, cpp, h などのテキストファイルは特に指定をせずに保存すると<BR>
+		　　<FONT COLOR="#770000">文字コード『シフトJIS』形式</FONT>で保存されますが、<FONT COLOR="#770000">Androidアプリ</FONT>が対応しているのは<FONT COLOR="#770000">文字コード『UTF-8』形式</FONT>なので、<BR>
+		　　cpp, h などのプログラムソースファイルやアプリ内で使用するテキストファイルを<BR>
+		　　<FONT COLOR="#770000">文字コード『UTF-8』形式</FONT>で保存する必要があります。<BR><BR>
+
+		　　　あと、<FONT COLOR="#770000">『シフトJIS』形式</FONT>の文章データを 1文字単位で扱う処理に慣れている方は<FONT COLOR="#770000">『UTF-8』</FONT>と<FONT COLOR="#770000">『シフトJIS』</FONT>で<BR>
+		　　文字の数値やサイズが異なることにも注意が必要です。<BR><BR>
+
+		　　　というのも、<FONT COLOR="#770000">『シフトJIS』</FONT>では半角文字は <FONT COLOR="#770000">1バイト</FONT>、全角文字は <FONT COLOR="#770000">2バイト</FONT>なのに対し、<FONT COLOR="#770000">『UTF-8』</FONT>では半角文字は同じく<BR>
+		　　<FONT COLOR="#770000">1バイト</FONT>ですが、全角文字は概ね <FONT COLOR="#770000">3バイト</FONT>と、<FONT COLOR="#770000">全角文字のバイト数が異なる</FONT>他、<FONT COLOR="#770000">「全角文字なのか、半角文字なのか」の<BR>
+		　　判別方法も異なる</FONT>からです。<BR>
+		　　( 因みに 1文字のバイト数については、ＤＸライブラリの 1文字のバイト数を取得するための関数『<A HREF="../../function/dxfunc_other.html#R22N2">GetCharBytes</A>』を<BR>
+		　　　使用すると便利です )<BR><BR>
+
+		　　　この他、主に <FONT COLOR="#770000">Windowsアプリ</FONT>を <FONT COLOR="#770000">Androidアプリ</FONT>に<FONT COLOR="#770000">移植</FONT>する際に文字コード関連で必要な作業や、文字コードの詳しい解説を<BR>
+		　　こちらに纏めましたので、よろしければご覧ください。<BR><BR>
+
+		　　『<A HREF="Android_CharCode.html">WindowsアプリとAndroidアプリでは使用する文字コードが異なることについて</A>』<BR><BR><BR><BR>
+
+
+
+		<A NAME="R3">
+		<FONT COLOR="#008800">
+		3.Androidアプリのセーブファイルを保存するフォルダーパスについて<BR><BR>
+		</FONT>
+		</A>
+
+		　　　Androidアプリで RPG のセーブデータや STG のスコアデータを保存したりするフォルダのパスを取得するには<BR>
+		　　Android専用の関数<FONT COLOR="#770000">『GetInternalDataPath』</FONT>を使用します。
+
+<FONT COLOR="#006600" SIZE="4">
+<pre><div class="NormalFont">		// アプリのデータ保存用のフォルダーパスを取得する
+		// PathBuffer      ： フォルダーパスを保存する char 型配列のアドレス
+		// PathBufferBytes ： フォルダーパスを保存する char 型配列のサイズ( バイト単位 )
+		int GetInternalDataPath( char *PathBuffer, int PathBufferBytes ) ;
+</pre>
+</FONT>
+		　　　取得できるフォルダーパスは『<FONT COLOR="#770000">/data/data/com.DxLibTest/files</FONT>』のような文字列となっているので、これを<BR>
+		　　使用して <FONT COLOR="#770000">fopen</FONT> でセーブファイルなどを開く場合は以下のようにします。
+
+<FONT COLOR="#006600" SIZE="4">
+<pre><div class="NormalFont">		FILE *fp ;
+		char FilePath[ 256 ] ;
+
+		// GetInternalDataPath でデータセーブ用のフォルダーパスを取得
+		GetInternalDataPath( FilePath, sizeof( FilePath ) ) ;
+
+		// 『スラッシュ文字 + セーブファイルパス』を文字列の後ろに付ける
+		strcat( FilePath, "/SaveFile.bin" ) ;
+
+		// ファイルを書き込み新規作成( "wb" )で開く( 読み込みの場合は "rb" )
+		fp = fopen( FilePath, "wb" ) ;
+
+		// ファイルが開けたかチェック
+		if( fp != NULL )
+		{
+			// ファイルが開けた
+
+			～～～～
+			fread や fwrite でファイルを読み込み、又は書き込み
+			～～～～
+
+			// ファイルを閉じる
+			fclose( fp ) ;
+		}
+</pre>
+</FONT>
+
+		　　　因みに、この関数で取得できるパスが示すフォルダは Root権限を取得しないと<FONT COLOR="#770000">ファイルエクスプローラーなどの<BR>
+		　　アプリを使用しても中身を閲覧することができないフォルダ</FONT>となっていますので、デバッグ情報やリプレイファイルなど<BR>
+		　　<FONT COLOR="#770000">プレーヤーにも閲覧できるファイルを保存するためのフォルダ</FONT>のパスを取得したい場合は同じく Android専用の関数<BR>
+		　　<FONT COLOR="#770000">『GetExternalDataPath』</FONT>を使用します。
+
+<FONT COLOR="#006600" SIZE="4">
+<pre><div class="NormalFont">		// アプリの外部データ保存用のフォルダーパスを取得する
+		// PathBuffer      ： フォルダーパスを保存する char 型配列のアドレス
+		// PathBufferBytes ： フォルダーパスを保存する char 型配列のサイズ( バイト単位 )
+		int GetExternalDataPath( char *PathBuffer, int PathBufferBytes ) ;
+</pre>
+</FONT>
+		　　　取得できるフォルダーパスは『<FONT COLOR="#770000">/storage/sdcard/Android/data/com.DxLibTest/files</FONT>』のような文字列で、<BR>
+		　　このパス通りの位置にあるフォルダ内に作成したファイルは<FONT COLOR="#770000">ファイルエクスプローラー</FONT>などのアプリで閲覧することができます。<BR><BR><BR><BR>
+
+
+		<A NAME="R4">
+		<FONT COLOR="#008800">
+		4.Androidアプリではグローバル変数が 0 で初期化されることを前提としてはいけないことについて<BR><BR>
+		</FONT>
+		</A>
+
+		　　　<FONT COLOR="#770000">Windowsアプリ</FONT>ではプログラム起動直後はグローバル変数は <FONT COLOR="#770000">0 で初期化されています</FONT>が、<FONT COLOR="#770000">Androidアプリ</FONT>では<BR>
+		　　<FONT COLOR="#770000">0 で初期化されているとは限りません</FONT>、何故なら<FONT COLOR="#770000">アプリを終了してもメモリが解放されず、同じアプリを起動した<BR>
+		　　際に同じメモリ領域が初期化されずに使い回されることがある</FONT>からです。<BR><BR>
+
+		　　　なので、グローバル変数は『<FONT COLOR="#770000">前回プログラムを動作させたときに最後に代入した値</FONT>』が入っている可能性が<BR>
+		　　ありますので、<FONT COLOR="#770000">『プログラム起動時にグローバル変数は必ず 0 で初期化されている』ことを前提としたプログラムは<BR>
+		　　組まないように注意</FONT>してください。<BR><BR><BR><BR>
+
+
+		<A NAME="R5">
+		<FONT COLOR="#008800">
+		5.Androidアプリでは char は符号なし( unsigned )型です<BR><BR>
+		</FONT>
+		</A>
+
+		　　　<FONT COLOR="#770000">Windowsアプリ</FONT>では <FONT COLOR="#770000">char 型</FONT>は、<FONT COLOR="#770000">char c ;</FONT> のように記述すると<FONT COLOR="#770000">符号あり( signed )型</FONT>になり、<BR>
+		　　持てる値は <FONT COLOR="#770000">-128 ～ 127</FONT> となりますが、<FONT COLOR="#770000">Androidアプリ</FONT>では同じように <FONT COLOR="#770000">char c ;</FONT> と記述しても<FONT COLOR="#770000">符号なし( unsigned )型</FONT>になり、<BR>
+		　　持てる値は <FONT COLOR="#770000">0 ～ 255</FONT> となります。<BR><BR>
+
+		　　　何故かというと、もともと char 型は、<FONT COLOR="#770000">char とだけ記述した場合に符号あり( signed )型になるか符号なし( unsigned )型に<BR>
+		　　なるかは決まっておらず</FONT>、たまたま <FONT COLOR="#770000">Windows環境では符号あり</FONT>となっていて、たまたま <FONT COLOR="#770000">Android環境では符号なし</FONT>となっているからです。<BR><BR>
+
+		　　　ただ、Androidアプリでも <FONT COLOR="#770000">signed char c ;</FONT> のように、<FONT COLOR="#770000">char</FONT> の前に <FONT COLOR="#770000">signed</FONT> を記述して<FONT COLOR="#770000">『符号ありの char 型である！』</FONT>と明記すれば<BR>
+		　　符号ありの char型となりますので、もし char 型変数を文字を代入する変数としてではなく、値を代入する変数として使用する場合は<BR>
+		　　<FONT COLOR="#770000">signed char</FONT> や <FONT COLOR="#770000">unsigned char</FONT> のように <FONT COLOR="#770000">char の前に符号の有り無しを明記</FONT>するようにしてください。<BR><BR><BR><BR>
+
+
+
+		<A NAME="R6">
+		<FONT COLOR="#008800">
+		6.定義済みマクロ __ANDROID__ を使った Windowsアプリとのプログラムファイルの共有について<BR><BR>
+		</FONT>
+		</A>
+
+		　　　Androidアプリの cpp ファイルをコンパイルする際は、特に指定が無くても『<FONT COLOR="#770000">__ANDROID__</FONT>』というマクロが<BR>
+		　　定義されていますので、これを使って Windowsアプリと Androidアプリで<FONT COLOR="#770000">ソースファイルを共有</FONT>することができます。<BR><BR>
+
+		　　　例えば、プログラムのエントリーポイントは Windowsアプリの場合は <FONT COLOR="#770000">WinMain</FONT>関数、Androidアプリは <FONT COLOR="#770000">android_main</FONT>関数<BR>
+		　　なので、これを『<FONT COLOR="#770000">__ANDROID__</FONT>』が定義されているかどうかで以下のようにコンパイルされるコードを分ければ<BR>
+		　　Windowsアプリでも Androidアプリでも使用できる cpp ファイルになります。<BR>
+
+<FONT COLOR="#006600" SIZE="4">
+<pre><div class="NormalFont">	#include "DxLib.h"
+
+	<FONT COLOR="#770000">#ifdef __ANDROID__</FONT>
+	// Android版のコンパイルだったら android_main
+	int android_main( void )
+	<FONT COLOR="#770000">#else</FONT>
+	// Windows版のコンパイルだったら WinMain
+	int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+	<FONT COLOR="#770000">#endif</FONT>
+	{
+		int GrHandle ;
+
+	<FONT COLOR="#770000">#ifndef __ANDROID__</FONT>
+		// Windows版のコンパイルだったら ChangeWindowMode を実行する
+		ChangeWindowMode( TRUE ) ;
+	<FONT COLOR="#770000">#endif</FONT>
+
+		// ＤＸライブラリ初期化処理
+		if( DxLib_Init() == -1 )
+		{
+			// エラーが起きたら直ちに終了
+			 return -1 ;
+		}
+
+		// ＢＭＰ画像の読み込み
+		GrHandle = LoadGraph( "test1.bmp" ) ;
+
+		// 描画先を裏画面に変更
+		SetDrawScreen( DX_SCREEN_BACK ) ;
+		
+		// 背景色をグレーに変更
+		SetBackgroundColor( 128, 128, 128 ) ;
+
+		// メインループ
+		while( ProcessMessage() == 0 )
+		{
+			// 画面をクリア
+			ClearDrawScreen() ;
+			
+			// ＢＭＰ画像の描画
+			DrawGraph( 0, 0, GrHandle, TRUE ) ;
+
+			// 裏画面の内容を表画面に反映
+			ScreenFlip() ;
+		}
+
+		// ＤＸライブラリ使用の終了処理
+		DxLib_End() ;
+
+		// ソフトの終了
+		return 0 ;
+	}
+</pre>
+</FONT>
+
+
+		<BR><BR>
+
+		<HR>
+		<A HREF="../../dxtec.html">戻る</A>
+
+		</B></FONT>
+		</TD></TR>
+	</TABLE>
+	</div>
+	</BODY>
+</HTML>

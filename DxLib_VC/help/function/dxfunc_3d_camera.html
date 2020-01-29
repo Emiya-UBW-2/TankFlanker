@@ -1,0 +1,1588 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="ja-JP">
+    <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <link rel="shortcut icon" href="../DxLib.ico">
+    <link rel="stylesheet" href="../style.css" type="text/css">
+    <title>ＤＸライブラリ置き場　３Ｄ関係関数リファレンスページ</title>
+    </head>
+    <body bgcolor="#ffffff" text="#000000" link="#0033CC" vlink="#800040">
+    <div class="NormalFont">
+    <table align="center" width="600" cellspacing="0" cellpadding="0" >
+
+        <tr><td><font size="3" color="#005500"><b>カメラ関数</b><br><br></font></td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R12N1">宣言</a></b></td><td><font color="#000088"><b>int SetCameraNearFar( float Near, float Far ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>カメラの 手前クリップ距離と 奥クリップ距離を設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            float Near ： 手前( Near )クリップ距離( 0.0f より大きく Farより小さな値 )<br>
+            float Far ： 奥( Far )クリップ距離( Nearより大きな値 )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　３Ｄ空間に何かを描画する際に、カメラからどれだけ離れたところ( Near )から、
+                    どこまで( Far )のものを描画するかを設定します。<br><br>
+
+                    　この関数の設定値はかなり重要で、Ｚバッファの精度にも関わってきますので使用する３Ｄ空間の範囲に合わせて適切な値を設定する必要があります。<br>
+                    　例えば人間モデル１つの大きさが 200.0f くらいで大体画面奥方向に 10000.0f くらいまで移動して、
+                    背景は画面奥方向に 15000.0f くらいまで存在して、かつカメラから 100.0f より近くに来たら見えないようにしたい場合は<br>
+<pre><div class="NormalFont">SetCameraNearFar( 100.0f, 15000.0f ) ;
+</div></pre>
+                    　とします。<br><br>
+
+                    　人間モデル一つの大きさがもっと小さく、1.0f くらいで、背景モデルも画面奥方向に 150.0f くらいまで描画できればよい場合は<br> 
+<pre><div class="NormalFont">SetCameraNearFar( 1.0f, 150.0f ) ;
+</div></pre>
+                    　とします。<br><br>
+
+                    　因みに、Ｚバッファの仕様の関係で Far の設定値も重要ですが Near の設定値はより重要で、
+                    例えば「なるべくカメラに近くても描画したい」という考えから
+<pre><div class="NormalFont">SetCameraNearFar( 0.00001f, 15000.0f ) ;
+</div></pre>
+                    　としてしまったりすると大変です、環境によってはカメラから 100.0f 以上離れると描画されなくなったりします。<br>
+                    　なので、Near の値は不都合が無い範囲でなるべく大きな値を、Far の値は描画したい最奥のモノのより少し大きな値を設定するようにしてください。<br><br>
+
+                    ＜注意＞なお、この関数の設定は<b><a href="dxfunc_graph3.html#R4N6">SetDrawScreen</a></b>、<b><a href="dxfunc_graph3.html#R4N1">SetGraphMode</a></b>、<b><a href="dxfunc_other.html#R11N1">ChangeWindowMode</a></b> のいずれかを使用したときにリセットされます。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+                
+            　　モデルファイル SimpleModel.mqo を画面奥方向に座標をずらして８つ描画して、<br>
+            　方向キーの上下で Far の値を、左右で Near の値を変更できるサンプルプログラムです。<br>
+            　　クリップ値を変更することで描画される範囲が変わるのが分かります。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle, i ;
+    float Near, Far ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // モデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "SimpleModel.mqo" ) ;
+
+    // Near Far 値の初期化
+    Near = 100.0f ;
+    Far = 2000.0f ;
+
+    // 描画先を裏画面にする
+    <b><a href="dxfunc_graph3.html#R4N6">SetDrawScreen</a></b>( DX_SCREEN_BACK ) ;
+
+    // ＥＳＣキーが押されるかウインドウが閉じられるまでループ
+    while( <b><a href="../dxfunc.html#R1N3">ProcessMessage</a></b>() == 0 &amp;&amp; <b><a href="dxfunc_input.html#R5N2">CheckHitKey</a></b>( KEY_INPUT_ESCAPE ) == 0 )
+    {
+        // 画面をクリア
+        <b><a href="dxfunc_graph3.html#R4N4">ClearDrawScreen</a></b>() ;
+
+        // 上下のキー入力で Far を操作
+        if( CheckHitKey( KEY_INPUT_UP ) == 1 )
+        {
+            Far += 20.0f ;
+        }
+        if( CheckHitKey( KEY_INPUT_DOWN ) == 1 )
+        {
+            Far -= 20.0f ;
+        }
+
+        // 左右のキーで Near を操作
+        if( CheckHitKey( KEY_INPUT_LEFT ) == 1 )
+        {
+            Near -= 20.0f ;
+        }
+        if( CheckHitKey( KEY_INPUT_RIGHT ) == 1 )
+        {
+            Near += 20.0f ;
+        }
+
+        // Near の値が 0.0f 以下になっていたら補正
+        if( Near <= 0.0f ) Near = 10.0f ;
+
+        // Far の値が Near より小さくなっていたら補正
+        if( Far <= Near ) Far = Near + 10.0f ;
+
+        // Near, Far クリップの距離を設定
+        SetCameraNearFar( Near, Far ) ; 
+
+        // モデルを距離を変えて８個描画
+        for( i = 0 ; i &lt; 8 ; i ++ )
+        {
+            // モデルの座標を設定
+            <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, 180.0f, 100.0f + i * 400.0f ) ) ;
+
+            // モデルの描画
+            <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+        }
+
+        // 画面左上に Near の値と Far の値を描画
+        <b><a href="dxfunc_graph2.html#R17N20">DrawFormatString</a></b>( 0, 0, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255,255,255 ), "Near %f  Far %f", Near, Far ) ;
+
+        // 裏画面の内容を表画面に反映
+        <b><a href="dxfunc_graph3.html#R4N7">ScreenFlip</a></b>() ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R12N2">宣言</a></b></td><td><font color="#000088"><b>int SetCameraPositionAndTarget_UpVecY( VECTOR Position, VECTOR Target ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>カメラの視点、注視点を設定する( 上方向はＹ軸から算出 )<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            VECTOR Position ： カメラの位置<br>
+            VECTOR Target ： カメラの注視点( 見ている座標 )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　３Ｄソフトと言えば視点がグリグリ変わります、
+                    この関数はその視点の位置と見ているものを指定する関数です。<br><br>
+                    
+                    　カメラの姿勢は、視点、注視点と、あとカメラの上方向があれば決まりますが、
+                    この関数はカメラの上方向をＹ軸のプラス方向を基本的なカメラの上方向として姿勢を算出します。<br><br>
+
+                    　因みに、ＤＸライブラリでは初期状態では視点の位置が x = 320.0f, y = 240.0f, z = ( 画面のサイズによって変化 )、
+                    注視点の位置は x = 320.0f, y = 240.0f, z = 1.0f、カメラの上方向は x = 0.0f, y = 1.0f, z = 0.0f、
+                    つまり画面のＸＹ平面上の中心に居てＺ軸のプラス方向を見るようなカメラになっています。<br><br>
+
+                    　引数 Position と引数 Target は float x, y, z の三つのメンバ変数を持っている構造体 VECTOR で、
+                    この３要素を使用して３次元の座標を指定します。<br>
+                    　引数が構造体だと事前に引数に渡す構造体を宣言してメンバ変数に座標値を代入して・・・と準備が面倒ですが、
+                    引数に x, y, z の値を渡すとそれを元にした VECTOR 構造体を戻り値で返してくれる関数 <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b> を使用することで簡素に引数を渡すことができます。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+                
+            　　モデルファイル SimpleModel.mqo を原点に描画した状態で、カメラの位置を方向キーで<br>
+            　操作できるようにしたサンプルプログラムです。<br>
+                 カメラは常に原点を注視点としていますのでモデルは常に画面中心に表示されますが、<br>
+            　キー入力によって見える角度が変わります。
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+    VECTOR CameraPos ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // モデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "SimpleModel.mqo" ) ;
+
+    // 描画先を裏画面にする
+    <b><a href="dxfunc_graph3.html#R4N6">SetDrawScreen</a></b>( DX_SCREEN_BACK ) ;
+
+    // カメラの座標を初期化
+    CameraPos.x = 0.0f ;
+    CameraPos.y = 0.0f ;
+    CameraPos.z = -800.0f ;
+
+    // ＥＳＣキーが押されるかウインドウが閉じられるまでループ
+    while( <b><a href="../dxfunc.html#R1N3">ProcessMessage</a></b>() == 0 &amp;&amp; <b><a href="dxfunc_input.html#R5N2">CheckHitKey</a></b>( KEY_INPUT_ESCAPE ) == 0 )
+    {
+        // 画面をクリア
+        <b><a href="dxfunc_graph3.html#R4N4">ClearDrawScreen</a></b>() ;
+
+        // 方向キーでカメラの座標を移動
+        if( CheckHitKey( KEY_INPUT_UP ) == 1 )
+        {
+            CameraPos.y += 20.0f ;
+        }
+        if( CheckHitKey( KEY_INPUT_DOWN ) == 1 )
+        {
+            CameraPos.y -= 20.0f ;
+        }
+        if( CheckHitKey( KEY_INPUT_LEFT ) == 1 )
+        {
+            CameraPos.x -= 20.0f ;
+        }
+        if( CheckHitKey( KEY_INPUT_RIGHT ) == 1 )
+        {
+            CameraPos.x += 20.0f ;
+        }
+
+        // カメラの位置と注視点をセット、注視点は原点
+        <b><a href="dxfunc_3d_camera.html#R12N2">SetCameraPositionAndTarget_UpVecY</a></b>( CameraPos, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 0.0f, 0.0f, 0.0f ) ) ;
+
+        // モデルの描画
+        <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+        // 裏画面の内容を表画面に反映
+        <b><a href="dxfunc_graph3.html#R4N7">ScreenFlip</a></b>() ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+        
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R12N3">宣言</a></b></td><td><font color="#000088"><b>int SetCameraPositionAndTargetAndUpVec( VECTOR Position, VECTOR Target, VECTOR Up ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>カメラの視点、注視点、上方向を設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            VECTOR Position ： カメラの位置<br>
+            VECTOR Target ： カメラの注視点( 見ている座標 )<br>
+            VECTOR Up ： カメラの上方向
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　３Ｄソフトと言えば視点がグリグリ変わります、
+                    この関数はその視点の位置と注視点とカメラの上方向を指定する関数です。
+                    ( カメラの姿勢は、視点、注視点と、カメラの上方向があれば決まります )<br><br>
+
+                    　因みに、ＤＸライブラリでは初期状態では視点の位置が x = 320.0f, y = 240.0f, z = ( 画面のサイズによって変化 )、注視点の位置は x = 320.0f, y = 240.0f, z = 1.0f、カメラの上方向は x = 0.0f, y = 1.0f, z = 0.0f、
+                    つまり画面のＸＹ平面上の中心に居てＺ軸のプラス方向を見るようなカメラになっています。<br><br>
+
+                    　引数 Position と引数 Target は float x, y, z の三つのメンバ変数を持っている構造体 VECTOR で、
+                    この３要素を使用して３次元の座標を指定します。<br>
+                    　引数が構造体だと事前に引数に渡す構造体を宣言してメンバ変数に座標値を代入して・・・と準備が面倒ですが、
+                    引数に x, y, z の値を渡すとそれを元にした VECTOR 構造体を戻り値で返してくれる関数 <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b> を使用することで簡素に引数を渡すことができます。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+                
+            　　モデルファイル SimpleModel.mqo を原点に配置して、左右キーでそのモデルを見ている<br>
+            　カメラの上の方向を回転できるようにしたサンプルプログラムです。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+#include &lt;math.h&gt;
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+    float Roll ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // モデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "SimpleModel.mqo" ) ;
+
+    // 描画先を裏画面にする
+    <b><a href="dxfunc_graph3.html#R4N6">SetDrawScreen</a></b>( DX_SCREEN_BACK ) ;
+
+    // カメラの視線の回転値を初期化
+    Roll = 0.0f ;
+
+    // ＥＳＣキーが押されるかウインドウが閉じられるまでループ
+    while( <b><a href="../dxfunc.html#R1N3">ProcessMessage</a></b>() == 0 &amp;&amp; <b><a href="dxfunc_input.html#R5N2">CheckHitKey</a></b>( KEY_INPUT_ESCAPE ) == 0 )
+    {
+        // 画面をクリア
+        <b><a href="dxfunc_graph3.html#R4N4">ClearDrawScreen</a></b>() ;
+
+        // 左右キーでカメラの回転値を変更
+        if( CheckHitKey( KEY_INPUT_LEFT ) == 1 )
+        {
+            Roll -= DX_PI_F / 60.0f ;
+        }
+        if( CheckHitKey( KEY_INPUT_RIGHT ) == 1 )
+        {
+            Roll += DX_PI_F / 60.0f ;
+        }
+
+        // カメラの位置と注視点をセット
+        // 視点はＺ軸のマイナス800の位置
+        // 注視点は原点
+        // 上方向は Roll の値から算出
+        SetCameraPositionAndTargetAndUpVec( 
+            <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 0.0f, 0.0f, -800.0f ),
+            VGet( 0.0f, 0.0f, 0.0f ),
+            VGet( sin( Roll ), cos( Roll ), 0.0f ) ) ;
+
+        // モデルの描画
+        <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+        // 裏画面の内容を表画面に反映
+        <b><a href="dxfunc_graph3.html#R4N7">ScreenFlip</a></b>() ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+        
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R12N4">宣言</a></b></td><td><font color="#000088"><b>int SetCameraPositionAndAngle( VECTOR Position, float VRotate, float HRotate, float TRotate ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>カメラの視点、垂直回転角度、水平回転角度、捻り回転角度を設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            VECTOR Position ： カメラの位置<br>
+            float VRotate ： 垂直回転角度( 単位：ラジアン )<br>
+            float HRotate ： 水平回転角度( 単位：ラジアン )<br>
+            float TRotate ： 捻り回転角度( 単位：ラジアン )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　３Ｄソフトと言えば視点がグリグリ変わります、
+                    この関数は視点の位置と垂直回転角度、水平回転角度、捻り回転角度でカメラの位置を向きを設定する関数です。<br><br>
+                        
+                    　例えばカメラが見ている方向を上下( 垂直 )方向に変えたい場合は VRotate の値を変化させて、
+                    左右( 水平 )方向に変えたい場合は HRotate の値を変化させて、
+                    見ている方向に捻りを加えたい場合は TRotate の値を変化させて、といった感じです。<br><br>
+
+                    　引数 Position は float x, y, z の三つのメンバ変数を持っている構造体 VECTOR で、
+                    この３要素を使用して３次元の座標を指定します。<br>
+                    　引数が構造体だと事前に引数に渡す構造体を宣言してメンバ変数に座標値を代入して・・・と準備が面倒ですが、
+                    引数に x, y, z の値を渡すとそれを元にした VECTOR 構造体を戻り値で返してくれる関数 <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b> を使用することで簡素に引数を渡すことができます。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            
+                カメラの向きを上下左右キーで変えられるようにしたサンプルです。<br>
+            　　回転していることを確認できるようにモデルファイル SimpleModel.mqo をカメラを囲むように<br>
+            　４個描画しています。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+    float VRotate, HRotate, TRotate ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // モデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "SimpleModel.mqo" ) ;
+
+    // 描画先を裏画面にする
+    <b><a href="dxfunc_graph3.html#R4N6">SetDrawScreen</a></b>( DX_SCREEN_BACK ) ;
+
+    // カメラの回転値を初期化
+    VRotate = 0.0f ;
+    HRotate = 0.0f ;
+    TRotate = 0.0f ;
+
+    // ＥＳＣキーが押されるかウインドウが閉じられるまでループ
+    while( <b><a href="../dxfunc.html#R1N3">ProcessMessage</a></b>() == 0 &amp;&amp; <b><a href="dxfunc_input.html#R5N2">CheckHitKey</a></b>( KEY_INPUT_ESCAPE ) == 0 )
+    {
+        // 画面をクリア
+        <b><a href="dxfunc_graph3.html#R4N4">ClearDrawScreen</a></b>() ;
+
+        // 左シフトキーを押しているかどうかで処理を分岐
+        if( CheckHitKey( KEY_INPUT_LSHIFT ) == 1 )
+        {
+            // 左右キーでカメラの捻り方向回転値を変更
+            if( CheckHitKey( KEY_INPUT_LEFT ) == 1 )
+            {
+                TRotate -= DX_PI_F / 60.0f ;
+            }
+            if( CheckHitKey( KEY_INPUT_RIGHT ) == 1 )
+            {
+                TRotate += DX_PI_F / 60.0f ;
+            }
+        }
+        else
+        {
+            // 左右キーでカメラの水平方向回転値を変更
+            if( CheckHitKey( KEY_INPUT_LEFT ) == 1 )
+            {
+                HRotate -= DX_PI_F / 60.0f ;
+            }
+            if( CheckHitKey( KEY_INPUT_RIGHT ) == 1 )
+            {
+                HRotate += DX_PI_F / 60.0f ;
+            }
+        }
+
+        // 上下キーでカメラの垂直方向回転値を変更
+        if( CheckHitKey( KEY_INPUT_UP ) == 1 )
+        {
+            VRotate += DX_PI_F / 60.0f ;
+        }
+        if( CheckHitKey( KEY_INPUT_DOWN ) == 1 )
+        {
+            VRotate -= DX_PI_F / 60.0f ;
+        }
+
+        // カメラの位置と回転値をセット、カメラの位置は原点
+        SetCameraPositionAndAngle( <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 0.0f, 0.0f, 0.0f ), VRotate, HRotate, TRotate ) ;
+
+        // モデルをカメラを囲むように４個描画
+        <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, VGet( 0.0f, 0.0f, 800.0f ) ) ;
+        <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+        MV1SetPosition( ModelHandle, VGet( 0.0f, 0.0f, -800.0f ) ) ;
+        MV1DrawModel( ModelHandle ) ;
+
+        MV1SetPosition( ModelHandle, VGet( 800.0f, 0.0f, 0.0f ) ) ;
+        MV1DrawModel( ModelHandle ) ;
+
+        MV1SetPosition( ModelHandle, VGet( -800.0f, 0.0f, 0.0f ) ) ;
+        MV1DrawModel( ModelHandle ) ;
+
+        // 裏画面の内容を表画面に反映
+        <b><a href="dxfunc_graph3.html#R4N7">ScreenFlip</a></b>() ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+        
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R12N5">宣言</a></b></td><td><font color="#000088"><b>int SetCameraViewMatrix( MATRIX ViewMatrix ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>ビュー行列を直接設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            MATRIX ViewMatrix ： ビュー行列
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　<b><a href="dxfunc_3d_camera.html#R12N2">SetCameraPositionAndTarget_UpVecY</a></b> などの関数を使用せずに直接ビュー行列を設定したいときに使用する関数です。<br><br>
+                    
+                    　SetCameraPositionAndTarget_UpVecY などの関数を使用する場合は使用しません。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            
+                カメラの向きを左右キーで変えられるようにしたサンプルです。<br>
+            　　回転していることを確認できるようにモデルファイル SimpleModel.mqo をカメラを囲むように<br>
+            　４個描画しています。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+    float Rotate ;
+    MATRIX Matrix ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // モデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "SimpleModel.mqo" ) ;
+
+    // 描画先を裏画面にする
+    <b><a href="dxfunc_graph3.html#R4N6">SetDrawScreen</a></b>( DX_SCREEN_BACK ) ;
+
+    // カメラの回転値を初期化
+    Rotate = 0.0f ;
+
+    // ＥＳＣキーが押されるかウインドウが閉じられるまでループ
+    while( <b><a href="../dxfunc.html#R1N3">ProcessMessage</a></b>() == 0 &amp;&amp; <b><a href="dxfunc_input.html#R5N2">CheckHitKey</a></b>( KEY_INPUT_ESCAPE ) == 0 )
+    {
+        // 画面をクリア
+        <b><a href="dxfunc_graph3.html#R4N4">ClearDrawScreen</a></b>() ;
+
+        // 左右キーでカメラの回転値を変更
+        if( CheckHitKey( KEY_INPUT_LEFT ) == 1 )
+        {
+            Rotate -= DX_PI_F / 60.0f ;
+        }
+        if( CheckHitKey( KEY_INPUT_RIGHT ) == 1 )
+        {
+            Rotate += DX_PI_F / 60.0f ;
+        }
+
+        // 回転値を使用してＹ軸の回転行列を作成
+        Matrix = <b><a href="dxfunc_3d_math.html#R11N18">MGetRotY</a></b>( Rotate ) ;
+
+        // 回転行列をビュー行列としてセット
+        SetCameraViewMatrix( Matrix ) ;
+
+        // モデルをカメラを囲むように４個描画
+        <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 0.0f, 0.0f, 800.0f ) ) ;
+        <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+        MV1SetPosition( ModelHandle, VGet( 0.0f, 0.0f, -800.0f ) ) ;
+        MV1DrawModel( ModelHandle ) ;
+
+        MV1SetPosition( ModelHandle, VGet( 800.0f, 0.0f, 0.0f ) ) ;
+        MV1DrawModel( ModelHandle ) ;
+
+        MV1SetPosition( ModelHandle, VGet( -800.0f, 0.0f, 0.0f ) ) ;
+        MV1DrawModel( ModelHandle ) ;
+
+        // 裏画面の内容を表画面に反映
+        <b><a href="dxfunc_graph3.html#R4N7">ScreenFlip</a></b>() ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+        
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R12N6">宣言</a></b></td><td><font color="#000088"><b>int SetupCamera_Perspective( float Fov ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>遠近法カメラをセットアップする<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            float Fov ： 視野角( 単位：ラジアン )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　カメラを遠近法を使用したものにします。<br>
+                    　遠近法を使用したカメラはカメラから遠い物ほど小さく見えるので、
+                    現実での立体空間の見え方に一番近い表示法です。( ＤＸライブラリの初期設定は遠近法です )<br><br>
+                        
+                    　引数の Fov は視野角で値が大きければ大きいほど視野が広くなります、初期設定では 60度( ラジアンでは約 1.0472 )です。<br><br>
+
+                    　尚、この関数と <b><a href="dxfunc_3d_camera.html#R12N7">SetupCamera_Ortho</a></b> や <b><a href="dxfunc_3d_camera.html#R12N8">SetupCamera_ProjectionMatrix</a></b> はそれぞれ排他関係にありますので注意してください。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            
+                カメラの視野角を左右キーで変えられるようにしたサンプルです。<br>
+            　　視野角が変化していることを確認できるようにモデルファイル SimpleModel.mqo をカメラの前方に<br>
+            　３個描画しています。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+    float Fov ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // モデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "SimpleModel.mqo" ) ;
+
+    // 描画先を裏画面にする
+    <b><a href="dxfunc_graph3.html#R4N6">SetDrawScreen</a></b>( DX_SCREEN_BACK ) ;
+
+    // 視野角を初期化
+    Fov = 60.0f ;
+
+    // ＥＳＣキーが押されるかウインドウが閉じられるまでループ
+    while( <b><a href="../dxfunc.html#R1N3">ProcessMessage</a></b>() == 0 &amp;&amp; <b><a href="dxfunc_input.html#R5N2">CheckHitKey</a></b>( KEY_INPUT_ESCAPE ) == 0 )
+    {
+        // 画面をクリア
+        <b><a href="dxfunc_graph3.html#R4N4">ClearDrawScreen</a></b>() ;
+
+        // 左右キーで視野角の値を変更
+        if( CheckHitKey( KEY_INPUT_LEFT ) == 1 )
+        {
+            Fov -= 2.0f ;
+        }
+        if( CheckHitKey( KEY_INPUT_RIGHT ) == 1 )
+        {
+            Fov += 2.0f ;
+        }
+
+        // 視野角が 8.0f 以下になったら補正
+        if( Fov < 8.0f ) Fov = 8.0f ;
+
+        // 視野角が 170.0f 以上になったら補正
+        if( Fov > 170.0f ) Fov = 170.0f ;
+
+        // 遠近法のセットアップ( ラジアン値に変換しています )
+        <b><a href="dxfunc_3d_camera.html#R12N6">SetupCamera_Perspective</a></b>( Fov * DX_PI_F / 180.0f ) ;
+
+        // カメラの前方にモデルを３個描画
+        <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( -1400.0f + 320.0f, 240.0f, 0.0f ) ) ;
+        <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+        MV1SetPosition( ModelHandle, VGet(     0.0f + 320.0f, 240.0f, 0.0f ) ) ;
+        MV1DrawModel( ModelHandle ) ;
+
+        MV1SetPosition( ModelHandle, VGet(  1400.0f + 320.0f, 240.0f, 0.0f ) ) ;
+        MV1DrawModel( ModelHandle ) ;
+
+        // 裏画面の内容を表画面に反映
+        <b><a href="dxfunc_graph3.html#R4N7">ScreenFlip</a></b>() ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R12N7">宣言</a></b></td><td><font color="#000088"><b>int SetupCamera_Ortho( float Size ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>正射影カメラをセットアップする<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            float Size ： 画面垂直方向の表示範囲
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　カメラを正射影法を使用したものにします。<br>
+                    　正射影を使用したカメラはカメラから遠い物ものでも近いものでも同じ大きさに見えます、
+                    現実での立体空間の見え方は遠くの物ほど小さく見えるので、
+                    少し不思議な見え方になります。<br><br>
+                        
+                    　引数の Size は画面の下端から上端の間に表示される空間の範囲です、
+                    値が大きければ大きいほど沢山の範囲が画面内に映ります。<br><br>
+
+                    　尚、この関数と <b><a href="dxfunc_3d_camera.html#R12N6">SetupCamera_Perspective</a></b> や <b><a href="dxfunc_3d_camera.html#R12N8">SetupCamera_ProjectionMatrix</a></b> はそれぞれ排他関係にありますので注意してください。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            
+                表示方式を正射影に変えてからカメラの前方に奥行き値の違うモデルを３つ描画します。<br>
+            　　正射影なので奥行き的に何処に位置していても同じ大きさで描画されます。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // モデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "SimpleModel.mqo" ) ;
+
+    // カメラを正射影に変更
+    <b><a href="dxfunc_3d_camera.html#R12N7">SetupCamera_Ortho</a></b>( 2000.0f ) ;
+
+    // カメラの前方に奥行き座標の違うモデルを３個描画
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( -700.0f + 320.0f, 240.0f, 0.0f ) ) ;
+    <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+    MV1SetPosition( ModelHandle, VGet(    0.0f + 320.0f, 240.0f, 500.0f ) ) ;
+    MV1DrawModel( ModelHandle ) ;
+
+    MV1SetPosition( ModelHandle, VGet(  700.0f + 320.0f, 240.0f, 1000.0f ) ) ;
+    MV1DrawModel( ModelHandle ) ;
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キー入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R12N8">宣言</a></b></td><td><font color="#000088"><b>int SetupCamera_ProjectionMatrix( MATRIX ProjectionMatrix ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>射影行列を設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            MATRIX ProjectionMatrix ： 射影行列
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　射影行列を直接設定する場合に使用します。<br>
+                    　<b><a href="dxfunc_3d_camera.html#R12N6">SetupCamera_Perspective</a></b> や <b><a href="dxfunc_3d_camera.html#R12N7">SetupCamera_Ortho</a></b> を使用する場合は使いません。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+                ありません
+            <br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R12N9">宣言</a></b></td><td><font color="#000088"><b>int SetCameraDotAspect( float DotAspect ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>カメラのドットアスペクトを設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            float DotAspect ： ドットアスペクト比( 横 / 縦 )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　３Ｄ描画を使用した際に画面に描画される映像の縦横比を設定します。<br>
+                    　値は 横 / 縦 で指定して、値が 1.0f 以上なら見え方が横長に、
+                    0.0f 以上 1.0f 以下なら縦長になります。<br><br>
+
+                    　特殊な演出をしたい場合以外は恐らく使用しない関数です。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            
+                ドットアスペクト比の設定を縦２倍にしてからモデルを描画します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // モデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "SimpleModel.mqo" ) ;
+
+    // ドット比を縦に２倍に変更
+    SetCameraDotAspect( 0.5f ) ;
+
+    // モデルをカメラの映る位置に移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, 240.0f, 0.0f ) ) ;
+
+    // モデルを描画
+    <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キー入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R12N10">宣言</a></b></td><td><font color="#000088"><b>VECTOR ConvWorldPosToScreenPos( VECTOR WorldPos ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>ワールド座標をスクリーン座標に変換する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            VECTOR WorldPos ： ワールド( ３Ｄ )座標
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>スクリーン座標<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>
+                　引数 WorldPos で渡すワールド( ３Ｄ )座標をスクリーン座標に変換します。<br>
+                　３Ｄ空間上に存在する物が画面上のどの座標に位置するのかを取得したい場合に使用します。<br><br>
+
+                　尚、指定のワールド座標とカメラの視線方向との距離が SetCameraNearFar で設定した範囲から外れていた場合は戻り値のＺが 0.0f以下又は1.0f以上になり、その際のＸ、Ｙはスクリーン座標とは無関係の値となります。( なので戻り値のＺが 0.0f 以下若しくは 1.0f 以上の場合はＸ，Ｙの値は無効だと判断してください )<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            
+                DxChara.x の０番目のモーションを再生しながら、フレーム番号２６の座標に２Ｄの四角形を描画します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle, AttachIndex ;
+    float TotalTime, PlayTime ;
+    VECTOR ScreenPos ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // 描画先を裏画面に変更
+    <b><a href="dxfunc_graph3.html#R4N6">SetDrawScreen</a></b>( DX_SCREEN_BACK ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, -300.0f, 600.0f ) ) ;
+
+    // ３Ｄモデルの０番目のアニメーションをアタッチする
+    AttachIndex = <b><a href="dxfunc_3d_model_1.html#R4N1">MV1AttachAnim</a></b>( ModelHandle, 0, -1, FALSE ) ;
+
+    // アタッチしたアニメーションの総再生時間を取得する
+    TotalTime = <b><a href="dxfunc_3d_model_1.html#R4N5">MV1GetAttachAnimTotalTime</a></b>( ModelHandle, AttachIndex ) ;
+
+    // 再生時間の初期化
+    PlayTime = 0.0f ;
+
+    // 何かキーが押されるかウインドウが閉じられるまでループ
+    while( <b><a href="../dxfunc.html#R1N3">ProcessMessage</a></b>() == 0 &amp;&amp; CheckHitKeyAll() == 0 )
+    {
+        // 画面をクリア
+        <b><a href="dxfunc_graph3.html#R4N4">ClearDrawScreen</a></b>() ;
+
+        // 再生時間を進める
+        PlayTime += 100.0f ;
+
+        // 再生時間がアニメーションの総再生時間に達したら再生時間を０に戻す
+        if( PlayTime >= TotalTime )
+        {
+            PlayTime = 0.0f ;
+        }
+
+        // 再生時間をセットする
+        <b><a href="dxfunc_3d_model_1.html#R4N3">MV1SetAttachAnimTime</a></b>( ModelHandle, AttachIndex, PlayTime ) ;
+
+        // ３Ｄモデルの描画
+        <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+        // ナンバー２６のフレームの画面上での座標を取得する
+        ScreenPos = ConvWorldPosToScreenPos( <b><a href="dxfunc_3d_model_2.html#R6N8">MV1GetFramePosition</a></b>( ModelHandle, 26 ) ) ;
+
+        // 取得したスクリーン座標に四角形を描画
+        <b><a href="dxfunc_graph0.html#R2N2">DrawBox</a></b>( ScreenPos.x - 2, ScreenPos.y - 2, ScreenPos.x + 2, ScreenPos.y + 2, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255,0,0 ), TRUE ) ;
+
+        // 裏画面の内容を表画面に反映
+        <b><a href="dxfunc_graph3.html#R4N7">ScreenFlip</a></b>() ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+        
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R12N11">宣言</a></b></td><td><font color="#000088"><b>VECTOR ConvScreenPosToWorldPos( VECTOR ScreenPos ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>スクリーン座標をワールド座標に変換する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            VECTOR ScreenPos ： スクリーン座標
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>ワールド座標<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>
+                　引数 ScreenPos で渡すスクリーン座標をワールド座標に変換します。<br>
+                　マウスでクリックした座標に存在する３Ｄ空間上のオブジェクトを検出したりする処理に使用します。<br><br>
+
+                　尚、スクリーン座標には奥行きの情報がありませんので、画面上からどれだけ奥まった３Ｄ空間上の座標を取得するのかのを ScreenPos のメンバ変数 z で指定します。
+                ただ、この z はワールド空間上での距離ではなく、指定できる値の範囲は 0.0f から 1.0f です。<br>
+                　z が 0.0f の場合は <b><a href="dxfunc_3d_camera.html#R12N1">SetCameraNearFar</a></b> 関数で設定した Near と同じだけカメラ座標から離れた位置、1.0f の場合は Far と同じだけカメラ座標から離れた位置のワールド座標が返ってきます。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　画面上に表示されているモデルファイル SimpleModel.mqo のポリゴンとマウスポインタの位置から<br>
+            　画面奥へ伸びる線分とで当たり判定を行い、線分に接触したポリゴンを黄色で描画します。
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+    VECTOR StartPos, EndPos ;
+    MV1_COLL_RESULT_POLY HitPoly ;
+    int Mx, My ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "SimpleModel.mqo" ) ;
+
+    // ３Ｄモデルを見える位置に移動する
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, 300.0f, 600.0f ) ) ;
+
+    // 描画先を裏画面に変更
+    <b><a href="dxfunc_graph3.html#R4N6">SetDrawScreen</a></b>( DX_SCREEN_BACK ) ;
+
+    // モデル全体のコリジョン情報を構築
+    <b><a href="dxfunc_3d_model_3.html#R9N1">MV1SetupCollInfo</a></b>( ModelHandle, -1, 8, 8, 8 ) ;
+
+    // ウインドウが閉じられるか何かキーが押されるまでループ
+    while( <b><a href="../dxfunc.html#R1N3">ProcessMessage</a></b>() == 0 &amp;&amp; CheckHitKeyAll() == 0 )
+    {
+        // 画面をクリア
+        <b><a href="dxfunc_graph3.html#R4N4">ClearDrawScreen</a></b>() ;
+
+        // ３Ｄモデルの描画
+        <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+        // マウスの座標を取得
+        <b><a href="dxfunc_input.html#R5N6">GetMousePoint</a></b>( &amp;Mx, &amp;My ) ;
+
+        // マウスポインタがある画面上の座標に該当する３Ｄ空間上の Near 面の座標を取得
+        StartPos = ConvScreenPosToWorldPos( <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( Mx, My, 0.0f ) ) ;
+
+        // マウスポインタがある画面上の座標に該当する３Ｄ空間上の Far 面の座標を取得
+        EndPos = ConvScreenPosToWorldPos( VGet( Mx, My, 1.0f ) ) ;
+
+        // モデルと線分との当たり判定
+        HitPoly = <b><a href="dxfunc_3d_model_3.html#R9N4">MV1CollCheck_Line</a></b>( ModelHandle, -1, StartPos, EndPos ) ;
+
+        // 当たったかどうかで処理を分岐
+        if( HitPoly.HitFlag == 1 )
+        {
+            // 当たった場合は衝突の情報を描画する
+
+            // 当たったポリゴンを黄色で描画する
+            <b><a href="dxfunc_3d_draw.html#R14N2">DrawTriangle3D</a></b>( HitPoly.Position[ 0 ], HitPoly.Position[ 1 ], HitPoly.Position[ 2 ], GetColor( 255,255,0 ), TRUE ) ;
+
+            // 交差した座標を描画
+            <b><a href="dxfunc_graph2.html#R17N20">DrawFormatString</a></b>( 0, 0, GetColor( 255,255,255 ),  "Hit Pos   %f  %f  %f",
+                HitPoly.HitPosition.x, HitPoly.HitPosition.y, HitPoly.HitPosition.z ) ;
+
+            // 当たったポリゴンが含まれるフレームの番号を描画
+            DrawFormatString( 0, 16, GetColor( 255,255,255 ), "Frame     %d", HitPoly.FrameIndex ) ;
+
+            // 当たったポリゴンが使用しているマテリアルの番号を描画
+            DrawFormatString( 0, 32, GetColor( 255,255,255 ), "Material  %d", HitPoly.MaterialIndex ) ;
+
+            // 当たったポリゴンを形成する三頂点の座標を描画
+            DrawFormatString( 0, 48, GetColor( 255,255,255 ), "Position  %f  %f  %f",
+                HitPoly.Position[ 0 ].x, HitPoly.Position[ 0 ].y, HitPoly.Position[ 0 ].z ) ;
+            DrawFormatString( 0, 64, GetColor( 255,255,255 ), "          %f  %f  %f",
+                HitPoly.Position[ 1 ].x, HitPoly.Position[ 1 ].y, HitPoly.Position[ 1 ].z ) ;
+            DrawFormatString( 0, 80, GetColor( 255,255,255 ), "          %f  %f  %f",
+                HitPoly.Position[ 2 ].x, HitPoly.Position[ 2 ].y, HitPoly.Position[ 2 ].z ) ;
+
+            // 当たったポリゴンの法線を描画
+            DrawFormatString( 0, 96, GetColor( 255,255,255 ), "Normal    %f  %f  %f",
+                HitPoly.Normal.x, HitPoly.Normal.y, HitPoly.Normal.z ) ;
+        }
+        else
+        {
+            // 当たらなかった場合は衝突しなかった旨だけ描画する
+            <b><a href="dxfunc_graph2.html#R17N1">DrawString</a></b>( 0, 0, "NO HIT", GetColor( 255,255,255 ) ) ;
+        }
+
+        // 裏画面の内容を表画面に反映
+        <b><a href="dxfunc_graph3.html#R4N7">ScreenFlip</a></b>() ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R12N12">宣言</a></b></td><td><font color="#000088"><b>int SetCameraScreenCenter( float x, float y ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>画面上でのカメラが見ている映像の中心座標を設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            float x ： ３Ｄ空間の消失点となるスクリーンＸ座標<br>
+            float y ： ３Ｄ空間の消失点となるスクリーンＹ座標<br>
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　画面上でのカメラが見ている映像の中心座標( 消失点 )を引数で渡されるスクリーン座標にする関数です。<br>
+                　主な用途は１プレイヤー用と２プレイヤー用で画面を上下に分けたいときや、画面の一部を３Ｄ表現したい場合などです。
+                ( 消失点は初期状態では常に画面の中心なので、消失点を変更しないまま画面を上下や左右に分けようとすると大変です )<br><br>
+
+                　尚、この関数の設定は <b><a href="dxfunc_graph3.html#R4N3">SetDrawArea</a></b>、<b><a href="dxfunc_other.html#R11N1">ChangeWindowMode</a></b>、<b><a href="dxfunc_graph3.html#R4N6">SetDrawScreen</a></b> の何れかを使用するとリセットされますので注意してください。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            
+                カメラの消失点を画面右側に変更してから立方体を描画します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+#define X1    100.0f
+#define X2    540.0f
+#define Y1    100.0f
+#define Y2    380.0f
+#define Z1    0.0f
+#define Z2    1000.0f
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    unsigned int Color ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // 描画先を裏画面にする
+    <b><a href="dxfunc_graph3.html#R4N6">SetDrawScreen</a></b>( DX_SCREEN_BACK ) ;
+
+    // カメラの注視点の画面上の位置を右寄りにする
+    SetCameraScreenCenter( 480.0f, 240.0f ) ;
+
+    // 直方体を描画する
+    Color = <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255,255,255 ) ;
+    <b><a href="dxfunc_3d.html#R14N1">DrawLine3D</a></b>( <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( X1, Y1, Z1 ), VGet( X2, Y1, Z1 ), Color ) ;
+    DrawLine3D( VGet( X2, Y1, Z1 ), VGet( X2, Y2, Z1 ), Color ) ;
+    DrawLine3D( VGet( X2, Y2, Z1 ), VGet( X1, Y2, Z1 ), Color ) ;
+    DrawLine3D( VGet( X1, Y2, Z1 ), VGet( X1, Y1, Z1 ), Color ) ;
+    DrawLine3D( VGet( X1, Y1, Z2 ), VGet( X2, Y1, Z2 ), Color ) ;
+    DrawLine3D( VGet( X2, Y1, Z2 ), VGet( X2, Y2, Z2 ), Color ) ;
+    DrawLine3D( VGet( X2, Y2, Z2 ), VGet( X1, Y2, Z2 ), Color ) ;
+    DrawLine3D( VGet( X1, Y2, Z2 ), VGet( X1, Y1, Z2 ), Color ) ;
+    DrawLine3D( VGet( X1, Y1, Z1 ), VGet( X1, Y1, Z2 ), Color ) ;
+    DrawLine3D( VGet( X2, Y1, Z1 ), VGet( X2, Y1, Z2 ), Color ) ;
+    DrawLine3D( VGet( X2, Y2, Z1 ), VGet( X2, Y2, Z2 ), Color ) ;
+    DrawLine3D( VGet( X1, Y2, Z1 ), VGet( X1, Y2, Z2 ), Color ) ;
+
+    // 裏画面の内容を表画面に反映
+    <b><a href="dxfunc_graph3.html#R4N7">ScreenFlip</a></b>() ;
+
+    // キー入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R12N13">宣言</a></b></td><td><font color="#000088"><b>int CheckCameraViewClip( VECTOR CheckPos ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定の座標がカメラの視界に入っていないかどうかを判定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            VECTOR CheckPos ： 視界に入っていないかどうかをチェックするワールド座標
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　TRUE：視界に入っていない</td></tr>
+            <tr><td width="100">　</td><td>FALSE：視界に入っている<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>
+                　指定のワールド座標が視界に入っていないかどうかをチェックする関数です。<br>
+                　３Ｄの描画処理は処理負荷が高いので、この関数で視界に入っていない( 画面内に映っていない )場合は描画処理を行わない、などの処理をする際に使用します。<br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            
+                ３Ｄ空間内を左右に飛び回る点がカメラに入っているかどうかを画面左上に表示します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    VECTOR Position ;
+    float XAdd ;
+
+    // ＤＸライブラリの初期化
+    if( DxLib_Init() &lt; 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // 描画先を裏画面にする
+    SetDrawScreen( DX_SCREEN_BACK ) ;
+
+    // 飛び回る点の座標を初期化
+    Position = VGet( 320, 240, 0.0f ) ;
+
+    // 飛び回る点のＸ軸の移動速度をセット
+    XAdd = 8.0f ;
+
+    // ＥＳＣキーが押されるかウインドウが閉じられるまでループ
+    while( ProcessMessage() == 0 &amp;&amp; CheckHitKey( KEY_INPUT_ESCAPE ) == 0 )
+    {
+        // 画面を初期化
+        ClearDrawScreen() ;
+
+        // 点の座標を更新
+        Position.x += XAdd ;
+
+        // もし画面内から大きく外れたら方向を反転する
+        if( Position.x &lt; -100.0f || Position.x &gt; 740.0f )
+        {
+            XAdd = -XAdd ;
+        }
+
+        // 画面内に座標が入っていないかどうかを描画する
+        if( CheckCameraViewClip( Position ) == TRUE )
+        {
+            DrawString( 0, 0, "Screen Out:Yes", GetColor( 255,255,255 ) ) ;
+        }
+        else
+        {
+            DrawString( 0, 0, "Screen Out:No", GetColor( 255,255,255 ) ) ;
+        }
+
+        // 点を描画する
+        DrawPixel3D( Position, GetColor( 255,255,255 ) ) ;
+
+        // 裏画面の内容を表画面に反映
+        ScreenFlip() ;
+    }
+
+    // ＤＸライブラリの後始末
+    DxLib_End() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R12N14">宣言</a></b></td><td><font color="#000088"><b>int CheckCameraViewClip_Box( VECTOR BoxPos1, VECTOR BoxPos2 ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>二つの座標で表されるボックスがカメラの視界に入っていないかどうかを判定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            VECTOR BoxPos1 ： ボックスを表すワールド座標１<br>
+            VECTOR BoxPos2 ： ボックスを表すワールド座標２
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　TRUE：視界に入っていない</td></tr>
+            <tr><td width="100">　</td><td>FALSE：視界に入っている<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>
+                　二つの座標で表されるボックスが視界に入っていないかどうかをチェックする関数です。<br>
+                　３Ｄの描画処理は処理負荷が高いので、この関数で視界に入っていない( 画面内に映っていない )場合は描画処理を行わない、などの処理をする際に使用します。<br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            
+                ３Ｄ空間内を左右に飛び回るボックスがカメラに入っているかどうかを画面左上に表示します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    VECTOR Position ;
+    VECTOR BoxPos1, BoxPos2 ;
+    float XAdd ;
+
+    // ＤＸライブラリの初期化
+    if( DxLib_Init() &lt; 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // 描画先を裏画面にする
+    SetDrawScreen( DX_SCREEN_BACK ) ;
+
+    // Ｚバッファを使用する
+    SetUseZBuffer3D( TRUE ) ;
+
+    // Ｚバッファへの書き込みを行う
+    SetWriteZBuffer3D( TRUE ) ; 
+
+    // 飛び回るボックスの座標を初期化
+    Position = VGet( 320, 240, 0.0f ) ;
+
+    // 飛び回るボックスのＸ軸の移動速度をセット
+    XAdd = 8.0f ;
+
+    // ＥＳＣキーが押されるかウインドウが閉じられるまでループ
+    while( ProcessMessage() == 0 &amp;&amp; CheckHitKey( KEY_INPUT_ESCAPE ) == 0 )
+    {
+        // 画面を初期化
+        ClearDrawScreen() ;
+
+        // ボックスの座標を更新
+        Position.x += XAdd ;
+
+        // もし画面内から大きく外れたら方向を反転する
+        if( Position.x &lt; -200.0f || Position.x &gt; 840.0f )
+        {
+            XAdd = -XAdd ;
+        }
+
+        // ボックスを現す２点の座標を準備
+        BoxPos1 = VSub( Position, VGet( 10.0f, 10.0f, 10.0f ) ) ;
+        BoxPos2 = VAdd( Position, VGet( 10.0f, 10.0f, 10.0f ) ) ;
+
+        // 画面内にボックスが入っていないかどうかを描画する
+        if( CheckCameraViewClip_Box( BoxPos1, BoxPos2 ) == TRUE )
+        {
+            DrawString( 0, 0, "Screen Out:Yes", GetColor( 255,255,255 ) ) ;
+        }
+        else
+        {
+            DrawString( 0, 0, "Screen Out:No", GetColor( 255,255,255 ) ) ;
+        }
+
+        // ボックスを描画する
+        DrawCube3D( BoxPos1, BoxPos2, GetColor( 255,255,255 ), GetColor( 0,0,0 ), TRUE ) ;
+
+        // 裏画面の内容を表画面に反映
+        ScreenFlip() ;
+    }
+
+    // ＤＸライブラリの後始末
+    DxLib_End() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R12N15">宣言</a></b></td><td><font color="#000088"><b>MATRIX GetCameraViewMatrix( void ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>カメラのビュー行列を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            なし
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　ビュー行列</td></tr>
+            <tr><td width="100">　</td><td>　<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>
+                　カメラの設定で作られるビュー行列を取得します。<br><br>
+
+                　３Ｄ描画の計算では座標はまず３Ｄ世界のどこに居るのかを示す「ワールド座標」からカメラからの相対位置である「ビュー座標」に変換して、
+                そこから座標のスケールが一定で画面の奥行き表現も考慮した「射影座標」に変換され、
+                さらに具体的にスクリーン上の左から何ピクセル、上から何ピクセルかを示した「スクリーン座標」に変換されてからやっと描画されます。<br><br>
+                
+                　この各座標間の変換には主に行列が使用されます。<br>
+                　この関数はカメラが担当する「ワールド座標」から「ビュー座標」に変換するための行列「ビュー行列」を取得するための関数です。<br>
+                　頂点シェーダーを使用して自前で「ワールド座標」から「射影座標」まで変換する際に必要になるので、そのときに使用します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　ありません<br><br><br><br>
+        </td></tr>
+
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R12N16">宣言</a></b></td><td><font color="#000088"><b>MATRIX GetCameraProjectionMatrix( void ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>カメラの射影行列を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            なし
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　射影行列</td></tr>
+            <tr><td width="100">　</td><td>　<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>
+                　カメラの設定で作られる射影行列を取得します。<br><br>
+
+                　３Ｄ描画の計算では座標はまず３Ｄ世界のどこに居るのかを示す「ワールド座標」からカメラからの相対位置である「ビュー座標」に変換して、
+                そこから座標のスケールが一定で画面の奥行き表現も考慮した「射影座標」に変換され、
+                さらに具体的にスクリーン上の左から何ピクセル、上から何ピクセルかを示した「スクリーン座標」に変換されてからやっと描画されます。<br><br>
+                
+                　この各座標間の変換には主に行列が使用されます。<br>
+                　この関数はカメラが担当する「ワールド座標」から「ビュー座標」に変換した次の変換で得られる「射影座標」にするための行列「射影行列」を取得するための関数です。<br>
+                　頂点シェーダーを使用して自前で「ワールド座標」から「射影座標」まで変換する際に必要になるので、その際に使用します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            
+                ありません<br><br>
+            <br><br><br><br><br><br>
+        </td></tr>
+        
+        <tr><td colspan="4">
+            <hr>
+            <font size="3"><b>
+                <a href="../dxfunc.html">戻る</a>
+            </b></font>
+        </td></tr>
+    </table>
+    </div>
+    </body>
+</html>

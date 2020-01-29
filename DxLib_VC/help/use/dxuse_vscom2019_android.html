@@ -1,0 +1,442 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="ja-JP">
+	<HEAD>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <TITLE>ＤＸライブラリ置き場　使い方説明</TITLE>
+	<link rel="shortcut icon" href="../DxLib.ico">
+	<link rel="stylesheet" href="../style.css" type="text/css">
+	</HEAD>
+	<BODY BGCOLOR="#ffffff" TEXT="#000000" LINK="#0033CC" VLINK="#800040">
+	<div class="NormalFont">
+	<TABLE ALIGN="CENTER" WIDTH=1300  CELLSPACING=0 CELLPADDING=0 >
+		<TR>
+		<TD ALIGN="CENTER">
+		<FONT SIZE="4" COLOR="#000000"><B>
+			Visual Studio Community 2019 の Androidアプリ開発でのＤＸライブラリの使い方
+		</B></FONT>
+		</TD></TR>
+		<TR><TD>
+		<HR>
+		<FONT SIZE="3" COLOR="#000000"><B>
+		<BR>
+
+		　Visual Studio Community 2019 を使用してＤＸライブラリを使った Androidアプリを製作するには以下のような手順を踏みます。<BR><BR>
+
+		<A HREF="#R1">1.ＤＸライブラリを使うために必要なものを揃える<BR><BR></A>
+		<A HREF="#R2">2.プロジェクトの作成<BR><BR></A>
+		<A HREF="#R3">3.ＤＸライブラリを使用するためのプロジェクトの設定を行う<BR><BR></A>
+		<A HREF="#R4">4.プログラムを組む<BR><BR></A>
+		<A HREF="#R5">5.Androidエミュレーターの準備<BR><BR></A>
+		<A HREF="#R6">6.プロジェクトのビルド、実行<BR><BR><BR><BR></A>
+
+
+		<A NAME="R1">
+		<FONT COLOR="#008800">
+		1.ＤＸライブラリを使うために必要なものを揃える<BR><BR>
+		</FONT>
+		</A>
+
+		Visual Studio Community 2019 でＤＸライブラリを使用して Androidアプリを製作するには以下のものが必要です。<BR><BR>
+
+		<FONT COLOR="#880022">
+　　　　・Visual Studio Community 2019<BR>
+　　　　・ＤＸライブラリ Android版<BR><BR>
+		</FONT>
+
+		　まず <FONT COLOR="#880022">Visual Studio Community 2019</FONT> は、プログラムをコンパイルして実行可能な Androidアプリを作成する為のメインとなるソフトです。<BR>
+		　こちらはマイクロソフトの<A HREF="https://visualstudio.microsoft.com/ja/vs/community/"><B>こちらのページ</B></A>の <FONT COLOR="#880022">『Visual Studio のダウンロード』</FONT>
+		と書かれている項目から無償で入手することができますので、<BR>
+		ありがたくダウンロード＆インストールさせてもらって下さい。<BR><BR>
+
+		インストールの際ですが、<FONT COLOR="#880022">インストーラー</FONT>( vs_community__745684224.1554021705.exe などのファイル名のファイル )を起動すると最初に<FONT COLOR="#880022">『Visual Studio の何のバージョンをインストールするのかを選択するウィンドウ』</FONT>が表示されますので、
+		<FONT COLOR="#880022">Visual Studio Community 2019</FONT> の<FONT COLOR="#880022">『インストール』</FONT>ボタンを押してください。<br><br>
+
+		<FONT COLOR="#880022">『インストール』</FONT>ボタンを押すと、次に<FONT COLOR="#880022">インストールする機能を選択するダイアログ</FONT>が表示されますので、そこでは上部のタブを<FONT COLOR="#880022">『ワークロード』</FONT>を選択した状態にした後、
+		下の項目からは<FONT COLOR="#880022">『C++ によるデスクトップ開発』『.NET によるモバイル開発』『C++ によるモバイル開発』</FONT>の３つにチェックを入れてからダイアログ右下にある<FONT COLOR="#880022">『インストール』</FONT>を押してインストールを開始してください。<br>
+		( 尚、もし既に <FONT COLOR="#880022">Visual Studio Community 2019</FONT> をインストール済みの場合は、スタートメニューから<FONT COLOR="#880022">『Visual Studio Installer』</FONT>を起動することで上記のインストールウィンドウを表示することができます )<br><br>
+
+		<FONT COLOR="#aa0000">＜注意！＞<br>
+		インストールの際に Visual Studio Community 2019 インストールするフォルダを既定のフォルダから変更することができますが、既定以外のフォルダにインストールしてしまうと Androidエミュレーターを起動できなくなってしまうので、設定は変更せず、必ず既定のフォルダにインストールするようにしてください。</FONT><br><br>
+
+		　二つ目の <FONT COLOR="#880022">ＤＸライブラリ Android版</FONT>は本サイトの<A HREF="../dxdload.html">こちらのページ</A>からダウンロードすることができます。<BR>
+		これがないとＤＸライブラリを使うことができませんので、まだダウンロードされていない方は<BR>
+		『<FONT COLOR="#880022">ＤＸライブラリ Android版</FONT>』をダウンロードしておいてください。<BR><BR><BR><BR>
+
+
+
+		<A NAME="R2">
+		<FONT COLOR="#008800">
+		2.プロジェクトの作成<BR><BR>
+		</FONT>
+		</A>
+
+		　Androidアプリを開発するためのソフトの準備ができましたので、早速一つ簡単な Androidアプリを作ってみましょう。<BR>
+		　ここでは『画面の中心に四角形を表示する』という動作をするアプリを作る手順を記したいと思います。<BR>
+		　Visual Studio Community 2019 で Androidアプリを作るにはまず『プロジェクト』を作成する必要があるので以下にその方法を記します。<BR><BR>
+
+		<FONT COLOR="#550088">
+　		　①　Visual Studio Community 2019 の起動メニューで『新しいプロジェクトを作成』をクリックして、<br>
+　		　　　『新しいプロジェクトの作成』ダイアログを表示します。<br><br>
+
+　		　②　ダイアログ上部の『プラットフォーム』の右側にある下矢印マークをクリックして『Android』を選択した後、<br />
+　		　　　下のリストから『Native-Activity アプリケーション (Android)』を選択してから、<br>
+　		　　　ダイアログ右下の『次へ(N)』をクリックします。<br><br>
+
+　		　③　次に『新しいプロジェクトを構成します』というダイアログが表示されたら、最初にプロジェクトの名前を<br />
+　		　　　『プロジェクト名』に入力します。ここでは仮に『test』とします。<br><br>
+
+　		　④　次にプロジェクトのプロジェクトを作成するフォルダパスを『場所』に入力します。<br><br>
+
+　		　⑤　『ソリューションとプロジェクトを同じディレクトリに配置する』の<br>
+　		　　　チェックを外してから『作成(C)』をクリックします。<br><br>
+		</FONT>
+
+		　これでプロジェクトの作成は完了です。<BR><BR><BR><BR>
+
+		<A NAME="R3">
+		<FONT COLOR="#008800">
+		3.ＤＸライブラリを使用するためのプロジェクトの設定を行う<BR><BR>
+		</FONT>
+		</A>
+
+		　早速プログラムを組みたいところですが、作成したプロジェクトでＤＸライブラリを使用するための設定をする必要があります。<BR>
+		　ちょっと操作の数が多くてうんざりしますが、プロジェクト一つにつき一回だけなので、根気よく手順を追ってください。<BR><BR>
+
+		<FONT COLOR="#550088">
+	　　1.　『ソリューションエクスプローラー』と書かれているリストに表示されている<BR>
+	　　　　『(プロジェクト名).NativeActivity(android-19)』を右クリックして、プルダウンメニューから<BR>
+	　　　　『プロパティ(R)』をクリックして『(プロジェクト名).NativeActivity プロパティページ』を表示します。<BR>
+	　　　　( (プロジェクト名)の部分は、今回は『test』になっている筈です )<BR><BR>
+
+	　　2.　次にダイアログの左上にある『構成(C):』と書かれている項目を『すべての構成』に変更します。<BR><BR>
+
+	　　3.　次にダイアログの左上にある『構成(C):』の右側にある『プラットフォーム(P):』と<BR>
+	　　　　書かれている項目を『ARM』に変更します。<BR><BR>
+
+	　　4.　次に左側のリストから『構成プロパティ』→『C/C++』→『全般』を選びます。<BR><BR>
+
+	　　5.　次に右側に表示されている『追加のインクルード ディレクトリ』の項目にＤＸライブラリのパッケージ内に<BR>
+	　　　　入っている『プロジェクトに追加すべきファイル_Android_ARM用』フォルダのパスを追加してから、<BR>
+	　　　　再度ダイアログ右下にある『適用(A)』ボタンを押します。<BR>
+	　　　　（ 追加するパスは、例えばダウンロードした『ＤＸライブラリAndroid版』のパッケージを Cドライブの直下に展開した場合は<BR>
+	　　　　　　　　　　　　　 <FONT COLOR="#008800">C:\DxLib_Android\プロジェクトに追加すべきファイル_Android_ARM用;<BR>
+	　　　　　　　　　　　　　( パスの末端に次のパスとの区切りとなるセミコロン『;』も書きます )</FONT><BR>
+	　　　　　 となります。<BR>
+	　　　　　 尚、ＤＸライブラリをマイドキュメントフォルダに入れるとこれらのパス指定が面倒になりますので<BR>
+	　　　　　 ＤＸライブラリはなるべく浅いフォルダに入れておくことをお勧めします ）<BR><BR>
+
+	　　6.　次に左側のリストから『構成プロパティ』→『リンカー』→『全般』を選びます。<BR><BR>
+
+	　　7.　次に右側に表示されている『追加のライブラリ ディレクトリ』の項目に手順5と全く同じパス( ＤＸライブラリの<BR>
+	　　　　パッケージ内に入っている『プロジェクトに追加すべきファイル_Android_ARM用』フォルダのパス )を<BR>
+	　　　　追加してから、再度ダイアログ右下にある『適用(A)』ボタンを押します。<BR><BR>
+
+	　　8.　次にダイアログの上部にある『プラットフォーム(P):』を今度は『x86』に変更して、<BR>
+	　　　　4～7の手順を再度行います、但し、入力するパスは『プロジェクトに追加すべきファイル_Android_ARM用』ではなく、<BR>
+	　　　　『プロジェクトに追加すべきファイル_Android_x86用』となります。( ARM が x86 になっています )<BR><BR>
+
+	　　9.　次に手順8と同じようにダイアログの上部にある『プラットフォーム(P):』を今度は『ARM64』に変更して、<BR>
+	　　　　4～7の手順を再度行います、但し、入力するパスは『プロジェクトに追加すべきファイル_Android_ARM用』ではなく、<BR>
+	　　　　『プロジェクトに追加すべきファイル_Android_ARM64用』となります。( ARM が ARM64 になっています )<BR><BR>
+
+	　　10.　更に手順8と同じようにダイアログの上部にある『プラットフォーム(P):』を今度は『x64』に変更して、<BR>
+	　　　　4～7の手順を再度行います、但し、入力するパスは『プロジェクトに追加すべきファイル_Android_ARM用』ではなく、<BR>
+	　　　　『プロジェクトに追加すべきファイル_Android_x64用』となります。( ARM が x64 になっています )<BR><BR>
+
+	　　11.　次にダイアログの上部にある『プラットフォーム(P):』を今度は『すべてのプラットフォーム』に変更します。<BR><BR>
+
+	　　12.　次に左側のリストから『構成プロパティ』→『全般』を選び、<BR>
+	　　　　　ダイアログ右側に表示されている『プラットフォーム ツールセット』の項目を『Clang 5.0』に変更します。<BR><BR>
+
+	　　13.　次に左側のリストから『構成プロパティ』→『C/C++』→『言語』を選び、<BR>
+	　　　　　ダイアログ右側に表示されている『C++ 言語標準』の項目を『C++17 (-std=c++1z)』に変更します。<BR><BR>
+
+	　　14.　次に左側のリストから『構成プロパティ』→『C/C++』→『プリコンパイル済みヘッダー』を選び、<BR><BR>
+	　　　　ダイアログ右側に表示されている『プリコンパイル済みヘッダー』の項目を『使用』から<BR>
+	　　　　『プリコンパイル済みヘッダーを使用しない』に変更した後、ダイアログ右下にある『適用(A)』ボタンを押します。<BR><BR>
+
+	　　15.　次に左側のリストから『構成プロパティ』→『リンカー』→『入力』を選びます。<BR><BR>
+
+	　　16.　ダイアログ右側に表示されている『ライブラリの依存ファイル』の項目には<BR><BR>
+
+</B><FONT COLOR="#008800">
+<pre><div class="NormalFont">
+%(LibraryDependencies);GLESv1_CM;EGL;
+</pre>
+</FONT><B><BR>
+
+	　　　　と書かれていると思いますが、ここに追記して以下のように<BR><BR>
+
+<FONT COLOR="#008800">
+</B><pre><div class="NormalFont">
+%(LibraryDependencies);GLESv1_CM;EGL;stdc++;GLESv2;OpenSLES;m;DxLib;DxUseCLib;jpeg;png;zlib;tiff;theora_static;vorbis_static;vorbisfile_static;ogg_static;bullet;opus
+</pre>
+</FONT><B><BR>
+
+	　　　　変更したあと、ダイアログ右下にある『ＯＫ』ボタンを押してダイアログを閉じます。<BR><BR>
+
+	　　17.　次に『ソリューションエクスプローラー』と書かれているリストに表示されている以下のファイルを<BR><BR>
+
+	<FONT COLOR="#008800">
+	　　　　android_native_app_glue.c<BR>
+	　　　　android_native_app_glue.h<BR>
+	　　　　pch.h<BR>
+	</FONT>
+	<BR>
+	　　　　右クリックして、表示されるプルダウンメニューから『削除(V)』をクリックして削除します。<BR>
+	　　　　それぞれのファイルで<BR><BR>
+
+	<FONT COLOR="#008800">
+	　　　　『'android_native_app_glue.c'を'test.NativeActivity'から除外する場合には、[除外]を選んでください。<BR>
+	　　　　　'android_native_app_glue.c'を完全に削除する場合には、[削除]を選んでください。』<BR>
+	</FONT>
+	<BR>
+
+	　　　　のように訊ねられますので、『削除(D)』を選んでファイルを削除してください。<BR><BR>
+
+	　　18.　次に『ソリューションエクスプローラー』と書かれているリストに表示されている<BR>
+	　　　　『AndroidManifest.xml』というファイルをダブルクリックして内容を表示します。<BR>
+	　　　　その内容は以下のようになっていると思いますが、<BR>
+
+</B><FONT COLOR="#000000">
+<pre><div class="NormalFont">
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;!-- Changes made to Package Name should also be reflected in the Debugging - Package Name property, in the Property Pages --&gt;
+&lt;manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.$(ApplicationName)" android:versionCode="1" android:versionName="1.0"&gt;
+
+    &lt;!-- This is the platform API where NativeActivity was introduced. --&gt;
+    &lt;uses-sdk android:minSdkVersion="9" android:targetSdkVersion="21"/&gt;
+
+    &lt;!-- This .apk has no Java code itself, so set hasCode to false. --&gt;
+    &lt;application android:label="@string/app_name" android:hasCode="false"&gt;
+
+        &lt;!-- Our activity is the built-in NativeActivity framework class.
+             This will take care of integrating with our NDK code. --&gt;
+        &lt;activity android:name="android.app.NativeActivity" android:label="@string/app_name" android:configChanges="orientation|keyboardHidden"&gt;
+            &lt;!-- Tell NativeActivity the name of our .so --&gt;
+            &lt;meta-data android:name="android.app.lib_name" android:value="$(AndroidAppLibName)"/&gt;
+            &lt;intent-filter&gt;
+                &lt;action android:name="android.intent.action.MAIN"/&gt;
+                &lt;category android:name="android.intent.category.LAUNCHER"/&gt;
+            &lt;/intent-filter&gt;
+        &lt;/activity&gt;
+    &lt;/application&gt;
+&lt;/manifest&gt;
+</pre>
+</FONT><B>
+
+	　　　　これを以下のように変更します。(色が緑の部分が変更箇所や追加箇所で、４箇所です)<BR>
+
+</B><FONT COLOR="#000000">
+<pre><div class="NormalFont">
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;!-- Changes made to Package Name should also be reflected in the Debugging - Package Name property, in the Property Pages --&gt;
+&lt;manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.$(ApplicationName)" android:versionCode="1" android:versionName="1.0"&gt;
+
+    &lt;!-- This is the platform API where NativeActivity was introduced. --&gt;
+    &lt;uses-sdk android:minSdkVersion="9" android:targetSdkVersion="<FONT COLOR="#008800">26</FONT>"/&gt;
+
+    &lt;!-- This .apk has no Java code itself, so set hasCode to false. --&gt;
+    &lt;application android:label="@string/app_name" android:hasCode="false" <FONT COLOR="#008800">android:theme="@android:style/Theme.NoTitleBar.Fullscreen"</FONT>&gt;
+
+        &lt;!-- Our activity is the built-in NativeActivity framework class.
+             This will take care of integrating with our NDK code. --&gt;
+        &lt;activity android:name="android.app.NativeActivity" android:label="@string/app_name" android:configChanges="orientation|<FONT COLOR="#008800">screenSize</FONT>" <FONT COLOR="#008800">android:launchMode="singleInstance"</FONT>&gt;
+            &lt;!-- Tell NativeActivity the name of our .so --&gt;
+            &lt;meta-data android:name="android.app.lib_name" android:value="$(AndroidAppLibName)"/&gt;
+            &lt;intent-filter&gt;
+                &lt;action android:name="android.intent.action.MAIN"/&gt;
+                &lt;category android:name="android.intent.category.LAUNCHER"/&gt;
+            &lt;/intent-filter&gt;
+        &lt;/activity&gt;
+    &lt;/application&gt;
+&lt;/manifest&gt;
+</pre>
+</FONT><B>
+
+	　　　　変更が完了したらメニューから『ファイル(F)』→『AndroidManifest.xml の保存(S)』を選択して保存します。<BR><BR>
+
+		</FONT>
+
+		　プロジェクトの設定は以上です、お疲れ様でした。<BR><BR><BR><BR>
+
+		<A NAME="R4">
+		<FONT COLOR="#008800">
+		4.プログラムを組む<BR><BR>
+		</FONT>
+		</A>
+
+		　長いプロジェクトの設定が終わったので、漸くプログラムを組めます。<BR>
+		　『ソリューションエクスプローラー』と書かれているリストにある『main.cpp』をダブルクリックして内容を表示すると<BR>
+		最初から約300行のプログラムが書かれていますので、まずこれをすべて削除します。<BR>
+		( メニューから<FONT COLOR="#550088">『編集(E)』→『すべて選択(A)』</FONT>を選択した後、再度メニューから<FONT COLOR="#550088">『編集(E)』→『削除(D)』</FONT>を<BR>
+		　選択するとすべて削除することができます )<BR><BR>
+
+		　あと、プロジェクト作成後の初期状態では『main.cpp』の文字コード形式は<FONT COLOR="#880022">『シフトJIS』</FONT>なのですが Androidアプリの<BR>
+		コンパイラは『シフトJIS』には対応していないので、以下の手順で文字コードを<FONT COLOR="#880022">『UTF-8』</FONT>に変更します。<BR><BR>
+
+<FONT COLOR="#550088">
+		　　①	『ソリューションエクスプローラー』と書かれているリストにある『main.cpp』をダブルクリックして内容を<BR>
+		　　　　表示した状態でメニューから『ファイル(F)』→『名前を付けて main.cpp を保存(A)...』を選択して<BR>
+		　　　　『名前を付けてファイルを保存』ダイアログを表示します。<BR><BR>
+
+		　　②　『名前を付けてファイルを保存』ダイアログの右下にある『上書き保存(S)』の項目を『エンコード付きで保存(V)...』<BR>
+		　　　　に変更します。すると変更した瞬間に『名前を付けて保存の確認』ダイアログが表示されますので『はい(Y)』を選択してください。<BR><BR>
+
+		　　③　次に『保存オプションの詳細設定』ダイアログが表示されたら、その中の『エンコード(E):』の項目を<BR>
+		　　　　『日本語(シフトJIS) - コードページ 932』から『Unicode(UTF-8 シグネチャ付き) - コードページ 65001』に<BR>
+		　　　　変更して『OK』ボタンを押します。<BR><BR>
+</FONT>
+
+		　これで『main.cpp』の文字コード形式が<FONT COLOR="#880022">『UTF-8』</FONT>になります。<BR>
+		　因みに cppファイルや hファイルを新規作成した場合も、初期状態では<FONT COLOR="#880022">『シフトJIS』</FONT>となっていますので、<BR>
+		ソースファイルを新規作成した際もこの操作を行って文字コード形式を<FONT COLOR="#880022">『シフトJIS』</FONT>から<FONT COLOR="#880022">『UTF-8』</FONT>に変更<BR>
+		するようにしてください。<BR>
+		<BR>
+
+		　さて、気を取り直して何もプログラムに書かれていない状態になった main.cpp に、以下のプログラムを入力します。<BR>
+
+	<HR>
+<PRE><div class="NormalFont">#include "DxLib.h"
+
+// プログラムは android_main から始まります
+int android_main( void )
+{
+	if( DxLib_Init() == -1 )		// ＤＸライブラリ初期化処理
+	{
+		return -1 ;			// エラーが起きたら直ちに終了
+	}
+
+	DrawBox( 220, 140, 420, 340, GetColor( 255,255,255 ), TRUE ) ;	// 四角形を描画する
+
+	WaitKey() ;				// キー入力待ち
+
+	DxLib_End() ;				// ＤＸライブラリ使用の終了処理
+
+	return 0 ;					// ソフトの終了 
+}
+</div></PRE>
+	<HR><BR><BR>
+
+		　プログラムはこれだけです、どの部分が何をしているのか簡単に説明します。<BR>
+		　まず最初の１行はＤＸライブラリを使用するために必要なファイル( DxLib.h )をインクルードしています。<BR>
+		　次の<FONT COLOR="#880022">『int android_main( void )</FONT>はＤＸライブラリを使用した Androidアプリのプログラムのスタート地点となる関数の宣言です。<BR>
+		( 因みにＤＸライブラリを使用しない Androidアプリのスタート地点も android_main ですが、戻り値や引数が異なります… )<BR>
+		　中括弧内の最初の文<FONT COLOR="#880022">『if( DxLib_Init() == -1 ){ return -1 ; }』</FONT>はＤＸライブラリを初期化して使える状態にするために必要な関数<FONT COLOR="#880022">『DxLib_Init』</FONT>を呼んでいます。<BR>
+		この関数はＤＸライブラリを使うプログラムを組む際には例外を除いてまず最初に呼び出す必要があります。<BR>
+		因みに『if(...』と書かれているのは初期化が失敗したらその時点でソフトを終了させるという処理を行うための物です。<BR>
+		　<FONT COLOR="#880022">『DrawBox』</FONT>は関数名そのまま四角形を描画するための関数です。<BR>
+		　その次の<FONT COLOR="#880022">『WaitKey』</FONT>はキーボードのキーが押されるまで処理を止める関数です。( Androidアプリでもキーボードを接続すればキーボードを使うことができます )<BR>
+		　最後の<FONT COLOR="#880022">『DxLib_End() ;』</FONT>は注釈にも書いてある通りＤＸライブラリの使用を終了する処理を行う関数を呼んでいる文です。<BR>
+		ＤＸライブラリを使用しているプログラムは最後に必ずこの関数を呼ばなくてはなりません。<BR><BR><BR><BR>
+
+		<A NAME="R5">
+		<FONT COLOR="#008800">
+		5.Androidエミュレーターの準備<BR><BR>
+		</FONT>
+		</A>
+
+		　プログラムの入力も終わったので、早速実行！<BR>
+		　と、行きたいところですが、その前に『<FONT COLOR="#880022">Windows上で動作する Android端末のエミュレーター</FONT>』を用意する必要があります。<BR>
+		　Android のスマートフォンやタブレットを所持している場合は、その端末上で実行することもできるのですが<BR>
+		開発中は主に Androidエミュレーターでプログラムを実行することになるので、下記の手順を踏んでエミュレーターの準備を行います。<BR><BR>
+
+		<FONT COLOR="#550088">
+	　　①　Visual Studio Community 2019 のメニューの『ビルド(B)』→『構成マネージャー(O)...』を選択して<BR>
+	　　　　構成マネージャーダイアログを開きます。<BR><BR>
+
+	　　②　構成マネージャーダイアログの右上にある『アクティブ ソリューション プラットフォーム(P):』の項目を<BR>
+	　　　　『ARM』に変更したあと、『閉じる』ボタンでダイアログを閉じます。<BR><BR>
+
+	　　③　次に Visual Studio Community 2019 のメニューの『ツール(T)』→『Android』→<BR>
+	　　　　　　『Android Device Manager ...』をクリックして、Android Device Managerを起動します。<BR><BR>
+
+	　　④　『Android Device Manager』が起動したら早速『+ 新規』のボタンを押して『New Device』のダイアログを表示します。<BR><BR>
+
+	　　⑤　『New Device』には設定項目が沢山ありますが、それぞれを以下のように入力してください。<BR><BR>
+
+	　　　　左側の項目<BR>
+<table align="left" cellspacing="0" cellpadding="0" >
+	<tr><td>　　　　　　名前</td><td>　<FONT COLOR="#880022">Galaxy Nexus</FONT></td></tr>
+	
+	<tr><td>　　　　　　基本デバイス</td><td>　<FONT COLOR="#880022">Galaxy Nexus</FONT></td></tr>
+
+	<tr><td>　　　　　　プロセッサ</td><td>　<FONT COLOR="#880022">armeabi-v7a</FONT></td></tr>
+
+	<tr><td>　　　　　　OS</td><td>　<FONT COLOR="#880022">Kit Kat 4.4 - API 19</FONT></td></tr>
+
+	<tr><td>　　　　　　Google APIs</td><td>　<FONT COLOR="#880022">(チェックを入れる)</FONT></td></tr>
+</table><BR><BR><BR><BR><BR><BR>
+
+	　　　　右側の項目は変更無し<BR><BR>
+
+	　　　　　入力が完了したら、『New Device』ダイアログの右下の方にある『作成』ボタンを押して、<BR>
+	　　　　仮想デバイスを作成します。<BR><BR>
+
+	　　⑥　次にリストに追加された『Galaxy Nexus』の項目の右側にある『開始』ボタンを押して仮想デバイス( エミュレーター )を起動します。<BR>
+	　　　　起動には時間が掛かりますので、仮想デバイス画面上の『android』という文字が光っている表示が消えるまで暫く待ってください。<BR><BR>
+
+	　　⑦　仮想デバイス画面上の『android』という文字が光っている表示が消え、仮想デバイス( エミュレーター )が起動したら<BR>
+	　　　　Visual Studio Community 2019 の画面に戻ってみてください、『使用可能なデバイスが存在しません。』又は<BR>
+	　　　　『AVD_GalaxyNexus_ToolsForApacheCordova(オフライン)』などと表示されている箇所が<BR>
+	　　　　『galaxy_nexus(armeabiv7a - emulator-5554)』のような表示に変化していると思います。<BR><BR>
+
+	　　　　　もし、表示が『Android_Accelerated_x86_Oreo(オフライン)』や『使用可能なデバイスが存在しません。』の<br>
+			表示のままだった場合は一度 Visual Studio Community 2019 を終了してから再起動してみてください、<br>
+			そうすることで起動した仮想デバイスが検出されると思います。<BR><BR>
+		</FONT>
+
+		　これで Androidエミュレーターの準備は完了です。<BR><BR><BR><BR>
+
+
+		<A NAME="R6">
+		<FONT COLOR="#008800">
+		6.プロジェクトのビルド、実行<BR><BR>
+		</FONT>
+		</A>
+
+		　エミュレーターの準備が完了したところで早速プログラムを実行してみましょう。実行するためには<BR><BR>
+
+		<FONT COLOR="#550088">
+		　　①　Visual Studio Community 2019 のメニューから『デバッグ(D)』→『デバッグの開始(S)』<BR><BR>
+
+		　　②　すると『これらのプロジェクトは変更されています(T):　ビルドしますか？』と表示されるので『はい』を押します。<BR><BR>
+
+		　　③　エラーがなければプログラムが実行されます。エラーがあった場合は画面下のウインドウ<BR>
+		　　　　　にエラー内容が出てきますので指示にしたがって問題を修正してください。<BR><BR>
+		</FONT>
+
+		　仮想デバイス( エミュレーター )でのプログラムの実行は時間が掛かるので、数十秒待ってみてください。<BR>
+		…画面の中心に四角形が表示されたでしょうか？<BR>
+		　仮想デバイス( エミュレーター )や Visual Studio Community 2019 の Android対応はまだ安定していないのか、<BR>
+		プログラム実行直後にエラーが表示されてプログラムのデバッグ実行が停止してしまったり、<BR>
+		仮想デバイス( エミュレーター )がフリーズして強制終了しなければならなくなったりすることが<BR>
+		ちょくちょく発生しますので、その際は仮想デバイスの再起動や、『デバッグの開始』を再度行うなどしてください。<BR>
+		　あと、プログラムを終了する場合は Visual Studio Community 2019 のメニューから<BR>
+		<FONT COLOR="#550088">『デバッグ(D)』→『デバッグの停止(E)』</FONT>を選択します。<BR><BR>
+
+		　さてできあがった Androidアプリのパッケージファイルですが、それはプロジェクトのフォルダの中の<BR>
+		『test\test.Packaging\ARM\Debug』の中に『test.apk』というファイル名で作成されます。<BR>
+		( プロジェクト名を『test』以外にした場合は、『test』の代わりに付けたプロジェクト名となります )<BR><BR>
+
+		この apk ファイルを Android端末にインストールすれば Visual Studio Community 2019 を介さなくても作成したアプリが動作します。<BR>
+		( Android の Playストアに提出するファイルも、この apk ファイルとなります )<BR><BR>
+
+		　これでＤＸライブラリを使っての Androidアプリ開発の方法はわかりました。後は好きにプログラムを組んで<BR>
+		ゲームを作るだけです。ですがまだＤＸライブラリの機能は初期化と終了とドットを描画する関数しかわかっていません。<BR>
+		　この他の関数は <A HREF="../dxfunc.html">ＤＸライブラリ関数リファレンスのページ</A> で解説されていますのでそちらを参照して下さい。<BR><BR>
+
+		　あと、Androidアプリの開発に関する基礎的な情報や注意点を <A HREF="../lecture/Android/Android.html">Androidアプリ開発の基礎的な情報や注意点など</A> で<BR>
+		解説していますので、こちらも併せてご覧ください。<BR><BR><BR><BR>
+
+
+
+		<HR>
+		<A HREF="../dxuse.html">戻る</A>
+
+		</B></FONT>
+		</TD></TR>
+	</TABLE>
+	</div>
+	</BODY>
+</HTML>

@@ -97,7 +97,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 							zpp = float(std::stoi(getright(mstr)));
 							p.waypos[i] = VGet(xpp, 0.0f, zpp);
 							FileRead_gets(mstr, 64, mdata);
-							p.wayspd[i] = int(std::stoi(getright(mstr)));
+							p.wayspd[i] = short(std::stoi(getright(mstr)));
 						}
 						FileRead_close(mdata);
 					}
@@ -123,14 +123,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 							zpp = float(std::stoi(getright(mstr)));
 							p.waypos[i] = VGet(xpp, 0.0f, zpp);
 							FileRead_gets(mstr, 64, mdata);
-							p.wayspd[i] = int(std::stoi(getright(mstr)));
+							p.wayspd[i] = short(std::stoi(getright(mstr)));
 						}
 						FileRead_close(mdata);
 					}
 				}
-				p.setammo[0] = 0;
-				p.setammo[1] = 1;
-				p.setammo[2] = 2;
+				p.setammo[0] = 40;
+				p.setammo[1] = 5;
+				p.setammo[2] = 20;
 			}
 		}
 		/*UI*/
@@ -407,7 +407,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		}
 		humanparts->start_humanvoice(1);
 		//
-		for (size_t i = 0; i < 100; i++) {
+		for (size_t i = 0; i < 64; i++) {
 			VECTOR_ref tempvec = VGet(-10 * 5 + float(i % 10) * 10, 0, -480.f * ((i < 50) ? 1.f : -1.f) + float(i / 10) * 10 * ((i < 50) ? 1.f : -1.f));
 			auto HitPoly = mapparts->get_gnd_hit(tempvec + VGet(0.0f, mapparts->get_minsize().y(), 0.0f), tempvec + VGet(0.0f, mapparts->get_maxsize().y(), 0.0f));
 			tempvec = HitPoly.HitPosition;
@@ -596,6 +596,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				}
 				fpsdiff(rat_r, ratio, 0.1f); /*倍率、測距*/
 			}
+			//uiparts->end_way(); //debug0//0
 			//
 			if (true) {
 				/*操作、座標系*/
@@ -765,7 +766,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 							p.move &= ~KEY_GORIGHT;
 						}
 					}
-				}
+				} //0.2ms
 				/*共通動作*/
 				for (auto& p : player) {
 					if (p.id == 0)
@@ -807,53 +808,43 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					//旋回
 					{
 						float turn_bias = 0.f;
-						if (p.HP[5] > 0 || p.HP[6] > 0) {
+						if (((p.move & KEY_GORIGHT) != 0 || (p.move & KEY_GOLEFT_) != 0) && (p.HP[5] > 0 || p.HP[6] > 0)) {
 							turn_bias = 1.0f;
+
 							if ((p.move & KEY_GOFLONT) != 0 && p.gear > 0)
 								turn_bias = abs(p.spd / p.ptr->speed_flont[p.gear - 1]);
 							if ((p.move & KEY_GOBACK_) != 0 && p.gear < 0)
 								turn_bias = abs(p.spd / p.ptr->speed_back[-p.gear - 1]);
 							turn_bias *= ((p.HP[5] > 0) + (p.HP[6] > 0)) / 2.0f; //履帯が切れていると
+							if ((p.move & KEY_GORIGHT) != 0)
+								turn_bias = -turn_bias;
 						}
 						if (p.yace == 0.0f) {
-							if ((p.move & KEY_GOLEFT_) != 0)
-								fpsdiff(p.yadd, p.ptr->vehicle_RD * turn_bias, 0.1f);
-							if ((p.move & KEY_GORIGHT) != 0)
-								fpsdiff(p.yadd, -p.ptr->vehicle_RD * turn_bias, 0.1f);
+							fpsdiff(p.yadd, p.ptr->vehicle_RD * turn_bias, 0.1f);
 						}
 					}
 					fpsdiff(p.inertiax, p.accel, 0.02f);
 					//vec
 					{
-						VECTOR_ref tvect = VGet(0, 0, 0);
-						if (p.HP[5] == 0 || p.HP[6] == 0) { //p.zvec.x()
-							tvect = p.zvec.Scale(p.ptr->loc[p.ptr->wheelframe[0]].x() * sin(p.yadd) * ((p.HP[5] == 0) - (p.HP[6] == 0)));
+						float tsize = 0.f;
+						if (p.HP[5] == 0 || p.HP[6] == 0) {
+							tsize = p.ptr->loc[p.ptr->wheelframe[0]].x() * sin(p.yadd) * ((p.HP[5] == 0) - (p.HP[6] == 0));
 						}
 						else {
-							tvect = p.zvec.Scale(p.spd);
+							tsize = p.spd;
 						}
-						p.vec += (tvect - p.vec).Scale(0.05f);
+						p.vec += (p.zvec.Scale(tsize) - p.vec).Scale(0.05f);
 					}
 					//
-
-					{
-						float vec = sqrt(pow(p.mine.body->GetLinearVelocity().x, 2) + pow(p.mine.body->GetLinearVelocity().y, 2)) / fps;
-						if (p.zvec.x() * p.mine.body->GetLinearVelocity().x + p.zvec.z() * p.mine.body->GetLinearVelocity().y >= 0) {
-							p.wheelrad[0] += vec; //
-						}
-						else {
-							p.wheelrad[0] -= vec; //
-						}
-					}
-
+					p.wheelrad[0] += (p.zvec.x() * p.mine.body->GetLinearVelocity().x + p.zvec.z() * p.mine.body->GetLinearVelocity().y) / fps; //
 					p.wheelrad[1] = -p.wheelrad[0] * 2 + p.yrad * 5;
 					p.wheelrad[2] = -p.wheelrad[0] * 2 - p.yrad * 5;
-
-					//
+				} //0.1ms
+				/*物理演算*/
+				for (auto& p : player) {
 					p.mine.body->SetLinearVelocity(b2Vec2(p.vec.x(), p.vec.z()));
 					p.mine.body->SetAngularVelocity(p.yadd);
-				}
-				/*物理演算*/
+				} //1.22ms
 				world->Step(1.0f / fps, 1, 1);
 				for (auto& p : player) {
 					p.yrad = p.mine.body->GetAngle();
@@ -883,8 +874,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						for (auto& t : f.Foot)
 							t.pos = VGet(t.pos.x(), t.body->GetPosition().y, t.body->GetPosition().x);
 					}
-				}
+				} //0.5ms
 				/*砲撃その他*/
+				//uiparts->end_way(); //debug1//0
 				for (auto& p : player) {
 					//地形判定
 					{
@@ -924,22 +916,24 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 							Set3DPositionSoundMem(p.mine.pos.get(), s.get());
 					//tree判定
 					mapparts->set_hitplayer(p.mine.pos);
-					{
-						/*車体行列*/
-						const auto mat = MMult(
-						    MMult(
-							MMult(
-							    MGetRotAxis(VGet(cos(p.gunrad.x()), 0, -sin(p.gunrad.x())), sin(deg2rad(p.firerad)) * deg2rad(p.ptr->gun_[0].ammosize * 1000 / 75 * 5)),
-							    MGetRotAxis(p.recovec.get(), sin(deg2rad(p.recorad)) * deg2rad(5))),
-							MGetRotX(atan(p.inertiax))),
-						    MMult(MGetRotY(-p.yrad), p.ps_n));
-						/*砲塔移動*/
-						p.ps_m = MMult(mat, p.mine.pos.Mtrans());
-						/*砲塔行列*/
-						p.ps_t = MMult(MGetRotY(p.gunrad.x()), p.ptr->loc[p.ptr->turretframe].Mtrans());
-						//車体前方
-						p.zvec = VTransform(VGet(0, 0, -1.f), mat);
-					}
+				}
+				for (auto& p : player) {
+					/*車体行列*/
+					const auto mat = MMult(
+					    MMult(
+						MMult(
+						    MGetRotAxis(VGet(cos(p.gunrad.x()), 0, -sin(p.gunrad.x())), sin(deg2rad(p.firerad)) * deg2rad(p.ptr->gun_[0].ammosize * 1000 / 75 * 5)),
+						    MGetRotAxis(p.recovec.get(), sin(deg2rad(p.recorad)) * deg2rad(5))),
+						MGetRotX(atan(p.inertiax))),
+					    MMult(MGetRotY(-p.yrad), p.ps_n));
+					/*砲塔移動*/
+					p.ps_m = MMult(mat, p.mine.pos.Mtrans());
+					/*砲塔行列*/
+					p.ps_t = MMult(MGetRotY(p.gunrad.x()), p.ptr->loc[p.ptr->turretframe].Mtrans());
+					//車体前方
+					p.zvec = VTransform(VGet(0, 0, -1.f), mat);
+				}
+				for (auto& p : player) {
 					//all
 					MV1SetMatrix(p.colobj.get(), p.ps_m);
 					MV1SetMatrix(p.obj.get(), p.ps_m);
@@ -983,10 +977,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 							}
 						}
 					}
-					/*collition*/
+				} //1.5ms
+				/*collition*/
+				for (auto& p : player) {
 					p.checkhit = false;
 				}
-				/*collition*/
 				for (auto& p : player) {
 					for (size_t guns = 0; guns < gunc; ++guns) {
 						for (auto& c : p.Gun[guns].Ammo) {
@@ -1002,7 +997,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 							}
 						}
 					}
-				}
+				} //0~
 				for (auto& p : player) {
 					/*反動*/
 					if (p.firerad < 180) {
@@ -1019,13 +1014,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						auto& g = p.ptr->gun_[guns];
 						if (p.Gun[guns].fired >= 0.01f)
 							p.Gun[guns].fired *= pow(0.95f, frate / fps);
+
+						if (p.setammo[p.ammotype] == 0 && guns == 0) {
+							++p.ammotype %= 3;
+							p.Gun[0].loadcnt = 1;
+						}
 						if (p.Gun[guns].loadcnt == 0) {
+							if (p.setammo[p.ammotype] == 0 && guns == 0) {
+								p.move &= ~KEY_SHOTCAN;
+							}
 							if ((p.move & (KEY_SHOTCAN << guns)) != 0) {
 								auto& a = p.Gun[guns].Ammo[p.Gun[guns].useammo];
 								a.flug = true;
-								if (guns == 0) {
+								if (guns == 0)
 									p.setammo[p.ammotype]--;
-								}
 								a.speed = p.ptr->gun_speed[p.ammotype] / fps;
 								a.pene = p.ptr->pene[p.ammotype];
 								a.pos = p.obj.frame(g.gunframe);
@@ -1108,13 +1110,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						player[p.hitid].effcs[ef_smoke1].handle = parts->get_effHandle(ef_smoke1).Play3D();
 						p.hitadd = false;
 					}
-				}
+				} //0.1~1.0ms
 				/*轍更新*/
-				mapparts->set_map_track();
+				mapparts->set_map_track(); //0.0ms
 				/*human*/
-				humanparts->set_humanmove(parts->get_view_r(), frate, fps);
+				humanparts->set_humanmove(parts->get_view_r(), frate, fps); //0.02
 				/*人の移動*/
-				soldierparts->set_soldiermove(mapparts->get_mapobj().get(), player);
+				soldierparts->set_soldiermove(mapparts->get_mapobj().get(), player); //1.06ms
 				/*effect*/
 				for (auto& p : player) {
 					for (int i = 0; i < efs_user; ++i)
@@ -1129,8 +1131,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					p.effcs[ef_smoke1].handle.SetPos(p.obj.frame(p.ptr->engineframe));
 					p.effcs[ef_smoke2].handle.SetPos(p.obj.frame(p.ptr->smokeframe[0]));
 					p.effcs[ef_smoke3].handle.SetPos(p.obj.frame(p.ptr->smokeframe[1]));
-				}
-				UpdateEffekseer3D();
+				}		     //0.16ms
+				UpdateEffekseer3D(); //2.0ms
 			}
 			/*視点*/
 			if (!camflug) {
@@ -1238,6 +1240,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 			soldierparts->set_camerapos(cam, view, upvec, rat_r);
 			mapparts->set_camerapos(cam, view, upvec, rat_r);
+			//uiparts->end_way(); //debug3//0
 			/*shadow*/
 			if (keyget[19]) {
 				mapparts->set_map_shadow_near(0.01f);
@@ -1245,6 +1248,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			else {
 				mapparts->set_map_shadow_near(parts->get_view_r().z());
 			}
+			//uiparts->end_way(); //debug4//0
+			//uiparts->end_way(); //debug4//0
 			/*draw*/
 			/*map*/
 			if (map.flug) {
@@ -1294,10 +1299,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 			/*main*/
 			else {
-				uiparts->end_way(); //debug0//0
-				uiparts->end_way(); //debug1//0
-				uiparts->end_way(); //debug2//0
-
 				/*sky*/
 				if (!parts->get_in() || aim.flug) {
 					SetDrawScreen(skyscreen);
@@ -1406,7 +1407,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					//effect
 					DrawEffekseer3D();
 					//ammo
-					uiparts->end_way(); //debug3//0
 					SetUseLighting(FALSE);
 					SetFogEnable(FALSE);
 					for (auto& p : player)
@@ -1425,8 +1425,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					mapparts->draw_trees();
 					DrawEffekseer3D();
 					mapparts->exit_shadow();
-
-					uiparts->end_way(); //debug4//0
 				}
 				else
 					humanparts->draw_humanall();
@@ -1464,9 +1462,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				uiparts->draw_ui(selfammo, parts->get_view_r().y(), parts->get_font(0)); /*main*/
 			}
 			/*debug*/
-
-
-			DrawFormatStringToHandle(x_r(18), y_r(18), c_ffffff, parts->get_font(0), "(%d,%d)", selfammo[0], selfammo[1]);
 			//DrawFormatStringToHandle(x_r(18), y_r(1062), c_ffffff, parts->get_font(0), "start-stop(%.2fms)", (float)stop_w / 1000.f);
 			uiparts->debug(fps, (float)(GetNowHiPerformanceCount() - waits) / 1000.0f);
 			//

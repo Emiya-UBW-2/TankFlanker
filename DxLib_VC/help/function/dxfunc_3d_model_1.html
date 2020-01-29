@@ -1,0 +1,2472 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="ja-JP">
+    <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <link rel="shortcut icon" href="../DxLib.ico">
+    <link rel="stylesheet" href="../style.css" type="text/css">
+    <title>ＤＸライブラリ置き場　３Ｄ関係関数リファレンスページ</title>
+    </head>
+    <body bgcolor="#ffffff" text="#000000" link="#0033CC" vlink="#800040">
+    <div class="NormalFont">
+    <table align="center" width="600" cellspacing="0" cellpadding="0" >
+        <tr><td><font size="3" color="#005500"><b>アニメーション関係</b><br><br></font></td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R4N1">宣言</a></b></td><td><font color="#000088"><b>int MV1AttachAnim( int MHandle, int AnimIndex, int AnimSrcMHandle, int NameCheck ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>アニメーションをアタッチする<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle　　　　　　： アニメーションをアタッチするモデルのハンドル<br>
+            int AnimIndex　　　　　： アタッチするアニメーション番号<br>
+            int AnimSrcMHandle　： アタッチするアニメーションを持っているモデルのハンドル<br>
+            　　　　　　　　　　　　　　　( -1 を渡すと MHandle と同じモデルハンドルが使用されます )<br>
+            int NameCheck　　　　： AnimSrcMHandle が -1 以外の場合にアタッチするアニメーションの<br>
+            　　　　　　　　　　　　　　フレームの名前とアタッチされる側のモデルのフレームの名前が<br>
+            　　　　　　　　　　　　　　一致していない場合アタッチしないかどうか<br>
+            　　　　　　　　　　　　　　( TRUE：アタッチしない　FALSE：アタッチする )<br>
+            　　　　　　　　　　　　　　この引数は AnimSrcMHandle が -1 の場合は無視されます
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>－１以外：アニメーションアタッチ番号</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルにアニメーションをアタッチします。<br><br>
+                    
+                    　アニメーションとは主にモデル内のフレームに対する動きのデータで、
+                    キャラクターモデルが歩いたり走ったりといった表現をする際に使用します。
+                    ( アニメーションのデータ自体は予めアニメーションデータを作成できるソフトを使用して作成しておく必要があります )<br><br>
+
+                    　ＤＸライブラリではアニメーションを再生する際に、
+                    最初に再生したいアニメーションを指定する作業「アニメーションのアタッチ」をする必要があります。<br><br>
+
+                    　アタッチ自体は簡単で、この関数でアタッチしたいアニメーションの番号を渡すだけです。<br><br>
+                    　そして、アニメーションのアタッチが無事完了すると戻り値としてアタッチ番号が返ってきます。<br>
+                    　これは「ハンドル」と呼べるほどのものではありませんが、
+                    モデルハンドルなどと同様にアタッチしたアニメーションに関する操作はすべてこのアタッチ番号を使用して行いますので、
+                    アタッチ番号もモデルハンドルなどと同じように何かの変数にとっておく必要があります。<br><br>
+
+<pre><div class="NormalFont">// 例 ： モデルに含まれる 0番目のアニメーションをアタッチしてアニメーションの総時間を取得する
+int AttachIndex ;
+float AnimTime ;
+
+AttachIndex = MV1AttachAnim( MHandle, 0, -1, FALSE ) ;
+AnimTime = <b><a href="dxfunc_3d_model_1.html#R4N5">MV1GetAttachAnimTotalTime</a></b>( MHandle, AttachIndex ) ;
+</div></pre>
+                    <br>
+                    　アニメーションはアタッチした時点でアタッチしたアニメーションのカウント０の状態がモデルに反映されます。<br>
+                    　そして、アニメーションの再生カウントを変更する際は <b><a href="dxfunc_3d_model_1.html#R4N3">MV1SetAttachAnimTime</a></b> を使用します。<br>
+                    　ＤＸライブラリには自動的にカウンタを進める仕組みはありませんので、
+                    「MV1PlayAnim」 や 「MV1StopAnim」 のような名称の関数は存在しません。<br>
+                    　なので、MV1SetAttachAnimTime にセットする再生時間を徐々に進めることでアニメーションを再生します。<br><br>
+
+                    　引数 AnimSrcMHandle は同じフレーム構造を持った MHandle とは別のモデルのモデルに含まれているアニメーションを MHandle のモデルで再生する際に使用します。
+                    ( 同じアニメーションを使用する見た目の違うキャラクターモデルが複数ある場合などは、
+                    アニメーションだけのファイルと見た目の違うフレーム構造が同じメッシュだけのファイルを別々に用意することで各キャラクターモデルのファイルにはアニメーションデータを含める必要がなくなるので、
+                    アニメーションデータの容量分だけデータサイズを削減することができます )<br><br>
+
+                    　引数 NameCheck は AnimSrcMHandle を使用して別のモデルファイルに含まれるアニメーションをアタッチする場合に、
+                    アニメーションデータ側のフレームの名前とモーションをアタッチするモデルデータ側のフレームの名前を比較して違った場合はアタッチしないという処理をするかどうかを指定する引数で、
+                    TRUE を渡すと比較して、FALSE を渡すと比較しません。<br><br>
+
+                    　名前を比較しない場合はフレームの階層構造と各階層のフレームの数がモデル側とアニメーション側で完全に一致していないと正常にアニメーションを再生することができません。<br>
+                    　名前を比較する場合はフレームの階層構造と名前が一致していればモデル側にあってアニメーション側に無いフレームがあっても正常にアニメーションを再生することができます。
+                    ( ただし、同じ階層に同名のフレームが複数ある場合は正常にアニメーションを再生することはできません )<br><br>
+
+                    　名前比較を行うかどうかはアタッチするモーションデータにあわせて判断してください。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　モデルファイル DxChara.x に含まれる０番目のアニメーションをループ再生します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle, AttachIndex ;
+    float TotalTime, PlayTime ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // 描画先を裏画面に変更
+    <b><a href="dxfunc_graph3.html#R4N6">SetDrawScreen</a></b>( DX_SCREEN_BACK ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, -300.0f, 600.0f ) ) ;
+
+    // ３Ｄモデルの０番目のアニメーションをアタッチする
+    AttachIndex = <b><a href="dxfunc_3d_model_1.html#R4N1">MV1AttachAnim</a></b>( ModelHandle, 0, -1, FALSE ) ;
+
+    // アタッチしたアニメーションの総再生時間を取得する
+    TotalTime = <b><a href="dxfunc_3d_model_1.html#R4N5">MV1GetAttachAnimTotalTime</a></b>( ModelHandle, AttachIndex ) ;
+
+    // 再生時間の初期化
+    PlayTime = 0.0f ;
+
+    // 何かキーが押されるかウインドウが閉じられるまでループ
+    while( <b><a href="../dxfunc.html#R1N3">ProcessMessage</a></b>() == 0 &amp;&amp; CheckHitKeyAll() == 0 )
+    {
+        // 画面をクリア
+        <b><a href="dxfunc_graph3.html#R4N4">ClearDrawScreen</a></b>() ;
+
+        // 再生時間を進める
+        PlayTime += 100.0f ;
+
+        // 再生時間がアニメーションの総再生時間に達したら再生時間を０に戻す
+        if( PlayTime >= TotalTime )
+        {
+            PlayTime = 0.0f ;
+        }
+
+        // 再生時間をセットする
+        <b><a href="dxfunc_3d_model_1.html#R4N3">MV1SetAttachAnimTime</a></b>( ModelHandle, AttachIndex, PlayTime ) ;
+
+        // ３Ｄモデルの描画
+        <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+        // 裏画面の内容を表画面に反映
+        <b><a href="dxfunc_graph3.html#R4N7">ScreenFlip</a></b>() ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R4N2">宣言</a></b></td><td><font color="#000088"><b>int MV1DetachAnim( int MHandle, int AttachIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>アニメーションをデタッチする<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： アニメーションをデタッチするモデルのハンドル<br>
+            int AttachIndex ： デタッチするアニメーションのアタッチ番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルにアタッチしたアニメーションをデタッチ( 外すこと )します。<br><br>
+
+                    　アニメーションは同時に幾つでもアタッチすることができ、
+                    <b><a href="dxfunc_3d_model_1.html#R4N6">MV1SetAttachAnimBlendRate</a></b>
+                    関数でアタッチしている各アニメーションの影響率も設定することができるので、
+                    一応、すべてのアニメーションをアタッチして、MV1SetAttachAnimBlendRate
+                    関数で表示したいアニメーションの影響率だけを上げるということもできるのですが、
+                    それをすると使用メモリや処理負荷が多少上昇します。<br><br>
+
+                    　なので、ＤＸライブラリのモデル機能では使用するアニメーションのみをアタッチして、
+                    再生が終わったらこの関数でアタッチしたアニメーションをデタッチする( 外す )ことを想定しています。<br><br>
+
+                    　因みに、
+                    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b> 関数でモデルを削除する際にアタッチしたアニメーションは自動的にデタッチされますので、
+                    削除する前にアタッチしたすべてのアニメーションをこの関数でデタッチしておかなければならないということはありません。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　モデルファイル DxChara.x に含まれる０番目のアニメーションと１番のアニメーションを交互に再生します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle, AttachIndex, PlayAnim ;
+    float TotalTime, PlayTime ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // 描画先を裏画面に変更
+    <b><a href="dxfunc_graph3.html#R4N6">SetDrawScreen</a></b>( DX_SCREEN_BACK ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, -300.0f, 600.0f ) ) ;
+
+    // ３Ｄモデルの０番目のアニメーションをアタッチする
+    AttachIndex = <b><a href="dxfunc_3d_model_1.html#R4N1">MV1AttachAnim</a></b>( ModelHandle, 0, -1, FALSE ) ;
+
+    // アタッチしたアニメーションの総再生時間を取得する
+    TotalTime = <b><a href="dxfunc_3d_model_1.html#R4N5">MV1GetAttachAnimTotalTime</a></b>( ModelHandle, AttachIndex ) ;
+
+    // 再生時間の初期化
+    PlayTime = 0.0f ;
+
+    // 再生しているアニメーションを０番にする
+    PlayAnim = 0 ;
+
+    // アニメーション０の再生が終わるか、何かキーが押されるかウインドウが閉じられるまでループ
+    while( <b><a href="../dxfunc.html#R1N3">ProcessMessage</a></b>() == 0 &amp;&amp; CheckHitKeyAll() == 0 )
+    {
+        // 画面をクリア
+        <b><a href="dxfunc_graph3.html#R4N4">ClearDrawScreen</a></b>() ;
+
+        // 再生時間を進める
+        PlayTime += 100.0f ;
+
+        // 再生時間がアニメーションの総再生時間に達したら次のアニメーションにする
+        if( PlayTime >= TotalTime )
+        {
+            // 再生しているアニメーションを、今までが０番だったら１番に、１番だったら０番にする
+            if( PlayAnim == 0 )
+            {
+                PlayAnim = 1 ;
+            }
+            else
+            {
+                PlayAnim = 0 ;
+            }
+
+            // 今までアタッチしていたアニメーションのデタッチ
+            MV1DetachAnim( ModelHandle, AttachIndex ) ;
+
+            // ３Ｄモデルの PlayAnim 番目のアニメーションをアタッチする
+            AttachIndex = <b><a href="dxfunc_3d_model_1.html#R4N1">MV1AttachAnim</a></b>( ModelHandle, PlayAnim, -1, FALSE ) ;
+
+            // アタッチしたアニメーションの総再生時間を取得する
+            TotalTime = <b><a href="dxfunc_3d_model_1.html#R4N5">MV1GetAttachAnimTotalTime</a></b>( ModelHandle, AttachIndex ) ;
+
+            // 再生時間の初期化
+            PlayTime = 0.0f ;
+        }
+
+        // 再生時間をセットする
+        <b><a href="dxfunc_3d_model_1.html#R4N3">MV1SetAttachAnimTime</a></b>( ModelHandle, AttachIndex, PlayTime ) ;
+
+        // ３Ｄモデルの描画
+        <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+        // 裏画面の内容を表画面に反映
+        <b><a href="dxfunc_graph3.html#R4N7">ScreenFlip</a></b>() ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R4N3">宣言</a></b></td><td><font color="#000088"><b>int MV1SetAttachAnimTime( int MHandle, int AttachIndex, float Time ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>アタッチしているアニメーションの再生時間を設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int AttachIndex ： 再生時間を設定するアニメーションのアタッチ番号<br>
+            float Time ： 再生時間
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルにアタッチしたアニメーションの再生時間を設定します。<br><br>
+
+                    　ＤＸライブラリのアニメーション機能には自動的にアニメーションを再生する機能はありませんので、
+                    この関数を使用してアニメーションの再生時間を設定します。<br><br>
+
+                    　アニメーションのキーが存在しない時間が指定された場合は、
+                    指定された時間の前後にあるキーからの補間値がモデルに反映されます。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　モデルファイル DxChara.x に含まれる０番目のアニメーションの再生時間 10000.0f の状態を描画します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle, AttachIndex ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, -300.0f, 600.0f ) ) ;
+
+    // ３Ｄモデルの０番目のアニメーションをアタッチする
+    AttachIndex = <b><a href="dxfunc_3d_model_1.html#R4N1">MV1AttachAnim</a></b>( ModelHandle, 0, -1, FALSE ) ;
+
+    // アタッチしたアニメーションの再生時間を 10000.0f にする
+    <b><a href="dxfunc_3d_model_1.html#R4N3">MV1SetAttachAnimTime</a></b>( ModelHandle, AttachIndex, 10000.0f ) ;
+
+    // ３Ｄモデルの描画
+    <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キー入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R4N4">宣言</a></b></td><td><font color="#000088"><b>float MV1GetAttachAnimTime( int MHandle, int AttachIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>アタッチしているアニメーションの再生時間を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int AttachIndex ： 再生時間を取得するアニメーションのアタッチ番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>アニメーションに設定されている再生時間<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルにアタッチしたアニメーションの再生時間を取得します。<br>
+                    <b><a href="dxfunc_3d_model_1.html#R4N3">MV1SetAttachAnimTime</a></b> でセットした値を取得するだけの関数です。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+                ありません
+            <br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R4N5">宣言</a></b></td><td><font color="#000088"><b>float MV1GetAttachAnimTotalTime( int MHandle, int AttachIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>アタッチしているアニメーションの総時間を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int AttachIndex ： 総時間取得するアニメーションのアタッチ番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>アニメーションの総時間<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルにアタッチしたアニメーションの総時間を取得します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　モデルファイル DxChara.x に含まれる０番目のアニメーションの総時間を画面左上に描画します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle, AttachIndex ;
+    float TotalTime ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // ３Ｄモデルの０番目のアニメーションをアタッチする
+    AttachIndex = <b><a href="dxfunc_3d_model_1.html#R4N1">MV1AttachAnim</a></b>( ModelHandle, 0, -1, FALSE ) ;
+
+    // アニメーション０番の総時間を画面に描画
+    TotalTime = <b><a href="dxfunc_3d_model_1.html#R4N5">MV1GetAttachAnimTotalTime</a></b>( ModelHandle, AttachIndex ) ;
+    <b><a href="dxfunc_graph2.html#R17N20">DrawFormatString</a></b>( 0, 0, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255,255,255 ), "%f", TotalTime ) ;
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キー入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R4N6">宣言</a></b></td><td><font color="#000088"><b>int MV1SetAttachAnimBlendRate( int MHandle, int AttachIndex, float Rate ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>アタッチしているアニメーションのブレンド率を設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int AttachIndex ： アニメーションのアタッチ番号<br>
+            float Rate ： ブレンド率( 0.0f ～ 1.0f )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルにアタッチしたアニメーションのブレンド率を設定します。<br><br>
+
+                    　例えば、アニメーション０とアニメーション１を合成して表示したいときにします。<br>
+                    　そんな状況があるのかといいますと、結構あります。<br><br>
+                    　例えば歩いている状態から走っているアニメーションに切り替えたい場合、
+                    最良の見た目を求めるのでしたら歩いている状態から走っている状態に移行するアニメーションを作り、
+                    それを歩くアニメーションと走るアニメーションの間に再生するべきですが、
+                    実際のゲームでは大抵の場合歩いているアニメーションのどのタイミングで走るアニメーションに切り替わるのかを事前に知る方法はありませんので、
+                    歩くアニメーションを途中で止めて走るアニメーションを流すことになります。<br><br>
+                    
+                    　ですが、歩くアニメーションを止めて走るアニメーションを再生するとはっきりと切り替わりが見えてしまいあまり見た目的に良くありません、
+                    こんな時にこの関数を使用して歩くアニメーションのブレンド率を徐々に下げ、
+                    走るアニメーションのブレンド率を徐々に上げることで歩くアニメーションから走るアニメーションへの以降の様子をぼかして違和感を軽減することが出来ます。<br><br>
+
+                    　他にも全く姿勢の違うアニメーションへの切り替えの違和感を軽減する際などに使用できます。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　モデルファイル DxChara.x に含まれる直立しているアニメーションから右手を前に出しているアニメーションへ徐々に移行します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle, AttachIndex1, AttachIndex2 ;
+    float Rate ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // 画面が切り替わるのをちょっと待つ
+    <b><a href="dxfunc_other.html#R6N1">WaitTimer</a></b>( 1000 ) ;
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, -300.0f, 600.0f ) ) ;
+
+    // ３Ｄモデルの立っているアニメーション( ４番目のアニメーション )をアタッチする
+    AttachIndex1 = <b><a href="dxfunc_3d_model_1.html#R4N1">MV1AttachAnim</a></b>( ModelHandle, 4, -1, FALSE ) ;
+
+    // ３Ｄモデルの手を前に出しているアニメーション( ５番目のアニメーション )をアタッチする
+    AttachIndex2 = MV1AttachAnim( ModelHandle, 5, -1, FALSE ) ;
+
+    // 描画先を裏画面に変更
+    <b><a href="dxfunc_graph3.html#R4N6">SetDrawScreen</a></b>( DX_SCREEN_BACK ) ;
+
+    // ４番目のアニメーションから５番目のアニメーションに徐々に移行する
+    for( Rate = 0.0f ; Rate < 1.0f ; Rate += 0.01f )
+    {
+        // 画面をクリア
+        <b><a href="dxfunc_graph3.html#R4N4">ClearDrawScreen</a></b>() ;
+
+        // 立っているアニメーションのブレンド率をセット
+        <b><a href="dxfunc_3d_model_1.html#R4N6">MV1SetAttachAnimBlendRate</a></b>( ModelHandle, AttachIndex1, 1.0f - Rate ) ;
+
+        // 手を前に出しているアニメーションのブレンド率をセット
+        MV1SetAttachAnimBlendRate( ModelHandle, AttachIndex2, Rate ) ;
+
+        // モデルの描画
+        <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+        // 裏画面の内容を表画面に反映する
+        <b><a href="dxfunc_graph3.html#R4N7">ScreenFlip</a></b>() ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キー入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R4N7">宣言</a></b></td><td><font color="#000088"><b>float MV1GetAttachAnimBlendRate( int MHandle, int AttachIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>アタッチしているアニメーションのブレンド率を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int AttachIndex ： ブレンド率を取得するアニメーションのアタッチ番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>アニメーションに設定されているブレンド率<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルにアタッチしたアニメーションのブレンド率を取得します。<br>
+                    <b><a href="dxfunc_3d_model_1.html#R4N6">MV1SetAttachAnimBlendRate</a></b> でセットした値を取得するだけの関数です。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+                ありません
+            <br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R4N8">宣言</a></b></td><td><font color="#000088"><b>int MV1GetAttachAnim( int MHandle, int AttachIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>アタッチしているアニメーションのアニメーション番号を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int AttachIndex ： アニメーション番号を取得するアニメーションのアタッチ番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>アタッチしているアニメーションの番号<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルにアタッチしたアニメーションの番号を取得します。<br>
+                    <b><a href="dxfunc_3d_model_1.html#R4N1">MV1AttachAnim</a></b> の第二引数( int AnimIndex )で渡した値がそのまま返ってきます。<br><br>
+
+                    具体的な用途は思いつきませんが、必要になることがあるような気がするので追加しました。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+                ありません
+            <br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R4N13">宣言</a></b></td><td><font color="#000088"><b>VECTOR MV1GetAttachAnimFrameLocalPosition( int MHandle, int AttachIndex, int FrameIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>アタッチしているアニメーションの指定フレーム( ボーン )のローカル座標を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int AttachIndex ： アニメーション番号を取得するアニメーションのアタッチ番号<br>
+	    int FrameIndex ： ローカル座標を取得するフレーム( ボーン )番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>指定のフレーム( ボーン )のローカル座標<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>
+		　MHandle のモデルハンドルが示すモデルにアタッチしたアニメーションの、<b><a href="dxfunc_3d_model_1.html#R4N3">MV1SetAttachAnimTime</a></b> で設定されている再生時間での FrameIndex で指定するフレーム( ボーン )のローカル座標を取得します。<br>
+		　アニメーションに設定されている各フレームの移動値を取得したい場合に使用します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+                サンプルプログラムコーナーの『<b><a href="../program/dxprogram_AnimationMove.html">アニメーションによる座標移動</a></b>』を参照してください。
+            <br><br><br><br>
+        </td></tr>
+
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R4N9">宣言</a></b></td><td><font color="#000088"><b>int MV1GetAnimNum( int MHandle ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>アニメーションの数を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>－１以外：モデルに含まれるアニメーションの数</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるアニメーションの総数を取得します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　モデルファイル DxChara.x に含まれるアニメーションの一覧を描画します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle, AnimNum, i ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // モデルに含まれるアニメーションの数を取得する
+    AnimNum = MV1GetAnimNum( ModelHandle ) ;
+
+    // アニメーションの一覧を描画する
+    for( i = 0 ; i &lt; AnimNum ; i ++ )
+    {
+        // 左から順に、アニメーション番号、アニメーション名、アニメーションの総時間を描画する
+        <b><a href="dxfunc_graph2.html#R17N20">DrawFormatString</a></b>( 0, i * 16, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255,255,255 ),
+            "No:%d Name:%s Time:%f",
+            i,
+            <b><a href="dxfunc_3d_model_1.html#R4N10">MV1GetAnimName</a></b>( ModelHandle, i ),
+            <b><a href="dxfunc_3d_model_1.html#R4N12">MV1GetAnimTotalTime</a></b>( ModelHandle, i ) ) ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キー入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R4N10">宣言</a></b></td><td><font color="#000088"><b>const char *MV1GetAnimName( int MHandle, int AnimIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定番号のアニメーション名を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int AnimIndex ： アニメーション名を取得したいアニメーションの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>NULL以外：指定番号のアニメーション名</td></tr>
+            <tr><td width="100">　</td><td>NULL：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるアニメーションの名前を取得します。<br><br>
+                    　尚、戻り値は const 型( 変更不可能型 )ですので、もし戻り値を変数に代入する場合は const char * 型の変数にする必要があります。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_1.html#R4N9">MV1GetAnimNum関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R4N11">宣言</a></b></td><td><font color="#000088"><b>MV1GetAnimIndex( int MHandle, char *AnimName ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定名のアニメーション番号を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            char *AnimName ： 番号を取得したいアニメーションの名前
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>－１以外：アニメーション番号</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれる指定名を持つアニメーションの番号を取得します。<br><br>
+                
+                    　名前からアニメーション番号を検索したい場合に使用します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　モデルファイル DxChara.x に含まれる Animation_2 という名前のアニメーションを再生します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle, AnimIndex, AttachIndex ;
+    float TotalTime, PlayTime ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // 描画先を裏画面に変更
+    <b><a href="dxfunc_graph3.html#R4N6">SetDrawScreen</a></b>( DX_SCREEN_BACK ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, -300.0f, 600.0f ) ) ;
+
+    // Animation_2 という名前のアニメーションの番号を取得する
+    AnimIndex = MV1GetAnimIndex( ModelHandle, "Animation_2" ) ;
+
+    // 取得したアニメーション番号のアニメーションをアタッチする
+    AttachIndex = <b><a href="dxfunc_3d_model_1.html#R4N1">MV1AttachAnim</a></b>( ModelHandle, AnimIndex, -1, FALSE ) ;
+
+    // アタッチしたアニメーションの総再生時間を取得する
+    TotalTime = <b><a href="dxfunc_3d_model_1.html#R4N5">MV1GetAttachAnimTotalTime</a></b>( ModelHandle, AttachIndex ) ;
+
+    // 再生時間の初期化
+    PlayTime = 0.0f ;
+
+    // 何かキーが押されるかウインドウが閉じられるまでループ
+    while( <b><a href="../dxfunc.html#R1N3">ProcessMessage</a></b>() == 0 &amp;&amp; CheckHitKeyAll() == 0 )
+    {
+        // 画面をクリア
+        <b><a href="dxfunc_graph3.html#R4N4">ClearDrawScreen</a></b>() ;
+
+        // 再生時間を進める
+        PlayTime += 100.0f ;
+
+        // 再生時間がアニメーションの総再生時間に達したら再生時間を０に戻す
+        if( PlayTime >= TotalTime )
+        {
+            PlayTime = 0.0f ;
+        }
+
+        // 再生時間をセットする
+        <b><a href="dxfunc_3d_model_1.html#R4N3">MV1SetAttachAnimTime</a></b>( ModelHandle, AttachIndex, PlayTime ) ;
+
+        // ３Ｄモデルの描画
+        <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+        // 裏画面の内容を表画面に反映
+        <b><a href="dxfunc_graph3.html#R4N7">ScreenFlip</a></b>() ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R4N12">宣言</a></b></td><td><font color="#000088"><b>float MV1GetAnimTotalTime( int MHandle, int AnimIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定番号のアニメーションの総時間を得る<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int AnimIndex ： 総時間を取得したいアニメーションの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>－１．０ｆ以外：指定番号のアニメーションの総時間</td></tr>
+            <tr><td width="100">　</td><td>－１．０ｆ：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるアニメーションの総時間を取得します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_1.html#R4N9">MV1GetAnimNum関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+        <tr><td><font size="3" color="#005500"><b>マテリアル関係</b><br><br></font></td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N1">宣言</a></b></td><td><font color="#000088"><b>int MV1GetMaterialNum( int MHandle ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>モデルで使用しているマテリアルの数を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>－１以外：モデルに含まれるマテリアルの数</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルの総数を取得します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　モデルファイル DxChara.x に含まれるアニメーションの情報を一つづつ描画します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle, MaterialNum, i ;
+    COLOR_F Color ;
+    char *Name ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // モデルに含まれるマテリアルの数を取得する
+    MaterialNum = MV1GetMaterialNum( ModelHandle ) ;
+
+    // マテリアルの情報を一つづつ描画する
+    for( i = 0 ; i &lt; MaterialNum ; i ++ )
+    {
+        // 画面をクリア
+        <b><a href="dxfunc_graph3.html#R4N4">ClearDrawScreen</a></b>() ;
+
+        // マテリアルの名前を描画
+        <b><a href="dxfunc_graph2.html#R17N20">DrawFormatString</a></b>( 0, 0, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255,255,255 ),  "Name            %s", MV1GetMaterialName( ModelHandle, i ) ) ;
+
+        // マテリアルのディフューズカラーを描画
+        Color = <b><a href="dxfunc_3d_model_1.html#R5N4">MV1GetMaterialDifColor</a></b>( ModelHandle, i ) ;
+        DrawFormatString( 0, 16, GetColor( 255,255,255 ), "Diffuse  Color  R:%f  G:%f  B:%f  A:%f", Color.r, Color.g, Color.b, Color.a ) ;
+
+        // マテリアルのスペキュラカラーを描画
+        Color = <b><a href="dxfunc_3d_model_1.html#R5N6">MV1GetMaterialSpcColor</a></b>( ModelHandle, i ) ;
+        DrawFormatString( 0, 32, GetColor( 255,255,255 ), "Specular Color  R:%f  G:%f  B:%f  A:%f", Color.r, Color.g, Color.b, Color.a ) ;
+
+        // マテリアルのエミッシブカラーを描画
+        Color = <b><a href="dxfunc_3d_model_1.html#R5N8">MV1GetMaterialEmiColor</a></b>( ModelHandle, i ) ;
+        DrawFormatString( 0, 48, GetColor( 255,255,255 ), "Emissive Color  R:%f  G:%f  B:%f  A:%f", Color.r, Color.g, Color.b, Color.a ) ;
+
+        // マテリアルのアンビエントカラーを描画
+        Color = <b><a href="dxfunc_3d_model_1.html#R5N10">MV1GetMaterialAmbColor</a></b>( ModelHandle, i ) ;
+        DrawFormatString( 0, 64, GetColor( 255,255,255 ), "Ambient  Color  R:%f  G:%f  B:%f  A:%f", Color.r, Color.g, Color.b, Color.a ) ;
+
+        // マテリアルのスペキュラの強さ描画
+        DrawFormatString( 0, 80, GetColor( 255,255,255 ), "Specular Power  %f", <b><a href="dxfunc_3d_model_1.html#R5N12">MV1GetMaterialSpcPower</a></b>( ModelHandle, i ) ) ;
+
+        // 描画ブレンドモードの描画
+        switch( <b><a href="dxfunc_3d_model_1.html#R5N21">MV1GetMaterialDrawBlendMode</a></b>( ModelHandle, i ) )
+        {
+        case DX_BLENDMODE_NOBLEND : Name = "DX_BLENDMODE_NOBLEND" ; break ;
+        case DX_BLENDMODE_ALPHA   : Name = "DX_BLENDMODE_ALPHA"   ; break ;
+        case DX_BLENDMODE_ADD     : Name = "DX_BLENDMODE_ADD"     ; break ;
+        case DX_BLENDMODE_SUB     : Name = "DX_BLENDMODE_SUB"     ; break ;
+        case DX_BLENDMODE_INVSRC  : Name = "DX_BLENDMODE_INVSRC"  ; break ;
+        case DX_BLENDMODE_MULA    : Name = "DX_BLENDMODE_MULA"    ; break ;
+        }
+        DrawFormatString( 0, 96, GetColor( 255,255,255 ), "Draw Blend Mode   %s", Name ) ;
+
+        // 描画ブレンドパラメータの描画
+        DrawFormatString( 0, 112, GetColor( 255,255,255 ), "Draw Blend Param  %d", <b><a href="dxfunc_3d_model_1.html#R5N23">MV1GetMaterialDrawBlendParam</a></b>( ModelHandle, i ) ) ;
+
+        // キー入力待ち
+        <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N2">宣言</a></b></td><td><font color="#000088"><b>const char *MV1GetMaterialName( int MHandle, int MaterialIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルの名前を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： 名前を取得したいマテリアルの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>NULL 以外：マテリアルの名前</td></tr>
+            <tr><td width="100">　</td><td>NULL：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルの名前を取得します。<br><br>
+                    　尚、戻り値は const 型( 変更不可能型 )ですので、もし戻り値を変数に代入する場合は const char * 型の変数にする必要があります。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_1.html#R5N1">MV1GetMaterialNum関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N3">宣言</a></b></td><td><font color="#000088"><b>int MV1SetMaterialDifColor( int MHandle, int MaterialIndex, COLOR_F Color ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルのディフューズカラーを変更する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： ディフューズカラーを変更するマテリアルの番号<br>
+            COLOR_F Color ： ディフューズカラー( 拡散光色 )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルのディフューズカラー( 拡散光色 )を変更します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　モデルファイル DxChara.x に含まれる０番目のマテリアルのディフューズカラーを真っ赤にしてモデルを描画します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, -300.0f, 600.0f ) ) ;
+
+    // ３Ｄモデルに含まれる０番目のマテリアルのディフューズカラーを真っ赤にします
+    MV1SetMaterialDifColor( ModelHandle, 0, <b><a href="dxfunc_3d_draw.html#R14N14">GetColorF</a></b>( 1.0f, 0.0f, 0.0f, 1.0f ) ) ;
+
+    // ３Ｄモデルの描画
+    <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キーの入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N4">宣言</a></b></td><td><font color="#000088"><b>COLOR_F MV1GetMaterialDifColor( int MHandle, int MaterialIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルのディフューズカラーを取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： マテリアルの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>ディフューズカラー</TD></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルのディフューズカラー( 拡散光色 )を取得します。<br><br>
+
+                    　戻り値は COLOR_F 構造体で、中にはそれぞれ赤、緑、青、α成分を表す変数 float r, g, b, a ; が含まれています。
+                    ( 値の範囲は 0.0f ～ 1.0f ( ０％～１００％ ) )<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_1.html#R5N1">MV1GetMaterialNum関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N5">宣言</a></b></td><td><font color="#000088"><b>int MV1SetMaterialSpcColor( int MHandle, int MaterialIndex, COLOR_F Color ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルのスペキュラカラーを変更する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： スペキュラカラーを変更するマテリアルの番号<br>
+            COLOR_F Color ： スペキュラカラー( 拡散光色 )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルのスペキュラカラー( 反射光色 )を変更します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　モデルファイル DxChara.x に含まれる０番目のマテリアルのスペキュラカラーを緑色にしてモデルを描画します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, -300.0f, 600.0f ) ) ;
+
+    // ３Ｄモデルに含まれる０番目のマテリアルのスペキュラカラーを緑にします
+    MV1SetMaterialSpcColor( ModelHandle, 0, <b><a href="dxfunc_3d_draw.html#R14N14">GetColorF</a></b>( 0.0f, 1.0f, 0.0f, 1.0f ) ) ;
+
+    // ３Ｄモデルの描画
+    <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キーの入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N6">宣言</a></b></td><td><font color="#000088"><b>COLOR_F MV1GetMaterialSpcColor( int MHandle, int MaterialIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルのスペキュラカラーを取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： マテリアルの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>スペキュラカラー</TD></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルのスペキュラカラー( 反射光色 )を取得します。<br><br>
+
+                    　戻り値は COLOR_F 構造体で、中にはそれぞれ赤、緑、青、α成分を表す変数 float r, g, b, a ; が含まれています。
+                    ( 値の範囲は 0.0f ～ 1.0f ( ０％～１００％ ) )<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_1.html#R5N1">MV1GetMaterialNum関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N7">宣言</a></b></td><td><font color="#000088"><b>int MV1SetMaterialEmiColor( int MHandle, int MaterialIndex, COLOR_F Color ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルのエミッシブカラーを変更する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： エミッシブカラーを変更するマテリアルの番号<br>
+            COLOR_F Color ： エミッシブカラー( 自己発光色 )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルのエミッシブカラー( 自己発光色 )を変更します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　モデルファイル DxChara.x に含まれる０番目のマテリアルのエミッシブカラーを暗い黄色にしてモデルを描画します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, -300.0f, 600.0f ) ) ;
+
+    // ３Ｄモデルに含まれる０番目のマテリアルのエミッシブカラーを暗い黄色にします
+    MV1SetMaterialEmiColor( ModelHandle, 0, <b><a href="dxfunc_3d_draw.html#R14N14">GetColorF</a></b>( 0.2f, 0.2f, 0.0f, 1.0f ) ) ;
+
+    // ３Ｄモデルの描画
+    <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キーの入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N8">宣言</a></b></td><td><font color="#000088"><b>COLOR_F MV1GetMaterialEmiColor( int MHandle, int MaterialIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルのエミッシブカラーを取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： マテリアルの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>エミッシブカラー</TD></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルのエミッシブカラー( 自己発光色 )を取得します。<br><br>
+
+                    　戻り値は COLOR_F 構造体で、中にはそれぞれ赤、緑、青、α成分を表す変数 float r, g, b, a ; が含まれています。
+                    ( 値の範囲は 0.0f ～ 1.0f ( ０％～１００％ ) )<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_1.html#R5N1">MV1GetMaterialNum関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N9">宣言</a></b></td><td><font color="#000088"><b>int MV1SetMaterialAmbColor( int MHandle, int MaterialIndex, COLOR_F Color ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルのアンビエントカラーを変更する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： アンビエントカラーを変更するマテリアルの番号<br>
+            COLOR_F Color ： アンビエントカラー( 環境光色 )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルのアンビエントカラー( 環境光色 )を変更します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　モデルファイル DxChara.x に含まれる０番目のマテリアルのアンビエントカラーを紫色にしてモデルを描画します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, -300.0f, 600.0f ) ) ;
+
+    // ３Ｄモデルに含まれる０番目のマテリアルのアンビエントカラーを紫色にします
+    MV1SetMaterialAmbColor( ModelHandle, 0, <b><a href="dxfunc_3d_draw.html#R14N14">GetColorF</a></b>( 1.0f, 0.0f, 1.0f, 1.0f ) ) ;
+
+    // ３Ｄモデルの描画
+    <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キーの入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N10">宣言</a></b></td><td><font color="#000088"><b>COLOR_F MV1GetMaterialAmbColor( int MHandle, int MaterialIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルのアンビエントカラーを取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： マテリアルの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>アンビエントカラー</TD></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルのアンビエントカラー( 環境光色 )を取得します。<br><br>
+
+                    　戻り値は COLOR_F 構造体で、中にはそれぞれ赤、緑、青、α成分を表す変数 float r, g, b, a ; が含まれています。
+                    ( 値の範囲は 0.0f ～ 1.0f ( ０％～１００％ ) )<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_1.html#R5N1">MV1GetMaterialNum関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N11">宣言</a></b></td><td><font color="#000088"><b>int MV1SetMaterialSpcPower( int MHandle, int MaterialIndex, float Power ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルのスペキュラの強さを変更する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： スペキュラの強さを変更するマテリアルの番号<br>
+            float Power ： スペキュラの強さ
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルのスペキュラの強さを変更します。<br><br>
+
+                    　具体的には反射する光の範囲が鋭くなります。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　モデルファイル DxChara.x に含まれる０番目のマテリアルのスペキュラの強さを変更します。<br>
+            　　( 変化がわかりにくいので、スペキュラカラーも明るくしています )<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, -300.0f, 600.0f ) ) ;
+
+    // ３Ｄモデルに含まれる０番目のマテリアルのスペキュラカラーを明るくします
+    <b><a href="dxfunc_3d_model_1.html#R5N5">MV1SetMaterialSpcColor</a></b>( ModelHandle, 0, <b><a href="dxfunc_3d_draw.html#R14N14">GetColorF</a></b>( 0.457f, 0.687f, 0.948f, 0.f ) ) ;
+
+    // ３Ｄモデルに含まれる０番目のマテリアルのスペキュラの強さを 0.1f にします
+    MV1SetMaterialSpcPower( ModelHandle, 0, 19.0f ) ;
+
+    // ３Ｄモデルの描画
+    <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キーの入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N12">宣言</a></b></td><td><font color="#000088"><b>float MV1GetMaterialSpcPower( int MHandle, int MaterialIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルのスペキュラの強さを取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： マテリアルの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>スペキュラの強さ</td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルのスペキュラの強さを取得します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_1.html#R5N1">MV1GetMaterialNum関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N24">宣言</a></b></td><td><font color="#000088"><b>int MV1GetMaterialDifMapTexture( int MHandle, int MaterialIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルでディフューズマップとして使用されているテクスチャ番号を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： マテリアルの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０以上：テクスチャの番号</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルのディフューズマップとして使用されているテクスチャの番号を取得します。<br>
+                    　取得した番号は関数 <b><a href="dxfunc_3d_model_2.html#R15N4">MV1GetTextureGraphHandle</a></b> などの引数として使用します。
+                    ( テクスチャの番号はモデルに含まれるテクスチャに振られる番号で、グラフィックハンドルではありませんのでご注意ください )<br><br>
+
+                    　モデルのテクスチャを変更したり利用したりしたいときに使用します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　モデルファイル DxChara.x に含まれる４番目のマテリアルにディフューズテクスチャとして使用されている<br>
+            　テクスチャの番号を取得して、そのテクスチャのグラフィックハンドルを取得して画面に描画します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+    int TexIndex ;
+    int GrHandle ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // マテリアル番号４で使用されているテクスチャの番号を取得する
+    TexIndex = MV1GetMaterialDifMapTexture( ModelHandle, 4 ) ;
+
+    // モデルで使用されているテクスチャのグラフィックハンドルを取得する
+    GrHandle = <b><a href="dxfunc_3d_model_2.html#R15N4">MV1GetTextureGraphHandle</a></b>( ModelHandle, TexIndex ) ;
+
+    // 取得したグラフィックハンドルを画面に描画する
+    <b><a href="dxfunc_graph1.html#R3N7">DrawGraph</a></b>( 0, 0, GrHandle, TRUE ) ;
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キーの入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N25">宣言</a></b></td><td><font color="#000088"><b>int MV1GetMaterialSpcMapTexture( int MHandle, int MaterialIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルでスペキュラマップとして使用されているテクスチャ番号を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： マテリアルの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０以上：テクスチャの番号</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルのスペキュラマップとして使用されているテクスチャの番号を取得します。<br>
+                    　取得した番号は関数 <b><a href="dxfunc_3d_model_2.html#R15N4">MV1GetTextureGraphHandle</a></b> などの引数として使用します。
+                    ( テクスチャの番号はモデルに含まれるテクスチャに振られる番号で、グラフィックハンドルではありませんのでご注意ください )<br><br>
+
+                    　モデルのテクスチャを変更したり利用したりしたいときに使用します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　マテリアルで使用されているテクスチャを画面に描画するサンプルが <a href="dxfunc_3d_model_1.html#R5N24">MV1GetMaterialDifMapTexture 関数</a> にあります。<br><br><br><br>
+        </td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N26">宣言</a></b></td><td><font color="#000088"><b>int MV1GetMaterialNormalMapTexture( int MHandle, int MaterialIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルで法線マップとして使用されているテクスチャ番号を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： マテリアルの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０以上：テクスチャの番号</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルの法線マップとして使用されているテクスチャの番号を取得します。<br>
+                    　取得した番号は関数 <b><a href="dxfunc_3d_model_2.html#R15N4">MV1GetTextureGraphHandle</a></b> などの引数として使用します。
+                    ( テクスチャの番号はモデルに含まれるテクスチャに振られる番号で、グラフィックハンドルではありませんのでご注意ください )<br><br>
+
+                    　モデルのテクスチャを変更したり利用したりしたいときに使用します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　マテリアルで使用されているテクスチャを画面に描画するサンプルが <a href="dxfunc_3d_model_1.html#R5N24">MV1GetMaterialDifMapTexture 関数</a> にあります。<br><br><br><br>
+        </td></tr>
+
+<!--
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N13">宣言</a></b></td><td><font color="#000088"><b>int MV1SetMaterialDifMapTexPath( int MHandle, int MaterialIndex, char *TexPath ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルのディフューズマップテクスチャのパスを変更する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle : モデルのハンドル<br>
+            int MaterialIndex : マテリアルの番号<br>
+            char *TexPath : 変更後のテクスチャのパス
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルが使用するディフューズマップテクスチャを変更します。<br>
+                    　テクスチャパスは読み込んだモデルをカレントフォルダとした相対パスではなく、現在のカレントフォルダの相対パスです。<br>
+                    　形状は同じでテクスチャだけ違うキャラクターを登場させたい場合などに使用します。<br><br>
+
+                    　尚、使用するテクスチャは 2 のｎ乗( 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, ... )のサイズである必要があります。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　モデルファイル DxChara.x に含まれる４番目のマテリアルで使用するディフューズマップテクスチャを DxCharaEye2.tga に変更します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, -300.0f, 600.0f ) ) ;
+
+    // ３Ｄモデルに含まれる４番目のマテリアルが使用するディフューズマップを DxCharaEye2.tga に変更します
+    MV1SetMaterialDifMapTexPath( ModelHandle, 4, "DxCharaEye2.tga" ) ;
+
+    // ３Ｄモデルの描画
+    <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キーの入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N14">宣言</a></b></td><td><font color="#000088"><b>const char *MV1GetMaterialDifMapTexPath( int MHandle, int MaterialIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルのディフューズマップテクスチャのパスを取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle : モデルのハンドル<br>
+            int MaterialIndex : マテリアルの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>ディフューズマップテクスチャのパス( 無い場合は NULL )</td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルで使用されているディフューズマップテクスチャファイルのパスを取得します。<br><br>
+                
+                    　ディフューズマップを使用していない場合は NULL が返ってきます。<br>
+                    　尚、戻り値は const 型( 変更不可能型 )ですので、もし戻り値を変数に代入する場合は const char * 型の変数にする必要があります。<br><br>
+                <br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_1.html#R5N1">MV1GetMaterialNum関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N15">宣言</a></b></td><td><font color="#000088"><b>int MV1SetMaterialSpcMapTexPath( int MHandle, int MaterialIndex, char *TexPath ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルのスペキュラマップテクスチャのパスを変更する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle : モデルのハンドル<br>
+            int MaterialIndex : マテリアルの番号<br>
+            char *TexPath : 変更後のテクスチャのパス
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルが使用するスペキュラマップテクスチャを変更します。<br>
+                    　テクスチャパスは読み込んだモデルをカレントフォルダとした相対パスではなく、現在のカレントフォルダの相対パスです。<br>
+                    　形状は同じでテクスチャだけ違うキャラクターを登場させたい場合などに使用します。<br><br>
+
+                    　尚、使用するテクスチャは 2 のｎ乗( 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, ... )のサイズである必要があります。<br><br>
+                    　因みに、スペキュラマップは Pixel Shader Model 2.0 と Vertex Shader Model 2.0
+                    が使用できるグラフィックスデバイスを使用していない場合は無効ですので、
+                    沢山の環境でプレイできるゲームを作成したい場合はスペキュラマップの効果が無いとゲームとして成り立たないような表現( 敵の弱点がスペキュラマップで浮き上がる等 )は避ける必要があります。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　モデルファイル DxChara.x に含まれる１番目のマテリアルで使用するスペキュラマップテクスチャを DxCharaTex.bmp に変更します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, -300.0f, 600.0f ) ) ;
+
+    // ３Ｄモデルに含まれる１番目のマテリアルが使用するスペキュラマップを DxCharaTex.bmp に変更します
+    MV1SetMaterialSpcMapTexPath( ModelHandle, 1, "DxCharaTex.bmp" ) ;
+
+    // ３Ｄモデルの描画
+    <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キーの入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N16">宣言</a></b></td><td><font color="#000088"><b>const char *MV1GetMaterialSpcMapTexPath( int MHandle, int MaterialIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルのスペキュラマップテクスチャのパスを取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle : モデルのハンドル<br>
+            int MaterialIndex : マテリアルの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>スペキュラマップテクスチャのパス( 無い場合は NULL )</td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルで使用されているスペキュラマップテクスチャファイルのパスを取得します。<br><br>
+                
+                    　スペキュラマップを使用していない場合は NULL が返ってきます。<br>
+                    　尚、戻り値は const 型( 変更不可能型 )ですので、もし戻り値を変数に代入する場合は const char * 型の変数にする必要があります。<br><br>
+                <br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_1.html#R5N1">MV1GetMaterialNum関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N17">宣言</a></b></td><td><font color="#000088"><b>const char *MV1GetMaterialNormalMapTexPath( int MHandle, int MaterialIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルの法線マップテクスチャのパスを取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle : モデルのハンドル<br>
+            int MaterialIndex : マテリアルの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>法線マップテクスチャのパス( 無い場合は NULL )</td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルで使用されている法線マップテクスチャファイルのパスを取得します。<br><br>
+                
+                    　法線マップを使用していない場合は NULL が返ってきます。<br>
+                    　尚、戻り値は const 型( 変更不可能型 )ですので、もし戻り値を変数に代入する場合は const char * 型の変数にする必要があります。<br><br>
+                <br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_1.html#R5N1">MV1GetMaterialNum関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N18">宣言</a></b></td><td><font color="#000088"><b>const char *MV1GetMaterialBumpMapTexPath( int MHandle, int MaterialIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルの凸凹マップテクスチャのパスを取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： マテリアルの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>凸凹マップテクスチャのパス( 無い場合は NULL )</td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルで使用されている凸凹マップテクスチャファイルのパスを取得します。<br><br>
+                
+                    　凸凹マップを使用していない場合は NULL が返ってきます。<br>
+                    　尚、戻り値は const 型( 変更不可能型 )ですので、もし戻り値を変数に代入する場合は const char * 型の変数にする必要があります。<br><br>
+                <br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_1.html#R5N1">MV1GetMaterialNum関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N19">宣言</a></b></td><td><font color="#000088"><b>float MV1GetMaterialBumpMapNextPixelLength( int MHandle, int MaterialIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルの凸凹マップテクスチャの１ピクセル辺りの距離を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： マテリアルの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>凸凹マップテクスチャの１ピクセル辺りの距離</td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルで使用されている凸凹マップテクスチャファイルの１ピクセル辺りの距離を取得します。<br><br>
+                <br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_1.html#R5N1">MV1GetMaterialNum関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+-->
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N20">宣言</a></b></td><td><font color="#000088"><b>int MV1SetMaterialDrawBlendMode( int MHandle, int MaterialIndex, int BlendMode ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルの描画ブレンドモードを変更する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： マテリアルの番号<br>
+            int BlendMode ： 描画ブレンドモード( DX_BLENDMODE_ALPHA 等 )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルのブレンドモードを変更します。<br>
+                    　現在モデル描画で正常に動作するブレンドモードは DX_BLENDMODE_ALPHA, DX_BLENDMODE_ADD の２種類のみです。
+                    ( ハードウエアが対応している場合は DX_BLENDMODE_SUB も正常に機能します )<br>
+                    　ブレンドモードの説明に関しては <b><a href="dxfunc_graph1.html#R3N17">SetDrawBlendMode</a></b> 関数の解説を参照してください。<br><br>
+
+                    　ブレンドモードのパラメータの変更は <b><a href="dxfunc_3d_model_1.html#R5N22">MV1SetMaterialDrawBlendParam</a></b> 関数を使用します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　モデルファイル DxChara.x に含まれる１番目のマテリアルの描画ブレンドモードを加算ブレンド( DX_BLENDMODE_ADD )に変更します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // ブレンドモードが変更されたことがわかるように画面全体を青色で塗りつぶす
+    <b><a href="dxfunc_graph0.html#R2N2">DrawBox</a></b>( 0, 0, 640, 480, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 0,0,255 ), TRUE ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, -300.0f, 600.0f ) ) ;
+
+    // ３Ｄモデルに含まれる１番目のマテリアルの描画ブレンドモードを DX_BLENDMODE_ADD に変更する
+    <b><a href="dxfunc_3d_model_1.html#R5N20">MV1SetMaterialDrawBlendMode</a></b>( ModelHandle, 1, DX_BLENDMODE_ADD ) ;
+
+    // ３Ｄモデルの描画
+    <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キーの入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N21">宣言</a></b></td><td><font color="#000088"><b>int MV1GetMaterialDrawBlendMode( int MHandle, int MaterialIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルの描画ブレンドモードを取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： マテリアルの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>描画ブレンドモード( DX_BLENDMODE_ALPHA 等 )</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルの描画ブレンドモードを取得します。<br><br>
+                <br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_1.html#R5N1">MV1GetMaterialNum関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N22">宣言</a></b></td><td><font color="#000088"><b>int MV1SetMaterialDrawBlendParam( int MHandle, int MaterialIndex, int BlendParam ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルの描画ブレンドパラメータを変更する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： マテリアルの番号<br>
+            int BlendParame ： 描画ブレンドパラメータ( 0 ～ 255 )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルのブレンドパラメータを変更します。<br>
+                    ( ブレンドパラメータの説明に関しては <b><a href="dxfunc_graph1.html#R3N17">SetDrawBlendMode</a></b> 関数の解説を参照してください )<br><br>
+
+                    　尚、ブレンドモードの変更は <b><a href="dxfunc_3d_model_1.html#R5N20">MV1SetMaterialDrawBlendMode</a></b> 関数を使用してください。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　モデルファイル DxChara.x に含まれる１番目のマテリアルの描画ブレンドモードを加算ブレンド( DX_BLENDMODE_ADD )に変更して、
+            ブレンドパラメータを128にして描画します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // ブレンドモードが変更されたことがわかるように画面全体を青色で塗りつぶす
+    <b><a href="dxfunc_graph0.html#R2N2">DrawBox</a></b>( 0, 0, 640, 480, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 0,0,255 ), TRUE ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, -300.0f, 600.0f ) ) ;
+
+    // ３Ｄモデルに含まれる０番目のマテリアルの描画ブレンドモードを DX_BLENDMODE_ADD に変更する
+    MV1SetMaterialDrawBlendMode( ModelHandle, 1, DX_BLENDMODE_ADD ) ;
+
+    // マテリアルのブレンドパラメータを 128 に変更する
+    <b><a href="dxfunc_3d_model_1.html#R5N22">MV1SetMaterialDrawBlendParam</a></b>( ModelHandle, 1, 128 ) ;
+
+    // ３Ｄモデルの描画
+    <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キーの入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N23">宣言</a></b></td><td><font color="#000088"><b>int MV1GetMaterialDrawBlendParam( int MHandle, int MaterialIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルの描画ブレンドパラメータを取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： マテリアルの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>描画ブレンドパラメータ( 0 ～ 255 )</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルの描画ブレンドパラメータを取得します。<br><br>
+                <br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_1.html#R5N1">MV1GetMaterialNum関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N35">宣言</a></b></td><td><font color="#000088"><b>int MV1SetMaterialDrawAlphaTest( int MHandle, int MaterialIndex, int Enable, int Mode, int Param ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルの描画アルファテストの設定を行う<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： マテリアルの番号<br>
+            int Enable ： アルファテストを有効にするかどうか( TRUE：有効にする　FALSE：無効にする（デフォルト） )<br>
+	    int Mode ： テストモード( DX_CMP_GREATER等 )<br>
+	    int Param ： 描画アルファ値との比較に使用する値( 0～255 )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれる指定のマテリアルの描画時にアルファテストを行うかどうかや、行う場合のテストモードを変更します。<br>
+                    　アルファテストとは描画する色のアルファ値によって描画を行うかどうかを決定する機能で、
+		    主に描画負荷の軽減とＺバッファへどれだけ透明なピクセルでも書き込むか等を決定する為に使用します。<br><br>
+
+		    　Ｚバッファにはアルファ値が 1 でほぼ完全に透明の物でも不透明の物と同様にしっかりと深度情報が書き込まれてしまいます。<br>
+		    　すると、その後『ほぼ完全に透明の物』の奥に別の物を描画しようとすると『ほぼ完全に透明の物』に隠れて描画されないという現象が発生してしまいます。<br>
+		    　理想的には描画物を画面奥にあるものから順に描画すればこのような問題は発生しないのですが、
+		    描画物が大量にあって画面奥にあるものから順に描画しようとするとソートの処理負荷が高くなってしまう等必ずしも常に理想的な描画が行えるとは限らないので、
+		    そのような場合にアルファテスト機能を使って、一定以上の透明度のものはそもそも描画しない、などの設定を行ってから描画します。<br><br>
+
+		    アルファテストとして使用できるモードは引数 Mode で指定するのですが、モードには以下の種類があります。<br><br>
+
+<table BORDER=2 CELLSPACING=5 CELLPADDING=5>
+	<tr><td>DX_CMP_NEVER</td><td>描画アルファ値がどのような値でも描画しない</td></tr>
+	<tr><td>DX_CMP_LESS</td><td>描画アルファ値が Param より小さい場合は描画する</td></tr>
+	<tr><td>DX_CMP_EQUAL</td><td>描画アルファ値が Param と等しい場合は描画する</td></tr>
+	<tr><td>DX_CMP_LESSEQUAL</td><td>描画アルファ値が Param と同じか、より小さい場合は描画する</td></tr>
+	<tr><td>DX_CMP_GREATER</td><td>描画アルファ値が Param より大きい場合は描画する</td></tr>
+	<tr><td>DX_CMP_NOTEQUAL</td><td>描画アルファ値が Param と異なる場合は描画する</td></tr>
+	<tr><td>DX_CMP_GREATEREQUAL</td><td>描画アルファ値が Param と同じか、より大きい場合は描画する</td></tr>
+	<tr><td>DX_CMP_ALWAYS</td><td>描画アルファ値がどのような値でも描画する</td></tr>
+</table>
+<br>
+
+                    　DX_CMP_NEVER と DX_CMP_ALWAYS 以外のモードでは引数 Param で指定するアルファ値を比較用の値として使用します。<br>
+                    　大体は『一定以上のアルファ値の場合のみ描画するようにしたい』ので、DX_CMP_GREATER か DX_CMP_GREATEREQUAL を使用します。<br><br>
+
+		    　例：マテリアル番号１を透明度が８０％以下(アルファ値が51以上)の部分のみ描画するように設定する<br><br>
+
+                    　　　MV1SetMaterialDrawAlphaTest( MHandle, 1, TRUE, DX_CMP_GREATEREQUAL, 51 ) ;<br><br>
+
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+                　　ありません
+            <br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N36">宣言</a></b></td><td><font color="#000088"><b>int MV1SetMaterialDrawAlphaTestAll( int MHandle, int Enable, int Mode, int Param ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>全てのマテリアルの描画アルファテストの設定を行う<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int Enable ： アルファテストを有効にするかどうか( TRUE：有効にする　FALSE：無効にする（デフォルト） )<br>
+	    int Mode ： テストモード( DX_CMP_GREATER等 )<br>
+	    int Param ： 描画アルファ値との比較に使用する値( 0～255 )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれる全てのマテリアルに対して描画時にアルファテストを行うかどうかや、行う場合のテストモードを変更します。<br><br>
+
+                    　<b><a href="dxfunc_3d_model_1.html#R5N35">MV1SetMaterialDrawAlphaTest</a></b> の処理を全てのマテリアルに対して行うという以外は全て MV1SetMaterialDrawAlphaTest と同じなので、
+		    引数の解説などは MV1SetMaterialDrawAlphaTest の解説を参照してください。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+                　　ありません
+            <br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N27">宣言</a></b></td><td><font color="#000088"><b>int MV1SetMaterialOutLineWidth( int MHandle, int MaterialIndex, float Width ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルのトゥーンレンダリングで使用する輪郭線の太さを設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： マテリアルの番号<br>
+            float Width ： 輪郭線の太さ
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルの立体的な( カメラとモデルとの距離に影響される )輪郭線の太さを変更します。<br>
+                    　輪郭線は pmd ファイルを読み込んだ場合に表示されます。<br><br><br>
+
+                    <b>＜＜輪郭線の太さ決定の仕組み＞＞</b><br><br>
+
+                    　輪郭線は立体的な太さ( MV1SetMaterialOutLineWidth で指定する太さ )と、平面的な太さ( <b><a href="dxfunc_3d_model_1.html#R5N26">MV1SetMaterialOutLineDotWidth</a></b> で指定する太さ )の二種類があります。<br>
+                    　立体的な太さはカメラとモデルとの距離で実際に画面に描画される輪郭線の太さが変化します。( 離れれば離れるほど細く、近づけば近づくほど太く )<br>
+                    　平面的な太さはカメラとモデルとの距離に関係なく常に一定の太さで描画されます。<br><br>
+
+                    　ＤＸライブラリでは、立体的・平面的の両方の計算で太さを求め、より太い結果の太さを用いて輪郭線を描画します。<br>
+                    　これは「近づけば近づくほど輪郭線は太くなって欲しいけど、どれだけ離れても最低限の太さで輪郭線を描画したい」
+                    という処理を実現するためにこうなりました。<br><br>
+
+                    　尚、より太い計算結果を採用する関係で、輪郭線を描画したくない場合は MV1SetMaterialOutLineWidth と <b><a href="dxfunc_3d_model_1.html#R5N26">MV1SetMaterialOutLineDotWidth</a></b> の両方で太さを 0.0f に設定する必要があります。<br><br>
+
+                    　また、<b><a href="dxfunc_3d_model_0.html#R3N4">MV1SetScale</a></b> でモデルのスケールを変更するとこのパラメータにもスケーリングが掛かってしまいますので注意してください。<br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　ありません<br><br><br><br>
+        </td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N28">宣言</a></b></td><td><font color="#000088"><b>float MV1GetMaterialOutLineWidth( int MHandle, int MaterialIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルのトゥーンレンダリングで使用する輪郭線の太さを取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： マテリアルの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>輪郭線の太さ</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルの立体的な輪郭線の太さを取得します。<br><br>
+
+                　　　輪郭線の太さの詳細は <b><a href="dxfunc_3d_model_1.html#R5N27">MV1SetMaterialOutLineWidth</a></b> の解説を参照してください。<br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　ありません<br><br><br><br>
+        </td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N29">宣言</a></b></td><td><font color="#000088"><b>int MV1SetMaterialOutLineDotWidth( int MHandle, int MaterialIndex, float Width ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルのトゥーンレンダリングで使用する輪郭線のドット単位の太さを設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： マテリアルの番号<br>
+            float Width ： 輪郭線の太さ
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルの平面的な( カメラとモデルとの距離に影響されない )輪郭線の太さを変更します。<br>
+                    　輪郭線は pmd ファイルを読み込んだ場合に表示されます。<br><br>
+
+                　　　輪郭線の太さの詳細は <b><a href="dxfunc_3d_model_1.html#R5N27">MV1SetMaterialOutLineWidth</a></b> の解説を参照してください。<br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　ありません<br><br><br><br>
+        </td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N30">宣言</a></b></td><td><font color="#000088"><b>float MV1GetMaterialOutLineDotWidth( int MHandle, int MaterialIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルのトゥーンレンダリングで使用する輪郭線のドット単位の太さを取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： マテリアルの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>輪郭線の太さ</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルの平面的な輪郭線の太さを取得します。<br><br>
+
+                　　　輪郭線の太さの詳細は <b><a href="dxfunc_3d_model_1.html#R5N27">MV1SetMaterialOutLineWidth</a></b> の解説を参照してください。<br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　ありません<br><br><br><br>
+        </td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N31">宣言</a></b></td><td><font color="#000088"><b>int MV1SetMaterialOutLineColor( int MHandle, int MaterialIndex, COLOR_F Color ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルのトゥーンレンダリングで使用する輪郭線の色を設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： マテリアルの番号<br>
+            COLOR_F Color ： 輪郭線の色
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルの輪郭線の色を変更します。デフォルトの輪郭線の色は真っ黒 GetColorF( 0.0f, 0.0f, 0.0f, 1.0f ) です。<br>
+                    　色の値の取得は <b><a href="dxfunc_3d_draw.html#R14N14">GetColorF</a></b> を使うと便利です。<br>
+                    　尚、輪郭線は pmd ファイルを読み込んだ場合に表示されます。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　ありません<br><br><br><br>
+        </td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R5N32">宣言</a></b></td><td><font color="#000088"><b>COLOR_F MV1GetMaterialOutLineColor( int MHandle, int MaterialIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルのトゥーンレンダリングで使用する輪郭線の色を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MaterialIndex ： マテリアルの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>輪郭線の色</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるマテリアルの輪郭線の色を取得します。<br><br>
+                    　基本的に <b><a href="dxfunc_3d_model_1.html#R5N31">MV1SetMaterialOutLineColor</a></b> で設定した値を返すだけの関数です。<br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　ありません<br><br><br><br><br><br>
+        </td></tr>
+        
+        <tr><td colspan="4">
+            <hr>
+            <font size="3"><b>
+                <a href="../dxfunc.html">戻る</a>
+            </b></font>
+        </td></tr>
+    </table>
+    </div>
+    </body>
+</html>

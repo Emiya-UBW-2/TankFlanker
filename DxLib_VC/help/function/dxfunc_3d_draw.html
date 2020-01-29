@@ -1,0 +1,1974 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="ja-JP">
+    <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <link rel="shortcut icon" href="../DxLib.ico">
+    <link rel="stylesheet" href="../style.css" type="text/css">
+    <title>ＤＸライブラリ置き場　３Ｄ関係関数リファレンスページ</title>
+    </head>
+    <body bgcolor="#ffffff" text="#000000" link="#0033CC" vlink="#800040">
+    <div class="NormalFont">
+    <table align="center" width="600" cellspacing="0" cellpadding="0" >
+
+        <tr><td><font size="3" color="#005500"><b>３Ｄ図形描画関数</b><br><br></font></td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R14N1">宣言</a></b></td><td><font color="#000088"><b>int DrawLine3D( VECTOR Pos1, VECTOR Pos2, unsigned int Color ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>３Ｄ空間に線分を描画する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            VECTOR Pos1 ： 線分の始点の座標<br>
+            VECTOR Pos2 ： 線分の終点の座標<br>
+            unsigned int Color ： 線分の色</td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　３Ｄ空間に Pos1 と Pos2 の座標を結ぶ線分を Color で指定した色で描画します。<br><br>
+                    　引数 Pos1 と引数 Pos2 は float x, y, z の三つのメンバ変数を持っている構造体 VECTOR で、
+                    この３要素を使用して３次元の座標を指定します。<br>
+                    　引数が構造体だと事前に引数に渡す構造体を宣言してメンバ変数に座標値を代入して・・・と準備が面倒ですが、
+                    引数に x, y, z の値を渡すとそれを元にした VECTOR 構造体を戻り値で返してくれる関数 <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b> を使用することで簡素に引数を渡すことができます。<br>
+<pre><div class="NormalFont">// 例：座標 ( 0.0f, 100.0f, 0.0f ) , ( 200.0f, 100.0f, 0.0f ) を結ぶ白色の線分を描画する
+DrawLine3D( VGet( 0.0f, 100.0f, 0.0f ), VGet( 200.0f, 100.0f, 0.0f ), <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255,255,255 ) ) ;
+</div></pre>
+                    　Colorの値は画面の色の表現できる色の数によってかわってきます。
+                    この色の値はライブラリの関数<b><a href="dxfunc_graph3.html#R4N5">『GetColor』</a></b>を使って取得します。<br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　３Ｄ空間上に線分を描画します。
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄ空間上に線分を描画する
+    DrawLine3D( <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 100.0f, 100.0f, 0.0f ), VGet( 300.0f, 200.0f, 0.0f ), GetColor( 255,255,255 ) ) ;
+
+    // キー入力待ちをする
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R14N2">宣言</a></b></td><td><font color="#000088"><b>int DrawTriangle3D( VECTOR Pos1, VECTOR Pos2, VECTOR Pos3, unsigned int Color, int FillFlag ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>３Ｄ空間に三角形を描画する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            VECTOR Pos1 ： 三角形を形成する頂点１の座標<br>
+            VECTOR Pos2 ： 三角形を形成する頂点２の座標<br>
+            VECTOR Pos3 ： 三角形を形成する頂点３の座標<br>
+            unsigned int Color ： 三角形の色<br>
+            int FillFlag ： 三角形の中身を塗りつぶすかどうか( TRUE：塗りつぶす　FALSE：塗りつぶさない )</td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　３Ｄ空間に Pos1 と Pos2 と Pos3 を三頂点とする三角形を Color で指定した色で描画します。<br><br>
+                    　引数 Pos1、Pos2、Pos3 は float x, y, z の三つのメンバ変数を持っている構造体 VECTOR で、
+                    この３要素を使用して３次元の座標を指定します。<br>
+                    　引数が構造体だと事前に引数に渡す構造体を宣言してメンバ変数に座標値を代入して・・・と準備が面倒ですが、
+                    引数に x, y, z の値を渡すとそれを元にした VECTOR 構造体を戻り値で返してくれる関数 <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b> を使用することで簡素に引数を渡すことが出来ます。<br>
+<pre><div class="NormalFont">// 例：
+// 座標 ( 100.0f, 100.0f,   0.0f ),
+//      ( 200.0f, 200.0f,   0.0f ),
+//      ( 200.0f, 250.0f, 100.0f ) を結ぶ三角形を描画する
+<b><a href="dxfunc_3d_draw.html#R14N2">DrawTriangle3D</a></b>(
+    VGet( 100.0f, 100.0f,   0.0f ),
+    VGet( 200.0f, 200.0f,   0.0f ),
+    VGet( 200.0f, 250.0f, 100.0f ), <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255,255,255 ), FALSE ) ;
+</div></pre>
+                    　Colorの値は画面の色の表現できる色の数によってかわってきます。
+                    この色の値はライブラリの関数<b><a href="dxfunc_graph3.html#R4N5">『GetColor』</a></b>を使って取得します。<br>
+                <br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　３Ｄ空間上に三角形を描画します。
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄ空間上に三角形を描画する
+    <b><a href="dxfunc_3d_draw.html#R14N2">DrawTriangle3D</a></b>(
+        <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>(100.0f,100.0f,  0.0f),
+        VGet(500.0f,400.0f,  0.0f),
+        VGet(600.0f,100.0f,100.0f), <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255,255,255 ), FALSE ) ;
+
+    // キー入力待ちをする
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R14N4">宣言</a></b></td><td><font color="#000088"><b>int DrawSphere3D( VECTOR CenterPos, float r, int DivNum, unsigned int DifColor, unsigned int SpcColor, int FillFlag ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>３Ｄ空間に球を描画する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            VECTOR CenterPos ： 球の中心座標<br>
+            float r ： 球の半径<br>
+            int DivNum ： 球を形成するポリゴンの細かさ<br>
+            unsigned int DifColor ： 球の頂点ディフューズカラー<BR>
+            unsigned int SpcColor ： 球の頂点スペキュラカラー<BR>
+            int FillFlag ： 球を塗りつぶすかどうか( TRUE：塗りつぶす　FALSE：塗りつぶさない )</td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　３Ｄ空間に CenterPos を中心座標とした半径 r の球を描画します。<br><br>
+                    　DivNum は球を形成するポリゴンの細かさです。<br><br>
+
+                    　引数 CenterPos は float x, y, z の三つのメンバ変数を持っている構造体 VECTOR で、
+                    この３要素を使用して３次元の座標を指定します。<br>
+                    　引数が構造体だと事前に引数に渡す構造体を宣言してメンバ変数に座標値を代入して・・・と準備が面倒ですが、
+                    引数に x, y, z の値を渡すとそれを元にした VECTOR 構造体を戻り値で返してくれる関数 <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b> を使用することで簡素に引数を渡すことが出来ます。<br>
+<pre><div class="NormalFont">// 例：座標 ( 320.0f, 100.0f, 0.0f ) を中心に半径 80.0f の球を描画する
+DrawSphere3D( VGet( 320.0f, 100.0f, 0.0f ), 80.0f, 16, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255,0,0 ), GetColor( 0,0,0 ), FALSE ) ;
+</div></pre>
+                    　引数 DifColor と SpcColor はそれぞれ球の頂点ディフューズカラーと頂点スペキュラカラーです、
+                    この関数で描かれる球はライティング計算が行われるので、
+                    ただの「描画カラー」ではなくライティング計算で使用される「頂点ディフューズカラー( 拡散光色 )」と「頂点スペキュラカラー( 反射光色 )」を指定します。<br>
+                    　この二つの色の値はライブラリの関数<b><a href="dxfunc_graph3.html#R4N5">『GetColor』</a></b>を使って取得します。<br>
+                    　尚、この引数で指定する値は球を描画する際に用意される頂点データに含まれるディフューズカラーとスペキュラカラーですので、
+                    <b><a href="dxfunc_3d_draw.html#R14N22">SetMaterialUseVertDifColor</a></b> や <b><a href="dxfunc_3d_draw.html#R14N10">SetMaterialUseVertSpcColor</a></b> で頂点カラーを使用しない設定にした場合はこの引数の値は使用されず、
+                    <b><a href="dxfunc_3d_draw.html#R14N11">SetMaterialParam</a></b> の引数で指定されたマテリアルのディフューズカラーとスペキュラカラーがそれぞれ使用されます。<br><br>
+
+                    　因みに球の中身を塗りつぶす場合、
+                    ＺバッファとＺバッファへの書き込みをそれぞれ <b><a href="dxfunc_3d_draw.html#R14N12">SetUseZBuffer3D</a></b> 関数と <b><a href="dxfunc_3d_draw.html#R14N13">SetWriteZBuffer3D</a></b> 関数で有効にしておかないと手前の面を描画した後に後ろの面が描画されたりして正常な見た目になりませんので注意してください。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　３Ｄ空間上に球を描画します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // Ｚバッファを有効にする
+    <b><a href="dxfunc_3d_draw.html#R14N12">SetUseZBuffer3D</a></b>( TRUE ) ;
+
+    // Ｚバッファへの書き込みを有効にする
+    <b><a href="dxfunc_3d_draw.html#R14N13">SetWriteZBuffer3D</a></b>( TRUE ) ;
+
+    // ３Ｄ空間上に球を描画する
+    DrawSphere3D( <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, 200.0f, 0.0f ), 80.0f, 32, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255,0,0 ), GetColor( 255, 255, 255 ), TRUE ) ;
+
+    // キー入力待ちをする
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R14N5">宣言</a></b></td><td><font color="#000088"><b>int DrawCapsule3D( VECTOR Pos1, VECTOR Pos2, float r, int DivNum, unsigned int DifColor, unsigned int SpcColor, int FillFlag ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>３Ｄ空間にカプセルを描画する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            VECTOR Pos1 ： カプセルを形成する二点中の一点の座標<br>
+            VECTOR Pos2 ： カプセルを形成する二点中の一点の座標<br>
+            float r ： カプセルの幅<br>
+            int DivNum ： カプセルを形成するポリゴンの細かさ<br>
+            unsigned int DifColor ： カプセルの頂点ディフューズカラー<BR>
+            unsigned int SpcColor ： カプセルの頂点スペキュラカラー<BR>
+            int FillFlag ： カプセルを塗りつぶすかどうか( TRUE：塗りつぶす　FALSE：塗りつぶさない )</td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　３Ｄ空間にカプセルを描画します。<br><br>
+
+                    　この関数は大きさ r の Pos1 と Pos2 を中心座標とするカプセルの外側を結んだような形のカプセルを描画します。<br>
+                    　DivNum はカプセルを形成するポリゴンの細かさです。<br><br>
+
+                    　引数 Pos1 と Pos2 は float x, y, z の三つのメンバ変数を持っている構造体 VECTOR で、
+                    この３要素を使用して３次元の座標を指定します。<br>
+                    　引数が構造体だと事前に引数に渡す構造体を宣言してメンバ変数に座標値を代入して・・・と準備が面倒ですが、
+                    引数に x, y, z の値を渡すとそれを元にした VECTOR 構造体を戻り値で返してくれる関数 <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b> を使用することで簡素に引数を渡すことが出来ます。<br>
+<pre><div class="NormalFont">// 例：
+// 座標 ( 320.0f, 100.0f, 0.0f ) と ( 320.0f, 300.0f, 0.0f ) を２点とする
+// 半径 40.0f のカプセルを描画する
+DrawCapsule3D( VGet(320.0f,100.0f,0.0f), VGet(320.0f,300.0f,0.0f), 40.0f,8,<b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>(255,255,0), FALSE);
+</div></pre>
+                    　引数 DifColor と SpcColor はそれぞれカプセルの頂点ディフューズカラーと頂点スペキュラカラーです、
+                    この関数で描かれるカプセルはライティング計算が行われるので、
+                    ただの「描画カラー」ではなくライティング計算で使用される「頂点ディフューズカラー( 拡散光色 )」と「頂点スペキュラカラー( 反射光色 )」を指定します。<br>
+                    　この二つの色の値はライブラリの関数<b><a href="dxfunc_graph3.html#R4N5">『GetColor』</a></b>を使って取得します。<br>
+                    　尚、この引数で指定する値はカプセルを描画する際に用意される頂点データに含まれるディフューズカラーとスペキュラカラーですので、
+                    <b><a href="dxfunc_3d_draw.html#R14N22">SetMaterialUseVertDifColor</a></b> や <b><a href="dxfunc_3d_draw.html#R14N10">SetMaterialUseVertSpcColor</a></b> で頂点カラーを使用しない設定にした場合はこの引数の値は使用されず、
+                    <b><a href="dxfunc_3d_draw.html#R14N11">SetMaterialParam</a></b> の引数で指定されたマテリアルのディフューズカラーとスペキュラカラーがそれぞれ使用されます。<br><br>
+
+                    　因みにカプセルの中身を塗りつぶす場合、
+                    ＺバッファとＺバッファへの書き込みをそれぞれ <b><a href="dxfunc_3d_draw.html#R14N12">SetUseZBuffer3D</a></b> 関数と <b><a href="dxfunc_3d_draw.html#R14N13">SetWriteZBuffer3D</a></b> 関数で有効にしておかないと手前の面を描画した後に後ろの面が描画されたりして正常な見た目になりませんので注意してください。<br><br>
+                <br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　３Ｄ空間上にカプセルを描画します。
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // Ｚバッファを有効にする
+    <b><a href="dxfunc_3d_draw.html#R14N12">SetUseZBuffer3D</a></b>( TRUE ) ;
+
+    // Ｚバッファへの書き込みを有効にする
+    <b><a href="dxfunc_3d_draw.html#R14N13">SetWriteZBuffer3D</a></b>( TRUE ) ;
+
+    // ３Ｄ空間上にカプセルを描画する
+    DrawCapsule3D( <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, 100.0f, 0.0f ), VGet( 320.0f, 300.0f, 0.0f ), 40.0f, 8, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 0,255,0 ), GetColor( 255,255,255 ), TRUE ) ;
+
+    // キー入力待ちをする
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R14N6">宣言</a></b></td><td><font color="#000088"><b>int DrawCone3D( VECTOR TopPos, VECTOR BottomPos, float r, int DivNum, unsigned int DifColor, unsigned int SpcColor, int FillFlag ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>３Ｄ空間に円錐を描画する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            VECTOR TopPos ： 円錐の頂点の座標<br>
+            VECTOR BottomPos ： 円錐の底辺の中心座標<br>
+            float r ： 円錐の底辺の半径<br>
+            int DivNum ： 円錐を形成するポリゴンの細かさ<br>
+            unsigned int DifColor ： 円錐の頂点ディフューズカラー<BR>
+            unsigned int SpcColor ： 円錐の頂点スペキュラカラー<BR>
+            int FillFlag ： 円錐を塗りつぶすかどうか( TRUE：塗りつぶす　FALSE：塗りつぶさない )</td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　３Ｄ空間に TopPos を頂点、BottomPos を底辺の中心とした半径 r の円錐を描画します。<br>
+                    　DivNum はカプセルを形成するポリゴンの細かさです。<br><br>
+
+                    　引数 TopPos と BottomPos は float x, y, z の三つのメンバ変数を持っている構造体 VECTOR で、
+                    この３要素を使用して３次元の座標を指定します。<br>
+                    　引数が構造体だと事前に引数に渡す構造体を宣言してメンバ変数に座標値を代入して・・・と準備が面倒ですが、
+                    引数に x, y, z の値を渡すとそれを元にした VECTOR 構造体を戻り値で返してくれる関数 <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b> を使用することで簡素に引数を渡すことが出来ます。<br>
+<pre><div class="NormalFont">// 例：
+// 座標 ( 320.0f, 400.0f, 0.0f ) を頂点
+//      ( 320.0f, 100.0f, 0.0f ) を底辺の中心とした円錐を描画する
+DrawCone3D( VGet(320.0f,400.0f,0.0f), VGet(320.0f,100.0f,0.0f),80.0f,8,<b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>(255,255,0), FALSE);
+</div></pre>
+                    　引数 DifColor と SpcColor はそれぞれ円錐の頂点ディフューズカラーと頂点スペキュラカラーです、
+                    この関数で描かれる円錐はライティング計算が行われるので、
+                    ただの「描画カラー」ではなくライティング計算で使用される「頂点ディフューズカラー( 拡散光色 )」と「頂点スペキュラカラー( 反射光色 )」を指定します。<br>
+                    　この二つの色の値はライブラリの関数<b><a href="dxfunc_graph3.html#R4N5">『GetColor』</a></b>を使って取得します。<br>
+                    　尚、この引数で指定する値は円錐を描画する際に用意される頂点データに含まれるディフューズカラーとスペキュラカラーですので、
+                    <b><a href="dxfunc_3d_draw.html#R14N22">SetMaterialUseVertDifColor</a></b> や <b><a href="dxfunc_3d_draw.html#R14N10">SetMaterialUseVertSpcColor</a></b> で頂点カラーを使用しない設定にした場合はこの引数の値は使用されず、
+                    <b><a href="dxfunc_3d_draw.html#R14N11">SetMaterialParam</a></b> の引数で指定されたマテリアルのディフューズカラーとスペキュラカラーがそれぞれ使用されます。<br><br>
+
+                    　因みに円錐の中身を塗りつぶす場合、
+                    ＺバッファとＺバッファへの書き込みをそれぞれ <b><a href="dxfunc_3d_draw.html#R14N12">SetUseZBuffer3D</a></b> 関数と <b><a href="dxfunc_3d_draw.html#R14N13">SetWriteZBuffer3D</a></b> 関数で有効にしておかないと手前の面を描画した後に後ろの面が描画されたりして正常な見た目になりませんので注意してください。<br><br>
+                <br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　３Ｄ空間上に円錐を描画します。
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // Ｚバッファを有効にする
+    <b><a href="dxfunc_3d_draw.html#R14N12">SetUseZBuffer3D</a></b>( TRUE ) ;
+
+    // Ｚバッファへの書き込みを有効にする
+    <b><a href="dxfunc_3d_draw.html#R14N13">SetWriteZBuffer3D</a></b>( TRUE ) ;
+
+    // ３Ｄ空間上に円錐を描画する
+    DrawCone3D( <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, 400.0f, 0.0f ), VGet( 320.0f, 100.0f, 0.0f ), 80.0f, 16, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 0,0,255 ), GetColor( 255,255,255 ), TRUE ) ;
+
+    // キー入力待ちをする
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R14N9">宣言</a></b></td><td><font color="#000088"><b>int DrawBillboard3D( VECTOR Pos, float cx, float cy, float Size, float Angle, int GrHandle, int TransFlag ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>３Ｄ空間に画像を描画する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            VECTOR Pos ： 画像を描画する座標<br>
+            float cx, cy ： 描画する画像の中心座標( 0.0f ～ 1.0f )<br>
+            float Size ： 描画する画像のサイズ<br>
+            float Angle ： 描画する画像の回転角度( ラジアン単位 )<br>
+            int GrHandle ： 描画する画像のハンドル<br>
+            int TransFlag ： 画像の透明度を有効にするかどうか（ TRUE：有効　FALSE：無効 ）</td>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　３Ｄ空間に引数 Pos が示す座標に Size の大きさで画像を描画します。<br>
+                    　引数 Pos は float x, y, z の三つのメンバ変数を持っている構造体 VECTOR で、
+                    この３要素を使用して３次元の座標を指定します。<br>
+                    　引数が構造体だと事前に引数に渡す構造体を宣言してメンバ変数に座標値を代入して・・・と準備が面倒ですが、
+                    引数に x, y, z の値を渡すとそれを元にした VECTOR 構造体を戻り値で返してくれる関数 <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b> を使用することで簡素に引数を渡すことが出来ます。<br><br>
+
+                    　cx, cy は画像の中心座標を指定する引数で、画像の中心を Pos の位置にしたい場合は cx, cy 共に 0.5f にします。<br>
+                    　Size は画像の横方向の大きさで、
+                    もし縦と横の大きさが違う場合は縦方向の大きさは画像の縦横比から算出されます。<br>
+                    　Angle は画像を回転させたい場合に使用します。回転させない場合は 0.0f を指定します。回転の中心は cx, cy で指定した座標になります。<br>
+                    　GrHandle は描画する画像のハンドルで、<b><a href="dxfunc_graph1.html#R3N2">LoadGraph</a></b> 関数などで読み込んだ画像を使用します。<br>
+                    　TransFlag は画像の透明度を有効にするかどうかを指定するフラグで、TRUE を渡すと画像の透明度が有効になります。
+		      ( 画像の透明度の詳細については <a href="dxfunc_graph1.html#R15N7"><b>SetTransColor</b></a> の解説を参照してください )<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　３Ｄ空間上に画像を描画します。
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int GrHandle ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // 画像の読み込み
+    GrHandle = <b><a href="dxfunc_graph1.html#R3N2">LoadGraph</a></b>( "Test1.bmp" ) ;
+
+    // ３Ｄ空間上に画像を描画
+    DrawBillboard3D( <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, 240.0f, 100.0f ), 0.5f, 0.5f, 120.0f, 0.0f, GrHandle, TRUE ) ;
+
+    // 読み込んだ画像のグラフィックハンドルを削除
+    <b><a href="dxfunc_graph1.html#R3N15">DeleteGraph</a></b>( GrHandle ) ;
+
+    // キー入力待ちをする
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+        
+        
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R14N20">宣言</a></b></td><td><font color="#000088"><b>int DrawModiBillboard3D( VECTOR Pos, float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, int GrHandle, int TransFlag ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>３Ｄ空間に２次元的な変形を加えた画像を描画する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            VECTOR Pos ： 画像を描画する座標<br>
+            float x1, y1, x2, y2<br>
+            　　　x3, y3, x4, y4 ： x1から順に描画する画像の左上、右上、<br>
+　　　　　　　　　　　　　　　　　　右下、左下の頂点の座標<br>
+            int GrHandle ： 描画する画像のハンドル<br>
+            int TransFlag ： 画像の透明度を有効にするかどうか（ TRUE：有効　FALSE：無効 ）</td>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　３Ｄ空間に引数 Pos が示す座標に <b><a href="dxfunc_graph1.html#R3N11">DrawModiGraph</a></b> 関数で描画するような変形画像を描画します。<br>
+                    
+                    　x1, y1 ～ x4, y4 の基準となる座標を Pos で指定する、Y軸のプラスマイナスが逆、
+                    ということ以外は DrawModiGraph 関数と同じですので、
+                    解説については DrawModiGraph 関数の解説を参照してください。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　３Ｄ空間上に変形画像を描画します。
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int GrHandle ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // 画像の読み込み
+    GrHandle = <b><a href="dxfunc_graph1.html#R3N2">LoadGraph</a></b>( "Test1.bmp" ) ;
+
+    // ３Ｄ空間上に画像を描画
+    DrawModiBillboard3D( <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, 240.0f, 100.0f ),
+        -100.0f,  200.0f,
+         100.0f,  200.0f,
+         100.0f, -200.0f,
+        -100.0f, -200.0f, GrHandle, TRUE ) ;
+
+    // 読み込んだ画像のグラフィックハンドルを削除
+    <b><a href="dxfunc_graph1.html#R3N15">DeleteGraph</a></b>( GrHandle ) ;
+
+    // キー入力待ちをする
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+    
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R14N7">宣言</a></b></td><td><font color="#000088"><b>int DrawPolygon3D( VERTEX3D *Vertex, int PolygonNum, int GrHandle, int TransFlag ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>３Ｄ空間に三角形ポリゴンの集合を描画する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            VERTEX3D *Vertex ： 三角形ポリゴンを形成する頂点配列のアドレス<br>
+            int PolygonNum ： 描画する三角形ポリゴンの数<br>
+            int GrHandle ： 描画するポリゴンに貼り付ける画像のハンドル( 画像を張らない場合は DX_NONE_GRAPH ) <br>
+            int TransFlag ： 画像の透明度を有効にするかどうか（ TRUE：有効　FALSE：無効 ）</td>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　３Ｄ空間に引数 Vertex が示す頂点配列を元に PolygonNum 個の三角形ポリゴンの集合を描画します。<br>
+                    　ポリゴン一つ辺りに３つの頂点が必要なので、Vertex が示す配列には PolygonNum × ３ 個の頂点データが必要になります。<br>
+                    　また、GrHandle で指定する画像は８以上の２のｎ乗のピクセルサイズ( 8, 16, 32, 64, 128, 256, 512, 1024 ... )である必要があり( 使える画像サイズの限界はハードウエアが扱えるサイズの限界ですので、2048 以上のピクセルサイズは避けた方が良いです )、
+                    更に <b><a href="dxfunc_graph1.html#R3N21">DerivationGraph</a></b> で抜き出した画像や、<b><a href="dxfunc_graph1.html#R3N3">LoadDivGraph</a></b> 等の分割読込した画像を使用すると正常に動作しないという、使用できる画像に関して少し制限事項の多い関数です。
+                    <br><br>
+
+                    　頂点データ VERTEX3D は構造体で、内容は以下のようになっています。
+<pre><div class="NormalFont">// ３Ｄ描画に使用する頂点データ型
+struct VERTEX3D
+{
+    // 座標
+    VECTOR pos ;
+
+    // 法線
+    VECTOR norm ;
+
+    // ディフューズカラー
+    COLOR_U8 dif ;
+
+    // スペキュラカラー
+    COLOR_U8 spc ;
+
+    // テクスチャ座標
+    float u, v ;
+
+    // サブテクスチャ座標
+    float su, sv ;
+} ;
+</div></pre>
+                    VECTOR pos<br>
+                    　頂点の座標です。<br>
+                    　VECTOR は中に float x, y, z を持つ構造体です。<br>
+                    　float x, y, z を引数として取り、それをそのまま VECTOR 構造体に代入して戻り値として返してくる関数 <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b> を使用すると代入処理を簡素に書くことができます。 <br><br>
+
+                    VECTOR norm<br>
+                    　頂点の法線です。ライティング計算に使用されます。<br><br>
+
+                    COLOR_U8 dif<br>
+                    　頂点のディフューズカラー( 拡散光色 )です。基本的なポリゴンの色はこれになります。<br>
+                    　<b><a href="dxfunc_3d_draw.html#R14N22">SetMaterialUseVertDifColor</a></b> で頂点データのディフューズカラーを使用しない設定にしている場合はこの情報は無視され、代わりにマテリアルのディフューズカラーが使用されます。( 初期設定では頂点データのディフューズカラーが使用されます )<br>
+                    　COLOR_U8 は 中に unsigned char b, g, r, a を持つ構造体で、輝度をそれぞれ 0 ～ 255 で表現します。<br>
+                    　int b, g, r, a を引数として取り、それをそのまま COLOR_U8 構造体に代入して戻り値として返してくる関数 <b><a href="dxfunc_3d_draw.html#R14N15">GetColorU8</a></b> を使用すると代入処理を簡素に書くことが出来ます。<br><br>
+
+                    COLOR_U8 spc<br>
+                    　頂点のスペキュラカラー( 反射光色 )です。<br>
+                    　<b><a href="dxfunc_3d_draw.html#R14N10">SetMaterialUseVertSpcColor</a></b> で頂点データのスペキュラカラーを使用しない設定にしている場合はこの情報は無視され、代わりにマテリアルのスペキュラカラーが使用されます。( 初期設定では頂点データのディフューズカラーが使用されます )<br><br>
+
+                    float u, v<br>
+                    　頂点のテクスチャ座標です。画像の左上端を u = 0.0f　v = 0.0f 右下端を u = 1.0f　v = 1.0f とした座標で指定します。<br><br>
+
+                    float su, sv<br>
+                    　頂点のサブテクスチャ座標です。今のバージョンでは使用しません。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　３Ｄ空間上にポリゴンを２つ描画します。
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    VERTEX3D Vertex[ 6 ] ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ２ポリゴン分の頂点のデータをセット
+    Vertex[ 0 ].pos  = <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 100.0f, 100.0f,  0.0f ) ;
+    Vertex[ 0 ].norm = VGet(   0.0f,   0.0f, -1.0f ) ;
+    Vertex[ 0 ].dif  = <b><a href="dxfunc_3d_draw.html#R14N15">GetColorU8</a></b>( 255,255,255,255 ) ;
+    Vertex[ 0 ].spc  = GetColorU8(   0,  0,  0,  0 ) ;
+    Vertex[ 0 ].u    = 0.0f ;
+    Vertex[ 0 ].v    = 0.0f ;
+    Vertex[ 0 ].su   = 0.0f ;
+    Vertex[ 0 ].sv   = 0.0f ;
+
+    Vertex[ 1 ].pos  = VGet( 250.0f, 100.0f,  0.0f ) ;
+    Vertex[ 1 ].norm = VGet(   0.0f,   0.0f, -1.0f ) ;
+    Vertex[ 1 ].dif  = GetColorU8( 255,  0,255,255 ) ;
+    Vertex[ 1 ].spc  = GetColorU8(   0,  0,  0,  0 ) ;
+    Vertex[ 1 ].u    = 0.0f ;
+    Vertex[ 1 ].v    = 0.0f ;
+    Vertex[ 1 ].su   = 0.0f ;
+    Vertex[ 1 ].sv   = 0.0f ;
+
+    Vertex[ 2 ].pos  = VGet( 100.0f, 300.0f,  0.0f ) ;
+    Vertex[ 2 ].norm = VGet(   0.0f,   0.0f, -1.0f ) ;
+    Vertex[ 2 ].dif  = GetColorU8(   0,255,255,255 ) ;
+    Vertex[ 2 ].spc  = GetColorU8(   0,  0,  0,  0 ) ;
+    Vertex[ 2 ].u    = 0.0f ;
+    Vertex[ 2 ].v    = 0.0f ;
+    Vertex[ 2 ].su   = 0.0f ;
+    Vertex[ 2 ].sv   = 0.0f ;
+
+
+    Vertex[ 3 ].pos  = VGet( 400.0f, 200.0f,  0.0f ) ;
+    Vertex[ 3 ].norm = VGet(   0.0f,   0.0f, -1.0f ) ;
+    Vertex[ 3 ].dif  = GetColorU8(   0,255,255,255 ) ;
+    Vertex[ 3 ].spc  = GetColorU8(   0,  0,  0,  0 ) ;
+    Vertex[ 3 ].u    = 0.0f ;
+    Vertex[ 3 ].v    = 0.0f ;
+    Vertex[ 3 ].su   = 0.0f ;
+    Vertex[ 3 ].sv   = 0.0f ;
+
+    Vertex[ 4 ].pos  = VGet( 600.0f, 400.0f,  0.0f ) ;
+    Vertex[ 4 ].norm = VGet(   0.0f,   0.0f, -1.0f ) ;
+    Vertex[ 4 ].dif  = GetColorU8(   0,  0,255,255 ) ;
+    Vertex[ 4 ].spc  = GetColorU8(   0,  0,  0,  0 ) ;
+    Vertex[ 4 ].u    = 0.0f ;
+    Vertex[ 4 ].v    = 0.0f ;
+    Vertex[ 4 ].su   = 0.0f ;
+    Vertex[ 4 ].sv   = 0.0f ;
+
+    Vertex[ 5 ].pos  = VGet( 500.0f,  50.0f,  0.0f ) ;
+    Vertex[ 5 ].norm = VGet(   0.0f,   0.0f, -1.0f ) ;
+    Vertex[ 5 ].dif  = GetColorU8( 255,  0,255,255 ) ;
+    Vertex[ 5 ].spc  = GetColorU8(   0,  0,  0,  0 ) ;
+    Vertex[ 5 ].u    = 0.0f ;
+    Vertex[ 5 ].v    = 0.0f ;
+    Vertex[ 5 ].su   = 0.0f ;
+    Vertex[ 5 ].sv   = 0.0f ;
+
+    // ２ポリゴンの描画
+    DrawPolygon3D( Vertex, 2, DX_NONE_GRAPH, FALSE ) ;
+
+    // キー入力待ちをする
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R14N8">宣言</a></b></td><td><font color="#000088"><b>int DrawPolygonIndexed3D( VERTEX3D *Vertex, int VertexNum, unsigned short *Indices, int PolygonNum, int GrHandle, int TransFlag ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>３Ｄ空間に三角形ポリゴンの集合を描画する(インデックス)<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            VERTEX3D *Vertex ： 三角形ポリゴンを形成する頂点配列のアドレス<br>
+            int VertexNum ： 使用する頂点の数<br>
+            unsigned short *Indices ： 頂点インデックス配列へのアドレス<br>
+            int PolygonNum ： 描画する三角形ポリゴンの数<br>
+            int GrHandle ： 描画するポリゴンに貼り付ける画像のハンドル( 画像を張らない場合は DX_NONE_GRAPH ) <br>
+            int TransFlag ： 画像の透明度を有効にするかどうか（ TRUE：有効　FALSE：無効 ）</td>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　３Ｄ空間に引数 Vertex が示す頂点配列と引数 Indices が示す頂点インデックスを元に PolygonNum 個の三角形ポリゴンの集合を描画します。<br>
+                    　<b><a href="dxfunc_3d_draw.html#R14N7">DrawPolygon3D</a></b> では一つのポリゴンに付き３つの頂点データを用意していましたが、
+                    多くの場合複数のポリゴンで同じ頂点を使用しますのでポリゴン毎に独立した３頂点を用意すると無駄が生じます、
+                    それを回避するためにこの関数では頂点データと共に「どの三頂点を使用してポリゴンを形成するか」という頂点インデックスデータを用いてポリゴンを描画します。
+                    ( 例えば Vertex 配列の０番目と２番目と５番目の頂点データを用いてポリゴンを形成したい場合は、インデックス情報は 0, 2, 5 となります )<br>
+                    　ポリゴン一つ辺りに３つの頂点インデックスが必要なので、Indices が示す配列には PolygonNum × ３ 個の頂点インデックスデータが必要になります。<br>
+                    　尚、頂点インデックスは型が unsigned short なので、使用できる頂点データの数は最大で 65536個となります。<br><br>
+
+                    　また、GrHandle で指定する画像は８以上の２のｎ乗のピクセルサイズ( 8, 16, 32, 64, 128, 256, 512, 1024 ... )である必要があり( 使える画像サイズの限界はハードウエアが扱えるサイズの限界ですので、2048 以上のピクセルサイズは避けた方が良いです )、
+                    更に <b><a href="dxfunc_graph1.html#R3N21">DerivationGraph</a></b> で抜き出した画像や、<b><a href="dxfunc_graph1.html#R3N3">LoadDivGraph</a></b> 等の分割読込した画像を使用すると正常に動作しないという、使用できる画像に関して少し制限事項の多い関数です。
+
+                    　頂点データ VERTEX3D の内容については DrawPolygon3D 関数の解説をご参照ください。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　３Ｄ空間上に４つの頂点データを使用してポリゴンを２つ描画します。
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    VERTEX3D Vertex[ 4 ] ;
+    WORD Index[ 6 ] ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ４頂点分のデータをセット
+    Vertex[ 0 ].pos  = <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 100.0f, 100.0f,  0.0f ) ;
+    Vertex[ 0 ].norm = VGet(   0.0f,   0.0f, -1.0f ) ;
+    Vertex[ 0 ].dif  = <b><a href="dxfunc_3d_draw.html#R14N15">GetColorU8</a></b>( 255,255,255,255 ) ;
+    Vertex[ 0 ].spc  = GetColorU8(   0,  0,  0,  0 ) ;
+    Vertex[ 0 ].u    = 0.0f ;
+    Vertex[ 0 ].v    = 0.0f ;
+    Vertex[ 0 ].su   = 0.0f ;
+    Vertex[ 0 ].sv   = 0.0f ;
+
+    Vertex[ 1 ].pos  = VGet( 250.0f, 100.0f,  0.0f ) ;
+    Vertex[ 1 ].norm = VGet(   0.0f,   0.0f, -1.0f ) ;
+    Vertex[ 1 ].dif  = GetColorU8( 255,  0,255,255 ) ;
+    Vertex[ 1 ].spc  = GetColorU8(   0,  0,  0,  0 ) ;
+    Vertex[ 1 ].u    = 0.0f ;
+    Vertex[ 1 ].v    = 0.0f ;
+    Vertex[ 1 ].su   = 0.0f ;
+    Vertex[ 1 ].sv   = 0.0f ;
+
+    Vertex[ 2 ].pos  = VGet( 100.0f, 300.0f,  0.0f ) ;
+    Vertex[ 2 ].norm = VGet(   0.0f,   0.0f, -1.0f ) ;
+    Vertex[ 2 ].dif  = GetColorU8(   0,255,255,255 ) ;
+    Vertex[ 2 ].spc  = GetColorU8(   0,  0,  0,  0 ) ;
+    Vertex[ 2 ].u    = 0.0f ;
+    Vertex[ 2 ].v    = 0.0f ;
+    Vertex[ 2 ].su   = 0.0f ;
+    Vertex[ 2 ].sv   = 0.0f ;
+
+    Vertex[ 3 ].pos  = VGet( 400.0f, 200.0f,  0.0f ) ;
+    Vertex[ 3 ].norm = VGet(   0.0f,   0.0f, -1.0f ) ;
+    Vertex[ 3 ].dif  = GetColorU8(   0,255,255,255 ) ;
+    Vertex[ 3 ].spc  = GetColorU8(   0,  0,  0,  0 ) ;
+    Vertex[ 3 ].u    = 0.0f ;
+    Vertex[ 3 ].v    = 0.0f ;
+    Vertex[ 3 ].su   = 0.0f ;
+    Vertex[ 3 ].sv   = 0.0f ;
+
+    // ２ポリゴン分のインデックスデータをセット
+    Index[ 0 ] = 0 ;
+    Index[ 1 ] = 1 ;
+    Index[ 2 ] = 2 ;
+    Index[ 3 ] = 3 ;
+    Index[ 4 ] = 2 ;
+    Index[ 5 ] = 1 ;
+
+    // ２ポリゴンの描画
+    DrawPolygonIndexed3D( Vertex, 4, Index, 2, DX_NONE_GRAPH, FALSE ) ;
+
+    // キー入力待ちをする
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R14N22">宣言</a></b></td><td><font color="#000088"><b>int SetMaterialUseVertDifColor( int UseFlag ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>３Ｄ図形描画のライティング計算に頂点データのディフューズカラーを使用するかどうかを設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int UseFlag ： 頂点データのディフューズカラーを使用するかどうか<br>
+            　　　　　　　　( TRUE=使用する( デフォルト )　　FALSE=使用しない )
+            </td>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　<b><a href="dxfunc_3d_draw.html#R14N4">DrawSphere3D</a></b>, <b><a href="dxfunc_3d_draw.html#R14N5">DrawCapsule3D</a></b>, <b><a href="dxfunc_3d_draw.html#R14N6">DrawCone3D</a></b>, <b><a href="dxfunc_3d_draw.html#R14N7">DrawPolygon3D</a></b>, <b><a href="dxfunc_3d_draw.html#R14N8">DrawPolygonIndexed3D</a></b> の３Ｄ図形描画関数で描画処理をする際のライティング計算に頂点データのディフューズカラーをマテリアルのディフューズカラーとして使用するかどうかを設定します。( 初期設定では使用します )<br><br>
+
+                    　「使用する」場合は <b><a href="dxfunc_3d_draw.html#R14N11">SetMaterialParam</a></b> 関数の引数で指定するディフューズカラー( MATERIALPARAM 構造体のメンバ変数 Diffuse )は無視され、
+                    代わりに頂点データのディフューズカラー( VERTEX3D 構造体のメンバ変数 dif )がライティング計算に使用されます。<br><br>
+
+                    　「使用しない」場合は <b><a href="dxfunc_3d_draw.html#R14N11">SetMaterialParam</a></b> 関数の引数で指定するディフューズカラーがライティング計算に使用され、
+                    頂点データのディフューズカラーは無視されます。<br><br>
+
+                    　尚、<b><a href="dxfunc_3d_light.html#R13N44">SetUseLighting</a></b> 関数でライティング計算をしない設定にした場合は、
+                    この関数の設定に関係なく頂点データのディフューズカラーが使用されます。<br><br> 
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　３Ｄ空間上に標準の設定( 頂点データのディフューズカラーを使用する )で球を描画した後、<br>
+            　頂点データのディフューズカラーを使用しない設定にして、マテリアルのディフューズカラーを<br>
+            　黄色にした上で再度球を描画します。
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    MATERIALPARAM Material ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // Ｚバッファを有効にする
+    <b><a href="dxfunc_3d_draw.html#R14N12">SetUseZBuffer3D</a></b>( TRUE ) ;
+
+    // Ｚバッファへの書き込みを有効にする
+    <b><a href="dxfunc_3d_draw.html#R14N13">SetWriteZBuffer3D</a></b>( TRUE ) ;
+
+    // デフォルトの設定で３Ｄ空間上に球を描画する
+    <b><a href="dxfunc_3d_draw.html#R14N4">DrawSphere3D</a></b>( <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 160.0f, 200.0f, 0.0f ), 80.0f, 32, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255,0,0 ), GetColor( 255,255,255 ), TRUE ) ;
+
+    // 頂点データのディフューズカラーを使用しないようにする
+    SetMaterialUseVertDifColor( FALSE ) ;
+
+    // マテリアルのディフューズカラーを黄色にする
+    Material.Diffuse  = <b><a href="dxfunc_3d_draw.html#R14N14">GetColorF</a></b>( 1.0f, 1.0f, 0.0f, 1.0f ) ;
+    Material.Specular = GetColorF( 0.0f, 0.0f, 0.0f, 0.0f ) ;
+    Material.Ambient  = GetColorF( 0.0f, 0.0f, 0.0f, 0.0f ) ;
+    Material.Emissive = GetColorF( 0.0f, 0.0f, 0.0f, 0.0f ) ;
+    Material.Power    = 20.0f ;
+    <b><a href="dxfunc_3d_draw.html#R14N11">SetMaterialParam</a></b>( Material ) ;
+
+    // 再度３Ｄ空間上に球を描画する( 引数 DifColor の値は無視されます )
+    DrawSphere3D( VGet( 480.0f, 200.0f, 0.0f ), 80.0f, 32, GetColor( 255,0,0 ), GetColor( 255,255,255 ), TRUE ) ;
+
+    // キー入力待ちをする
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R14N10">宣言</a></b></td><td><font color="#000088"><b>int SetMaterialUseVertSpcColor( int UseFlag ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>３Ｄ図形描画のライティング計算に頂点データのスペキュラカラーを使用するかどうかを設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int UseFlag ： 頂点データのスペキュラカラーを使用するかどうか<br>
+            　　　　　　　　( TRUE=使用する( デフォルト )　　FALSE=使用しない )
+            </td>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　<b><a href="dxfunc_3d_draw.html#R14N4">DrawSphere3D</a></b>, <b><a href="dxfunc_3d_draw.html#R14N5">DrawCapsule3D</a></b>, <b><a href="dxfunc_3d_draw.html#R14N6">DrawCone3D</a></b>, <b><a href="dxfunc_3d_draw.html#R14N7">DrawPolygon3D</a></b>, <b><a href="dxfunc_3d_draw.html#R14N8">DrawPolygonIndexed3D</a></b> の３Ｄ図形描画関数で描画処理をする際のライティング計算に頂点データのスペキュラカラーをマテリアルのスペキュラカラーとして使用するかどうかを設定します。( 初期設定では使用します )<br><br>
+
+                    　「使用する」場合は <b><a href="dxfunc_3d_draw.html#R14N11">SetMaterialParam</a></b> 関数の引数で指定するスペキュラカラー( MATERIALPARAM 構造体のメンバ変数 Specular )は無視され、
+                    代わりに頂点データのスペキュラカラー( VERTEX3D 構造体のメンバ変数 spc )がライティング計算に使用されます。<br><br>
+
+                    　「使用しない」場合は <b><a href="dxfunc_3d_draw.html#R14N11">SetMaterialParam</a></b> 関数の引数で指定するスペキュラカラーがライティング計算に使用され、
+                    頂点データのスペキュラカラーは無視されます。<br><br>
+
+                    　尚、<b><a href="dxfunc_3d_light.html#R13N44">SetUseLighting</a></b> 関数でライティング計算をしない設定にした場合は、
+                    この関数の設定に関係なく頂点データのスペキュラカラーが使用されます。<br><br> 
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　３Ｄ空間上に標準の設定( 頂点データのスペキュラカラーを使用する )で球を描画した後、<br>
+            　頂点データのスペキュラカラーを使用しない設定にして、マテリアルのスペキュラカラーを<br>
+            　黄色にした上で再度球を描画します。
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    MATERIALPARAM Material ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // Ｚバッファを有効にする
+    <b><a href="dxfunc_3d_draw.html#R14N12">SetUseZBuffer3D</a></b>( TRUE ) ;
+
+    // Ｚバッファへの書き込みを有効にする
+    <b><a href="dxfunc_3d_draw.html#R14N13">SetWriteZBuffer3D</a></b>( TRUE ) ;
+
+    // デフォルトの設定で３Ｄ空間上に球を描画する
+    <b><a href="dxfunc_3d_draw.html#R14N4">DrawSphere3D</a></b>( <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 160.0f, 200.0f, 0.0f ), 80.0f, 32, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 128,0,0 ), GetColor( 255,255,255 ), TRUE ) ;
+
+    // 頂点データのスペキュラカラーを使用しないようにする
+    SetMaterialUseVertSpcColor( FALSE ) ;
+
+    // マテリアルのスペキュラカラーを黄色にする
+    Material.Diffuse  = <b><a href="dxfunc_3d_draw.html#R14N14">GetColorF</a></b>( 0.0f, 0.0f, 0.0f, 1.0f ) ;
+    Material.Specular = GetColorF( 1.0f, 1.0f, 0.0f, 0.0f ) ;
+    Material.Ambient  = GetColorF( 0.0f, 0.0f, 0.0f, 0.0f ) ;
+    Material.Emissive = GetColorF( 0.0f, 0.0f, 0.0f, 0.0f ) ;
+    Material.Power    = 20.0f ;
+    <b><a href="dxfunc_3d_draw.html#R14N11">SetMaterialParam</a></b>( Material ) ;
+
+    // 再度３Ｄ空間上に球を描画する( 引数 SpcColor の値は無視されます )
+    DrawSphere3D( VGet( 480.0f, 200.0f, 0.0f ), 80.0f, 32, GetColor( 128,0,0 ), GetColor( 255,255,255 ), TRUE ) ;
+
+    // キー入力待ちをする
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R14N11">宣言</a></b></td><td><font color="#000088"><b>int SetMaterialParam( MATERIALPARAM Material ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>３Ｄ図形描画のライティング計算に使用するマテリアルパラメータを設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            MATERIALPARAM Material ： マテリアルパラメータ
+            </td>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　<b><a href="dxfunc_3d_draw.html#R14N4">DrawSphere3D</a></b>, <b><a href="dxfunc_3d_draw.html#R14N5">DrawCapsule3D</a></b>, <b><a href="dxfunc_3d_draw.html#R14N6">DrawCone3D</a></b>, <b><a href="dxfunc_3d_draw.html#R14N7">DrawPolygon3D</a></b>, <b><a href="dxfunc_3d_draw.html#R14N8">DrawPolygonIndexed3D</a></b> の３Ｄ図形描画関数で描画処理をする際のライティング計算に使用するマテリアルパラメータを設定します。<br><br>
+
+                    　設定に使用する MATERIALPARAM 構造体は以下のメンバ変数を持っています。<br><br>
+
+                    ディフューズカラー<BR>
+                    COLOR_F Diffuse ;<br>
+                    　　拡散光色です。ライトのディフューズカラーと掛け合わされてライティング計算に使用されます。<br>
+                    　　この値は <b><a href="dxfunc_3d_draw.html#R14N22">SetMaterialUseVertDifColor</a></b> 関数で頂点データのディフューズカラーを使用しない設定にしていた場合のみ使用されます。( 初期状態では頂点データのディフューズカラーが使用され、この値は無視されます )<br><br>
+
+                    アンビエントカラー<BR>
+                    COLOR_F Ambient ;<br>
+                    　　環境光色です。ライトのアンビエントカラーと掛け合わされてライティング計算に使用されます。<br><br>
+
+                    スペキュラカラー<BR>
+                    COLOR_F Specular ;<br>
+                    　　反射光色です。ライトのスペキュラカラーと掛け合わされてライティング計算に使用されます。<br>
+                    　　この値は <b><a href="dxfunc_3d_draw.html#R14N10">SetMaterialUseVertSpcColor</a></b> 関数で頂点データのスペキュラカラーを使用しない設定にしていた場合のみ使用されます。( 初期状態では頂点データのスペキュラカラーが使用され、この値は無視されます )<br><br>
+
+                    エミッシブカラー<BR>
+                    COLOR_F Emissive ;<br>
+                    　　自己発光色です。ライトが無くても、この値が０以外になっていると自己発光します。<br><br>
+
+                    スペキュラの強さ<br>
+                    float Power ;<br>
+                    　　スペキュラハイライトの角度範囲を決定する値です。<br>
+                    　　値が小さいほど範囲が広くなります。10.0f ～ 20.0f 辺りが丁度いい範囲です。<br><br>
+
+                    　尚、<b><a href="dxfunc_3d_light.html#R13N44">SetUseLighting</a></b> 関数でライティング計算をしない設定にした場合は、
+                    この関数の設定は一切無視されます。<br><br> 
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　マテリアルの設定で自己発光色を暗い青色にした上で球を描画します。
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    MATERIALPARAM Material ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // Ｚバッファを有効にする
+    <b><a href="dxfunc_3d_draw.html#R14N12">SetUseZBuffer3D</a></b>( TRUE ) ;
+
+    // Ｚバッファへの書き込みを有効にする
+    <b><a href="dxfunc_3d_draw.html#R14N13">SetWriteZBuffer3D</a></b>( TRUE ) ;
+
+    // マテリアルの自己発光色を暗い青色にする
+    Material.Diffuse  = <b><a href="dxfunc_3d_draw.html#R14N14">GetColorF</a></b>( 0.0f, 0.0f, 0.0f, 1.0f ) ;
+    Material.Specular = GetColorF( 0.0f, 0.0f, 0.0f, 0.0f ) ;
+    Material.Ambient  = GetColorF( 0.0f, 0.0f, 0.0f, 0.0f ) ;
+    Material.Emissive = GetColorF( 0.0f, 0.0f, 0.5f, 0.0f ) ;
+    Material.Power    = 20.0f ;
+    SetMaterialParam( Material ) ;
+
+    // デフォルトの設定で３Ｄ空間上に球を描画する
+    <b><a href="dxfunc_3d_draw.html#R14N4">DrawSphere3D</a></b>( <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, 200.0f, 0.0f ), 80.0f, 32, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 128,0,0 ), GetColor( 255,255,255 ), TRUE ) ;
+
+    // キー入力待ちをする
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R14N12">宣言</a></b></td><td><font color="#000088"><b>int SetUseZBuffer3D( int Flag ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>Ｚバッファを使用するかどうかを設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int Flag ： Ｚバッファを使用するかどうかのフラグ<br>
+            　　　　　　( TRUE：使用する  FALSE：使用しない( 初期設定 ) )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　<b><a href="dxfunc_3d_draw.html#R14N4">DrawSphere3D</a></b>, <b><a href="dxfunc_3d_draw.html#R14N5">DrawCapsule3D</a></b>, <b><a href="dxfunc_3d_draw.html#R14N6">DrawCone3D</a></b>, <b><a href="dxfunc_3d_draw.html#R14N7">DrawPolygon3D</a></b>, <b><a href="dxfunc_3d_draw.html#R14N8">DrawPolygonIndexed3D</a></b> の３Ｄ図形描画関数で描画処理をする際にＺバッファを使用するかどうかを設定します。<br><br>
+
+                    　Ｚバッファは主に３Ｄ空間に存在する物を前後関係を意識せずに都合の良い順番で描画するために使用するもので、
+                    これを使用することで立体物を描画する際に画面( フレームバッファ )に色情報の他に描画したピクセルが「カメラ( 画面 )からどれだけ離れているか」という奥行き情報も一緒に書き込み、
+                    その後画面上の同じ場所( ピクセル )に別のものが書かれようとしたときは以前書いたものよりカメラ( 画面 )との距離が短いかどうかを判定して、
+                    以前書いたものより遠くにある場合は後から書こうとしたものを書き込まず、
+                    以前書いたものをそのまま残す、
+                    つまりどんな順序で立体物を描画しても必ずカメラに近い物が最終描画結果として画面の前面に表示されるようになります。
+                    ( 逆にＺバッファを使用しない場合は描画物同士の前後関係は無視され、
+                    通常の描画どおり「後から書いたものが今まで書いてあったものを上書きする」ので、
+                    立体物を前後関係を無視して都合の良い順番で描画すると後ろにあるはずのものが手前のものより前面に表示されるというおかしな描画結果になります )<br><br>
+
+                    　この関数はそのＺバッファを使うかどうかを設定する関数で、
+                    使用する場合は TRUE を、使用しない場合は FALSE を渡します。<br><br>
+
+                    　因みにこの関数は書き込みの際にＺバッファに「既に書き込まれているカメラ( 画面
+                    )からの距離」と「これから書き込むピクセルのカメラからの距離」を比較して、
+                    「既に書き込まれているカメラとの距離」より「これから書くもの( ピクセル )のカメラからの距離」の方が長かった場合は書き込まない、
+                    という処理をするかどうかを設定するだけで、
+                    書き込むという判断が決定した後Ｚバッファに「これから書くもの( ピクセル )のカメラからの距離」を書き込むかどうかの設定は <b><a href="dxfunc_3d_draw.html#R14N13">SetWriteZBuffer3D</a></b> 関数で行います。
+                    ( 初期設定では「書き込まない」になっています )<br><br>
+
+                    　尚、この関数の設定はモデルの描画には影響を与えません。
+                    モデルの描画時にＺバッファを使用するかどうかは <b><a href="dxfunc_3d_model_0.html#R3N26">MV1SetUseZBuffer</a></b> 関数で設定します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　Ｚバッファを有効にしない状態で球を描画した後、Ｚバッファを有効にして<br>
+            　更にＺバッファへの書き込みも行う設定にして再度球を描画します。<br>
+            　　Ｚバッファを有効にしない状態では球の奥の面が手前の面より後に描画される関係で<br>
+            　正しい描画結果が得られません。
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // デフォルトの設定で３Ｄ空間上に球を描画する
+    <b><a href="dxfunc_3d_draw.html#R14N4">DrawSphere3D</a></b>( <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 160.0f, 200.0f, 0.0f ), 80.0f, 32, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 128,0,0 ), GetColor( 255,255,255 ), TRUE ) ;
+
+    // Ｚバッファを有効にする
+    <b><a href="dxfunc_3d_draw.html#R14N12">SetUseZBuffer3D</a></b>( TRUE ) ;
+
+    // Ｚバッファへの書き込みを有効にする
+    <b><a href="dxfunc_3d_draw.html#R14N13">SetWriteZBuffer3D</a></b>( TRUE ) ;
+
+    // Ｚバッファを有効にした状態で再度３Ｄ空間上に球を描画する
+    DrawSphere3D( VGet( 480.0f, 200.0f, 0.0f ), 80.0f, 32, GetColor( 128,0,0 ), GetColor( 255,255,255 ), TRUE ) ;
+
+    // キー入力待ちをする
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R14N13">宣言</a></b></td><td><font color="#000088"><b>int SetWriteZBuffer3D( int Flag ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>Ｚバッファに書き込みを行うかどうかを設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int Flag ： Ｚバッファに書き込みを行うかどうかのフラグ<br>
+            　　　　　　( TRUE：書き込む  FALSE：書き込まない( 初期設定 ) )
+            </td>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　Ｚバッファを使用する設定になっている状態で描画処理が行われた際に、
+                    Ｚバッファへの書き込みを行うかどうかの設定を変更する関数です。
+                    ( Ｚバッファの説明については <b><a href="dxfunc_3d_draw.html#R14N12">SetUseZBuffer3D</a></b> 関数の解説を参照してください )<br><br>
+
+                    　この関数に TRUE を渡した場合はＺバッファの判定後「書き込む」ことになった場合に画面(
+                    フレームバッファ )に対して色情報と共にカメラと描画物との距離も記録されます。<br>
+                    　FALSE を渡した場合はＺバッファの判定後「書き込む」ことになった場合に画面(
+                    フレームバッファ )に対して色情報のみ記録されます。
+                    ( 初期状態は FALSE( 書き込まない ) です )<br><br>
+
+                    　尚、この関数の設定はモデルの描画には影響を与えません。
+                    モデルの描画時にＺバッファを使用するかどうかは <b><a href="dxfunc_3d_model_0.html#R3N26">MV1SetUseZBuffer</a></b> 関数で設定します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　Ｚバッファを有効にしない状態で球を描画した後、Ｚバッファを有効にして<br>
+            　再度球を描画します。<br>
+            　　Ｚバッファを有効にしない状態では球の奥の面が手前の面より後に描画される関係で<br>
+            　正しい描画結果が得られません。
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // デフォルトの設定で３Ｄ空間上に球を描画する
+    <b><a href="dxfunc_3d_draw.html#R14N4">DrawSphere3D</a></b>( <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 160.0f, 200.0f, 0.0f ), 80.0f, 32, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 128,0,0 ), GetColor( 255,255,255 ), TRUE ) ;
+
+    // Ｚバッファを有効にする
+    <b><a href="dxfunc_3d_draw.html#R14N12">SetUseZBuffer3D</a></b>( TRUE ) ;
+
+    // Ｚバッファへの書き込みを有効にする
+    <b><a href="dxfunc_3d_draw.html#R14N13">SetWriteZBuffer3D</a></b>( TRUE ) ;
+
+    // Ｚバッファを有効にした状態で再度３Ｄ空間上に球を描画する
+    DrawSphere3D( VGet( 480.0f, 200.0f, 0.0f ), 80.0f, 32, GetColor( 128,0,0 ), GetColor( 255,255,255 ), TRUE ) ;
+
+    // キー入力待ちをする
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+        
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R14N19">宣言</a></b></td><td><font color="#000088"><b>int SetUseBackCulling( int Flag ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>ポリゴンのバックカリングを使用するかどうかを設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int Flag ： バックカリングを行うかどうかのフラグ<br>
+            　　　　　　( TRUE：行う  FALSE：行わない( 初期設定 ) )
+            </td>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　<b><a href="dxfunc_3d_draw.html#R14N2">DrawTriangle3D</a></b>, <b><a href="dxfunc_3d_draw.html#R14N4">DrawSphere3D</a></b>, <b><a href="dxfunc_3d_draw.html#R14N5">DrawCapsule3D</a></b>, <b><a href="dxfunc_3d_draw.html#R14N6">DrawCone3D</a></b>, <b><a href="dxfunc_3d_draw.html#R14N7">DrawPolygon3D</a></b>, <b><a href="dxfunc_3d_draw.html#R14N8">DrawPolygonIndexed3D</a></b> でポリゴンを描画する際にバックカリングを行うかどうかを設定します。<br><br>
+                    
+                    　バックカリングとは裏面になっているポリゴンを書かない処理のことです。<br>
+                    　例えば <b><a href="dxfunc_3d_draw.html#R14N4">DrawSphere3D</a></b> 関数で球を描画する場合、
+                    球の画面の方を向いていない面は常に画面の方を向いている面に隠れて画面には表示されないことになりますが、
+                    バックカリングを行わない場合は必ず隠れることが分かっている面も画面への描画処理が行われるのでその分描画負荷が高くなります。<br>
+                    　このような場合にバックカリングを行うようにすると画面に対して後ろを向いている面を描画しない( カリング )ようになるので、
+                    裏面の描画負荷のぶん処理が高速になります。<br><br>
+
+                    　因みに裏面かどうかは、ポリゴンを画面に映した際のポリゴンを形成する３頂点を頂点の指定順にスクリーン座標をなぞった場合に、
+                    右回りになっているか左回りになっているかで判断します。( 左回りの場合に裏面だと判断され、カリングが有効な場合はカリングされます )<br>
+                    　<b><a href="dxfunc_3d_draw.html#R14N7">DrawPolygon3D</a></b> や <b><a href="dxfunc_3d_draw.html#R14N8">DrawPolygonIndexed3D</a></b> で直接頂点を扱ってポリゴンを描画する場合にバックカリングを使用する場合には形成するポリゴンの向きを意識する必要がありますので注意してください。<br><br>
+                    
+                    　尚、この関数の設定はモデルの描画には影響を与えません。
+                    ( モデルはデフォルトではバックカリングＯＮになっていて、
+                    ツール上でメッシュ単位でカリングを行うかどうかを設定することができます )<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　画面右側にバックカリングを無効の状態で、画面左側にバックカリングを有効にした状態でそれぞれ球を描画します。<br>
+            　　Ｚバッファを使用しない状態なのでバックカリングを有効にしていない画面右側の球は裏面のポリゴンが表面のポリゴンの<br>
+            　後に描画されるという現象が発生するので見た目が破綻しますが、バックカリングを有効にした状態で描画している画面左側の<br>
+            　球は裏面のポリゴンが描画されないのでＺバッファを有効にしていない状態でも正常な見た目で描画されます。<br>
+            　( 因みにバックカリングを行うことで見た目的に正常な描画結果が得られるのは描画するポリゴン集合にへこんだ部分がない場合のみです )
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // バックカリングなしで３Ｄ空間上に球を描画する
+    <b><a href="dxfunc_3d_draw.html#R14N4">DrawSphere3D</a></b>( <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 500.0f, 200.0f, 0.0f ), 80.0f, 8, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255,0,0 ), GetColor( 255, 255, 255 ), TRUE ) ;
+
+    // バックカリングを有効にする
+    SetUseBackCulling( TRUE ) ;
+
+    // バックカリングありで３Ｄ空間上に球を描画する
+    DrawSphere3D( VGet( 140.0f, 200.0f, 0.0f ), 80.0f, 8, GetColor( 255,0,0 ), GetColor( 255, 255, 255 ), TRUE ) ;
+
+    // キー入力待ちをする
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R14N21">宣言</a></b></td><td><font color="#000088"><b>int SetTextureAddressModeUV( int ModeU, int ModeV ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>テクスチャアドレスモードを設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int ModeU ： Ｕ値のテクスチャアドレスモード<br>
+            int ModeV ： Ｖ値のテクスチャアドレスモード
+            </td>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　<b><a href="dxfunc_3d_draw.html#R14N7">DrawPolygon3D</a></b>, <b><a href="dxfunc_3d_draw.html#R14N8">DrawPolygonIndexed3D</a></b> でポリゴンを描画する際に使用されるテクスチャアドレスモードを設定します。<br><br>
+
+                    　アドレスモードとは画像サイズ以上のテクスチャ座標が指定された場合にどう表示するかというもので、以下の３種類があります。<br><br><br>
+
+                    DX_TEXADDRESS_WRAP<br><br>
+
+                    　画像サイズ以上のテクスチャ座標の部分は素直に繰り返します。<br><br><br>
+
+
+                    DX_TEXADDRESS_MIRROR<br><br>
+
+                    　画像サイズ以上のテクスチャ座標の部分は鏡に映されたように反転する表示と、もとの反転していない表示とを繰り返します。<br>
+                    　例えば４倍のテクスチャ座標が指定された場合　通常の見た目・反転した見た目・通常の見た目・反転した見た目　という風になります。<br><br><br>
+
+                    DX_TEXADDRESS_CLAMP<br><br>
+
+                    　他のモードと違って画像が繰り返されず、画像サイズ以上のテクスチャ座標の部分は画像の端のピクセルが引き伸ばされたような見た目になります。<br><br><br>
+
+                    　アドレスモードはＵ方向とＶ方向で別々に指定することができます。<br>
+                    　初期状態ではＵ，Ｖ共に DX_TEXADDRESS_CLAMP です。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　テクスチャのアドレスモードをＵ方向を DX_TEXADDRESS_WRAP に、Ｖ方向を DX_TEXADDRESS_MIRROR にした上で<br>
+            　テクスチャサイズの３倍のテクスチャ座標を使ってポリゴンを描画します。
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    VERTEX3D Vertex[ 6 ] ;
+    int GrHandle ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ポリゴンに貼り付ける画像の読みこみ
+    GrHandle = <b><a href="dxfunc_graph1.html#R3N2">LoadGraph</a></b>( "Kao.bmp" ) ;
+
+    // テクスチャのアドレスモードをＵ方向を DX_TEXADDRESS_WRAP に
+    // Ｖ方向を DX_TEXADDRESS_MIRROR に設定
+    SetTextureAddressModeUV( DX_TEXADDRESS_WRAP, DX_TEXADDRESS_MIRROR ) ;
+
+    // ２ポリゴン分の頂点のデータをセット
+    Vertex[ 0 ].pos  = <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 100.0f, 400.0f,  0.0f ) ;
+    Vertex[ 0 ].norm = VGet(   0.0f,   0.0f, -1.0f ) ;
+    Vertex[ 0 ].dif  = <b><a href="dxfunc_3d_draw.html#R14N15">GetColorU8</a></b>( 255,255,255,255 ) ;
+    Vertex[ 0 ].spc  = GetColorU8(   0,  0,  0,  0 ) ;
+    Vertex[ 0 ].u    = 0.0f ;
+    Vertex[ 0 ].v    = 0.0f ;
+    Vertex[ 0 ].su   = 0.0f ;
+    Vertex[ 0 ].sv   = 0.0f ;
+
+    Vertex[ 1 ].pos  = VGet( 500.0f, 400.0f,  0.0f ) ;
+    Vertex[ 1 ].norm = VGet(   0.0f,   0.0f, -1.0f ) ;
+    Vertex[ 1 ].dif  = GetColorU8( 255,255,255,255 ) ;
+    Vertex[ 1 ].spc  = GetColorU8(   0,  0,  0,  0 ) ;
+    Vertex[ 1 ].u    = 3.0f ;
+    Vertex[ 1 ].v    = 0.0f ;
+    Vertex[ 1 ].su   = 0.0f ;
+    Vertex[ 1 ].sv   = 0.0f ;
+
+    Vertex[ 2 ].pos  = VGet( 100.0f, 100.0f,  0.0f ) ;
+    Vertex[ 2 ].norm = VGet(   0.0f,   0.0f, -1.0f ) ;
+    Vertex[ 2 ].dif  = GetColorU8( 255,255,255,255 ) ;
+    Vertex[ 2 ].spc  = GetColorU8(   0,  0,  0,  0 ) ;
+    Vertex[ 2 ].u    = 0.0f ;
+    Vertex[ 2 ].v    = 3.0f ;
+    Vertex[ 2 ].su   = 0.0f ;
+    Vertex[ 2 ].sv   = 0.0f ;
+
+    Vertex[ 3 ].pos  = VGet( 500.0f, 100.0f,  0.0f ) ;
+    Vertex[ 3 ].norm = VGet(   0.0f,   0.0f, -1.0f ) ;
+    Vertex[ 3 ].dif  = GetColorU8( 255,255,255,255 ) ;
+    Vertex[ 3 ].spc  = GetColorU8(   0,  0,  0,  0 ) ;
+    Vertex[ 3 ].u    = 3.0f ;
+    Vertex[ 3 ].v    = 3.0f ;
+    Vertex[ 3 ].su   = 0.0f ;
+    Vertex[ 3 ].sv   = 0.0f ;
+
+    Vertex[ 4 ].pos  = VGet( 100.0f, 100.0f,  0.0f ) ;
+    Vertex[ 4 ].norm = VGet(   0.0f,   0.0f, -1.0f ) ;
+    Vertex[ 4 ].dif  = GetColorU8( 255,255,255,255 ) ;
+    Vertex[ 4 ].spc  = GetColorU8(   0,  0,  0,  0 ) ;
+    Vertex[ 4 ].u    = 0.0f ;
+    Vertex[ 4 ].v    = 3.0f ;
+    Vertex[ 4 ].su   = 0.0f ;
+    Vertex[ 4 ].sv   = 0.0f ;
+
+    Vertex[ 5 ].pos  = VGet( 500.0f, 400.0f,  0.0f ) ;
+    Vertex[ 5 ].norm = VGet(   0.0f,   0.0f, -1.0f ) ;
+    Vertex[ 5 ].dif  = GetColorU8( 255,255,255,255 ) ;
+    Vertex[ 5 ].spc  = GetColorU8(   0,  0,  0,  0 ) ;
+    Vertex[ 5 ].u    = 3.0f ;
+    Vertex[ 5 ].v    = 0.0f ;
+    Vertex[ 5 ].su   = 0.0f ;
+    Vertex[ 5 ].sv   = 0.0f ;
+
+    // ２ポリゴンの描画
+    <b><a href="dxfunc_3d_draw.html#R14N7">DrawPolygon3D</a></b>( Vertex, 2, GrHandle, FALSE ) ;
+
+    // 読み込んだ画像のグラフィックハンドルを削除
+    <b><a href="dxfunc_graph1.html#R3N15">DeleteGraph</a></b>( GrHandle ) ;
+
+    // キー入力待ちをする
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+        
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R14N16">宣言</a></b></td><td><font color="#000088"><b>int SetFogEnable( int Flag ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>フォグを有効にするかどうかを設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int Flag ： フォグを使用するかどうかのフラグ<br>
+            　　　　　　( TRUE：使用する　FALSE：使用しない( 初期設定 ) )
+            </td>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　フォグ機能を使用するかどうかを設定します。<br>
+                    　フォグ機能とは言葉通り立体空間で霧を表現する手段の一つです。<br>
+                    　具体的には、カメラ( 画面 )から一定距離離れた物体に霧が掛かったように任意の色を合成することができます。<br><br>
+
+                    　これを使用することで空気が淀んでいる日に遠くのものを見ようとすると白く霧が掛かったようになってよく見えない、
+                    というような空気遠近法も再現することができます。<br>
+                    　因みにこの機能はカメラ( 画面 )から一定距離以上離れたものを描画しなくても済むようにする目的で使用することもできます。
+                    ( フォグ終了距離以降の部分はフォグ色のみとなるため )<br><br>
+
+                    　デフォルトではフォグの機能はＯＦＦになっていますので、
+                    フォグの機能を使用する場合はこの関数でフォグを有効にする必要があります、
+                    また、フォグの色やフォグの開始距離・終了距離の設定はそれぞれ <b><a href="dxfunc_3d_draw.html#R14N17">SetFogColor</a></b> 関数、<b><a href="dxfunc_3d_draw.html#R14N18">SetFogStartEnd</a></b> 関数を使用します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　フォグ機能を有効にした状態でモデルを画面から徐々に離しながら４体描画します。
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle, i ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // フォグを有効にする
+    SetFogEnable( TRUE ) ;
+
+    // フォグの色を黄色にする
+    <b><a href="dxfunc_3d_draw.html#R14N17">SetFogColor</a></b>( 255, 255, 0 ) ;
+
+    // フォグの開始距離を０、終了距離を１５００にする
+    <b><a href="dxfunc_3d_draw.html#R14N18">SetFogStartEnd</a></b>( 0.0f, 1500.0f ) ;
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // 画面を黄色で塗りつぶす
+    <b><a href="dxfunc_graph0.html#R2N2">DrawBox</a></b>( 0, 0, 640, 480, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255, 255, 0 ), TRUE ) ;
+
+    // ３Ｄモデルを徐々に画面から離しながら４体描画する
+    for( i = 0 ; i &lt; 4 ; i ++ )
+    {
+        // モデルの座標をセット
+        <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 700.0f, -300.0f, 200.0f + i * 400.0f ) ) ;
+        
+        // モデルを描画
+        <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キーの入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R14N17">宣言</a></b></td><td><font color="#000088"><b>int SetFogColor( int Red, int Green, int Blue ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>フォグの色を変更する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int Red ： 設定したいフォグの色の赤成分の輝度( ０ ～ ２５５ )<br> 
+            int Green ： 設定したいフォグの色の緑成分の輝度( ０ ～ ２５５ )<br>
+            int Blue ： 設定したいフォグの色の青成分の輝度( ０ ～ ２５５ )<br>
+            </td>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　フォグの色を設定します。<br>
+                    　暗い色も指定できますので、一定距離以降が暗闇、といった表現も可能です。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　フォグ機能を有効にした状態でモデルを画面から徐々に離しながら４体描画します。<br>
+            　　フォグの色を黒にしているので徐々に暗闇に消えていくように見えます
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle, i ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // フォグを有効にする
+    <b><a href="dxfunc_3d_draw.html#R14N16">SetFogEnable</a></b>( TRUE ) ;
+
+    // フォグの色を黒色にする
+    SetFogColor( 0, 0, 0 ) ;
+
+    // フォグの開始距離を０、終了距離を１５００にする
+    <b><a href="dxfunc_3d_draw.html#R14N18">SetFogStartEnd</a></b>( 0.0f, 1500.0f ) ;
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // ３Ｄモデルを徐々に画面から離しながら４体描画する
+    for( i = 0 ; i &lt; 4 ; i ++ )
+    {
+        // モデルの座標をセット
+        <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 700.0f, -300.0f, 200.0f + i * 400.0f ) ) ;
+        
+        // モデルを描画
+        <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キーの入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+        
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R14N18">宣言</a></b></td><td><font color="#000088"><b>int SetFogStartEnd( float start, float end ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>フォグが始まる距離と終了する距離を設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            float start ： フォグの効果が開始する画面からの距離<br>
+            float end ： フォグの効果が終了する( フォグ色の濃さが１００％になる )画面からの距離
+            </td>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　フォグの効果が始まる画面からの距離と、
+                    描画物がフォグの色のみになる画面からの距離を設定します。<br><br>
+
+                    　開始距離と終了距離の間に存在する描画物はフォグの色と描画物の色とがブレンドされる形になります。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　フォグ機能を有効にした状態でフォグの開始距離を１０００、終了距離を３５００に変更した上で<br>
+            　モデルを画面から徐々に離しながら８体描画します。<br>
+            　　<b><a href="dxfunc_3d_draw.html#R14N16">SetFogEnable</a></b> のサンプルプログラムと違い、フォグの色が掛かり始めるのが３体目からになっています。
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle, i ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // フォグを有効にする
+    <b><a href="dxfunc_3d_draw.html#R14N16">SetFogEnable</a></b>( TRUE ) ;
+
+    // フォグの色を黄色にする
+    <b><a href="dxfunc_3d_draw.html#R14N17">SetFogColor</a></b>( 255, 255, 0 ) ;
+
+    // フォグの開始距離を１０００、終了距離を３５００にする
+    <b><a href="dxfunc_3d_draw.html#R14N18">SetFogStartEnd</a></b>( 1000.0f, 3500.0f ) ;
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // 画面を黄色で塗りつぶす
+    <b><a href="dxfunc_graph0.html#R2N2">DrawBox</a></b>( 0, 0, 640, 480, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255, 255, 0 ), TRUE ) ;
+
+    // ３Ｄモデルを画面から徐々に離しながら８体描画する
+    for( i = 0 ; i &lt; 8 ; i ++ )
+    {
+        // モデルの座標をセット
+        <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 700.0f, -300.0f, 200.0f + i * 400.0f ) ) ;
+        
+        // モデルを描画
+        <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キーの入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+        
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R14N14">宣言</a></b></td><td><font color="#000088"><b>COLOR_F GetColorF( float Red, float Green, float Blue, float Alpha ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>浮動小数点型のカラー値を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            float Red ： 取得したいカラー値の赤成分の輝度( 0.0f ～ 1.0f )<br>
+            float Green ： 取得したいカラー値の緑成分の輝度( 0.0f ～ 1.0f )<br>
+            float Blue ： 取得したいカラー値の青成分の輝度( 0.0f ～ 1.0f )<br>
+            float Alpha ： 取得したいカラー値のアルファ成分( 0.0f ～ 1.0f )<br>
+            </td>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　COLOR_F 構造体の値を簡単に作成するための関数です。<br><br>
+                
+                    　例えば <b><a href="dxfunc_3d_model_0.html#R3N15">MV1SetDifColorScale</a></b> 関数の第二引数は COLOR_F 構造体ですが、
+                    この引数をこの関数を使用せずに渡そうとした場合は以下のようにローカル変数として COLOR_F
+                    構造体を使用する必要があります。
+<pre><div class="NormalFont">    // GetColorF 関数を使用しない場合
+    COLOR_F Color ;
+
+    Color.r = 1.0f ;
+    Color.g = 1.0f ;
+    Color.b = 0.0f ;
+    Color.a = 1.0f ;
+    MV1SetDifColorScale( ModelHandle, Color ) ;
+</div></pre>
+                    　関数に引数を渡そうとする度にローカル変数を使用するのはプログラムも煩雑になりますし面倒でもあります。<br>
+                    　そんなときにこの COLOR_F 構造体を戻り値に返す関数を使用すれば以下のように記述することができます。
+<pre><div class="NormalFont">    // GetColorF 関数を使用する場合
+    MV1SetDifColorScale( ModelHandle, GetColorF( 1.0f, 1.0f, 0.0f, 1.0f ) ) ;
+</div></pre>
+                    <br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　GetColorF 関数を使用している関数 <a href="dxfunc_3d_light.html#R13N5">SetLightDifColor</a> 等のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R14N15">宣言</a></b></td><td><font color="#000088"><b>COLOR_U8 GetColorU8( int Red, int Green, int Blue, int Alpha ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>符号なし整数８ビットのカラー値を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int Red ： 取得したいカラー値の赤成分の輝度( 0 ～ 255 )<br>
+            int Green ： 取得したいカラー値の緑成分の輝度( 0 ～ 255 )<br>
+            int Blue ： 取得したいカラー値の青成分の輝度( 0 ～ 255 )<br>
+            int Alpha ： 取得したいカラー値のアルファ成分( 0 ～ 255 )<br>
+            </td>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　COLOR_U8 構造体の値を簡単に作成するための関数です。<br><br>
+                
+                    　今のところ VERTEX3D 構造体のメンバ変数で COLOR_U8 構造体である dif や spc に値を代入する際にのみ使用します。<br>
+                    　例えば VERTEX3D 構造体のメンバ変数 dif にこの関数を使用せずに値を代入しようとした場合以下のような記述になります。
+<pre><div class="NormalFont">    // GetColorU8 関数を使用しない場合
+    VERTEX3D Vertex ;
+
+    Vertex.dif.r = 255 ;
+    Vertex.dif.g = 255 ;
+    Vertex.dif.b = 0 ;
+    Vertex.dif.a = 255 ;
+</div></pre>
+                    　あまり大きな差ではありませんが、
+                    COLOR_U8 構造体を戻り値として返す GetColorU8 関数を使用すると以下のように記述することができます。
+<pre><div class="NormalFont">    // GetColorU8 関数を使用する場合
+    VERTEX3D Vertex ;
+    
+    Vertex.dif = GetColorU8( 255, 255, 0, 255 ) ;
+</div></pre>
+                    <br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　GetColorU8 関数を使用している関数 <a href="dxfunc_3d_draw.html#R14N7">DrawPolygon3D</a> 等のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+
+       
+        <tr><td colspan="4">
+            <hr>
+            <font size="3"><b>
+                <a href="../dxfunc.html">戻る</a>
+            </b></font>
+        </td></tr>
+    </table>
+    </div>
+    </body>
+</html>

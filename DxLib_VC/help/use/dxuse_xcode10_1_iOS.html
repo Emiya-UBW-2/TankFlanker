@@ -1,0 +1,268 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="ja-JP">
+	<HEAD>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <TITLE>ＤＸライブラリ置き場　使い方説明</TITLE>
+	<link rel="shortcut icon" href="../DxLib.ico">
+	<link rel="stylesheet" href="../style.css" type="text/css">
+	</HEAD>
+	<BODY BGCOLOR="#ffffff" TEXT="#000000" LINK="#0033CC" VLINK="#800040">
+	<div class="NormalFont">
+	<TABLE ALIGN="CENTER" WIDTH=1300  CELLSPACING=0 CELLPADDING=0 >
+		<TR>
+		<TD ALIGN="CENTER">
+		<FONT SIZE="4" COLOR="#000000"><B>
+			Xcode 10.1 の iOSアプリ開発でのＤＸライブラリの使い方
+		</B></FONT>
+		</TD></TR>
+		<TR><TD>
+		<HR>
+		<FONT SIZE="3" COLOR="#000000"><B>
+		<BR>
+
+		　Xcode 10.1 を使用してＤＸライブラリを使った iOSアプリを製作するには以下のような手順を踏みます。<BR><BR>
+
+		<A HREF="#R1">1.ＤＸライブラリを使うために必要なものを揃える<BR><BR></A>
+		<A HREF="#R2">2.プロジェクトの作成<BR><BR></A>
+		<A HREF="#R3">3.ＤＸライブラリを使用するためのプロジェクトの設定を行う<BR><BR></A>
+		<A HREF="#R4">4.プログラムを組む<BR><BR></A>
+		<A HREF="#R5">5.プロジェクトのビルド、実行<BR><BR><BR><BR></A>
+
+
+		<A NAME="R1">
+		<FONT COLOR="#008800">
+		1.ＤＸライブラリを使うために必要なものを揃える<BR><BR>
+		</FONT>
+		</A>
+
+		Xcode 10.1 でＤＸライブラリを使用して iOSアプリを製作するには以下のものが必要です。<BR><BR>
+
+		<FONT COLOR="#880022">
+　　　　・Mac PC<BR>
+　　　　・Xcode 10.1<BR>
+　　　　・ＤＸライブラリ iOS版<BR><BR>
+		</FONT>
+
+        　まず iOSアプリを開発するには <FONT COLOR="#880022">Mac( Macintosh )パソコン</FONT> が必要です。WindowsPC では iOSアプリの開発はできませんので、<br>
+        iOSアプリを開発されたい方で Mac をお持ちでない方はまずは Mac を入手してください。( 比較的安価な Mac mini でも大丈夫です )<BR>
+		　二つ目の <FONT COLOR="#880022">Xcode 10.1</FONT> は、プログラムをコンパイルして実行可能な iOSアプリを作成する為のメインとなるソフトです。<br>
+		こちらは <FONT COLOR="#880022">Mac App Store</FONT> で無償でインストールすることができますので、App Storeアプリからインストールしてください。<br>
+
+		　三つ目の <FONT COLOR="#880022">ＤＸライブラリ iOS版</FONT>は本サイトの<A HREF="../dxdload.html">こちらのページ</A>からダウンロードすることができます。<BR>
+		これがないとＤＸライブラリを使うことができませんので、まだダウンロードされていない方は<BR>
+		『<FONT COLOR="#880022">ＤＸライブラリ iOS版</FONT>』をダウンロードしておいてください。<BR><BR><BR><BR>
+
+
+		<A NAME="R2">
+		<FONT COLOR="#008800">
+		2.プロジェクトの作成<BR><BR>
+		</FONT>
+		</A>
+
+		　iOSアプリを開発するためのソフトの準備ができましたので、早速一つ簡単な iOSアプリを作ってみましょう。<BR>
+		　ここでは『画面の中心に四角形を表示する』という動作をするアプリを作る手順を記したいと思います。<BR>
+		　Xcode 10.1 で iOSアプリを作るにはまず『プロジェクト』を作成する必要があるので以下にその方法を記します。<BR><BR>
+
+		<FONT COLOR="#550088">
+　		　①　Xcode のメニューの『File』→『New』→『Project...』を選んで<BR>
+	　　　　　　　　　『Choose a template for your new project』ダイアログを表示します。<BR><BR>
+
+　		　②　ダイアログ上部のタブの『iOS』を選びます。<BR><BR>
+
+　		　③　ダイアログの中の『Single View App』を選択して『Next』ボタンを押します。<BR><BR>
+
+　		　④　次に『Product Name』にアプリ名を入力します。ここでは仮に『test』とします。<br>
+        　　　　そして『Language:』の項目を『Objective-C』に設定して、『Use Core Data』『Include Unit Tests』<br>
+        　　　　『Include UI Tests』のチェックを外してから『Next』ボタンを押します。<BR><BR>
+
+　		　⑤　次にプロジェクトファイルを保存するフォルダを選択して、選択が終わったら<br>
+        　　　　『Create Git repository on my Mac』のチェックを外してから『Create』ボタンを押します。<BR><BR>
+		</FONT>
+
+		　これでプロジェクトの作成は完了です。<BR><BR><BR><BR>
+
+		<A NAME="R3">
+		<FONT COLOR="#008800">
+		3.ＤＸライブラリを使用するためのプロジェクトの設定を行う<BR><BR>
+		</FONT>
+		</A>
+
+		　早速プログラムを組みたいところですが、作成したプロジェクトでＤＸライブラリを使用するための設定をする必要があります。<BR>
+		　ちょっと操作の数が多くてうんざりしますが、プロジェクト一つにつき一回だけなので、根気よく手順を追ってください。<BR><BR>
+
+		<FONT COLOR="#550088">
+	　　①　まず Xcode の左側に表示されているプロジェクトのファイルの一覧から<BR>
+	　　　　<FONT COLOR="#008800">『AppDelegate.h』『AppDelegate.m』『ViewController.h』『ViewController.m』『main.m』</FONT><br>
+	　　　　を右クリックして『Delete』します。<BR>
+	　　　　削除( Move to Trash )するのかプロジェクトから外す( Remove References )だけなのかを訊かれますので、<BR>
+	　　　　削除( Move to Trash )を選択します。<BR><BR>
+
+	　　②　次に、同じく Xcode の左側に表示されているプロジェクトのファイルの一番上のファイル<br>
+            　　　　( 『Product Name』で入力した名前のファイル )をクリックして、プロジェクトの設定を表示します。<br><br>
+
+	　　③　次に Xcode の右側に表示されたプロジェクトの設定から『Build Settings』を選択します。<BR><BR>
+
+	　　④　次に Build Settings の設定項目の中から『Search Paths』の中の『Header Search Paths』と『Library Search Paths』に<BR>
+	　　　　パッケージ内に入っている『プロジェクトに追加すべきファイル_iOS用』フォルダのパスを追加します。<BR><BR>
+
+	　　⑤　次に同じく『Build Settings』の『Linking』の中の『Other Linker Flags』に以下の内容を入力します。<br><br>
+<FONT COLOR="#008800">
+-lDxLib_iOS -lDxUseCLib_iOS -lpng_iOS -lzlib_iOS -ljpeg_iOS -lbullet_iOS -logg_iOS -lvorbis_iOS -ltheora_iOS -ltiff_iOS -lopus_iOS
+</FONT><br><br>
+
+	　　⑥　次にタブを『Build Phases』に変更して、『Link Binary With Libraries』の横にある右向きの三角形を押します。<BR>
+      　　　　すると『+』と表示されている箇所が現れますので、そこをクリックしてフレームワークを追加するダイアログを表示します。<BR><br>
+
+	　　⑦　プロジェクトに追加できるフレームワークがずらりと表示されますので、そこから以下のフレームワークを選択してから『Add』を押します。<br><br>
+
+<FONT COLOR="#008800">
+    　　　　　AudioToolbox.framework<br>
+    　　　　　CoreGraphics.framework<br>
+    　　　　　CoreMotion.framework<br>
+    　　　　　CoreText.framework<br>
+    　　　　　Foundation.framework<br>
+    　　　　　GameController.framework<br>
+    　　　　　GLKit.framework<br>
+    　　　　　MessageUI.framework<br>
+    　　　　　OpenAL.framework<br>
+    　　　　　OpenGLES.framework<br>
+    　　　　　QuartzCore.framework<br>
+    　　　　　UIKit.framework<br><br>
+</FONT>
+
+      　　　　ただ、物凄い数の中から探すのは大変なので、『Choose frameworks and libraries to add』と書かれた箇所の少し下にある『Search』<br>
+      　　　　と書かれた検索用のテキストフィールドを使って一つづつ追加した方が楽です。<br><br>
+
+	　　⑧　次に Xcode の左側に表示されているプロジェクトのファイルの中にある『info.plist』をクリックして、内容を表示します。<BR><br>
+
+	　　⑨　表示された『info.plist』の一番上に表示されている『Infomation Property List』にカーソルを合わせると右側に『+』ボタンが表示<br>
+      　　　　されるので、それをクリックして項目を一つ追加します。<br><br>
+            
+	　　⑩　すると次に追加する項目の名称を入力する状態になりますので、そこで『View controller-based status bar appearance』を入力して<br>
+      　　　　returnキーを押して入力を確定します。( 入力を確定した後『View controller-based status bar appearance』の右側に『NO』と表示<br>
+      　　　　されていれば正常に入力が完了しています )<BR><BR>
+
+	　　⑪　次に Xcode の左側に表示されているプロジェクトのファイルの中にある『Main.storyboard』をクリックして、内容を表示します。<BR><br>
+
+	　　⑫　表示された『Main.storyboard』の中の『View Controller Scene』→『View Controller』という項目をクリックして選択状態にした後、<br>
+      　　　　Xcode のメニューから『View』→『Inspectors』→『Show Identity Inspector』を選択します、すると Xcode のウィンドウの右側に<BR>
+      　　　　『View Controller』の設定が表示されます。<BR><BR>
+
+	　　⑬　設定項目の一番上に『Custom Class』と書かれていて、そのすぐ下に『Class』という入力項目がありますので、そこに<BR>
+      　　　　書かれている『ViewController』を削除して、代わりに『<FONT COLOR="#008800">DxLibViewController</FONT>』と入力します。<BR><BR>
+
+	　　⑭　次に、リストから『Dx Lib View Controller Scene( これまで『View Controller Scene』だった項目 )』→<br>
+      　　　　『DxLibViewController( これまで『View Controller』だった項目 )』→『View』という項目をクリックします。<BR>
+      　　　　先程と同じく設定項目の一番上に『Custom Class』と書かれていて、そのすぐ下の『Class』の入力項目は今度は<br>
+      　　　　何も書かれていないか、薄く『UIView』と表示されていますので、これを『<FONT COLOR="#008800">DxLibGLView</FONT>』に変更します。<BR><BR>
+		</FONT>
+
+		　プロジェクトの設定は以上です、お疲れ様でした。<BR><BR><BR><BR>
+
+		<A NAME="R4">
+		<FONT COLOR="#008800">
+		4.プログラムを組む<BR><BR>
+		</FONT>
+		</A>
+
+		　長いプロジェクトの設定が終わったので、漸くプログラムを組めます。<BR>
+        　ですが、まだプログラムを組むためのファイルがない状態ですので、以下の手順でプログラムのファイルを追加します。<br><br>
+
+		<FONT COLOR="#550088">
+        　　①　Xcode のメニューから『File』→『New』→『File...』を選択します。<BR><BR>
+
+        　　②　追加するファイルの種類を選択するダイアログが表示されたら『C++ File』を選択して『Next』ボタンを押します。<BR><BR>
+
+        　　③　名前を入力します、ここでは仮に『test.cpp』とします。<br>
+        　　　　そして『Also create a header file』のチェックを外してから『Next』ボタンを押します。<br><br>
+
+        　　④　次にファイルを作成するフォルダを選択するダイアログが表示されるので、<br>
+            　　　　　　　　　　　　　　　　　　　ファイルを保存するフォルダを選択してから『Create』ボタンを押します。<br><br>
+		</FONT>
+
+		　作成された『test.cpp』を選択すると最初から10行程度のプログラムが書かれていますので、まずこれをすべて削除します。<BR>
+		そして何もプログラムに書かれていない状態になった main.cpp に、以下のプログラムを入力します。<BR>
+
+	<HR>
+<PRE><div class="NormalFont">#include "DxLib.h"
+
+// プログラムは android_main から始まります
+int ios_main( void )
+{
+	if( DxLib_Init() == -1 )		// ＤＸライブラリ初期化処理
+	{
+		return -1 ;			// エラーが起きたら直ちに終了
+	}
+
+	DrawBox( 220, 140, 420, 340, GetColor( 255,255,255 ), TRUE ) ;	// 四角形を描画する
+
+	WaitKey() ;				// キー入力待ち
+
+	DxLib_End() ;				// ＤＸライブラリ使用の終了処理
+
+	return 0 ;					// ソフトの終了 
+}
+</div></PRE>
+	<HR><BR><BR>
+
+		　プログラムはこれだけです、どの部分が何をしているのか簡単に説明します。<BR>
+		　まず最初の１行はＤＸライブラリを使用するために必要なファイル( DxLib.h )をインクルードしています。<BR>
+		　次の<FONT COLOR="#880022">『int ios_main( void )</FONT>はＤＸライブラリを使用した iOSアプリのプログラムのスタート地点となる関数の宣言です。<BR>
+		( 因みにＤＸライブラリを使用しない iOSアプリのスタート地点は main ですが、ＤＸライブラリを使用する場合は ios_main となります… )<BR>
+		　中括弧内の最初の文<FONT COLOR="#880022">『if( DxLib_Init() == -1 ){ return -1 ; }』</FONT>はＤＸライブラリを初期化して使える状態にするために必要な関数<FONT COLOR="#880022">『DxLib_Init』</FONT>を呼んでいます。<BR>
+		この関数はＤＸライブラリを使うプログラムを組む際には例外を除いてまず最初に呼び出す必要があります。<BR>
+		因みに『if(...』と書かれているのは初期化が失敗したらその時点でソフトを終了させるという処理を行うための物です。<BR>
+		　<FONT COLOR="#880022">『DrawBox』</FONT>は関数名そのまま四角形を描画するための関数です。<BR>
+		　その次の<FONT COLOR="#880022">『WaitKey』</FONT>はキーボードのキーが押されるまで処理を止める関数です。( iOSアプリでもキーボードを接続すればキーボードを使うことができます )<BR>
+		　最後の<FONT COLOR="#880022">『DxLib_End() ;』</FONT>は注釈にも書いてある通りＤＸライブラリの使用を終了する処理を行う関数を呼んでいる文です。<BR>
+		ＤＸライブラリを使用しているプログラムは最後に必ずこの関数を呼ばなくてはなりません。<BR><BR><BR><BR>
+
+		<A NAME="R5">
+		<FONT COLOR="#008800">
+		5.プロジェクトのビルド、実行<BR><BR>
+		</FONT>
+		</A>
+
+		　プログラムの入力が終わったら実行してみましょう。実行するためには<BR><BR>
+
+		<FONT COLOR="#550088">
+		　　①　Xcode のメニューから『Product』→『Run』<BR><BR>
+
+		　　②　するとビルドが始まり、ビルドが成功するとプログラムがシミュレーターで実行されます。<BR><BR>
+
+		<FONT COLOR="#880000">
+		　　③　もしアプリが起動して間もなく『DxLib_Init』内でエラーが発生して、画面に<br>
+		　　　　『"(プロジェクト名.app)"からマイクにアクセスしようとしています。[許可しない][OK]』<br>
+		　　　　と表示されたら[許可しない]を選択して、Xcode のメニューの『Product』→『Stop』で<br>
+		　　　　一度プログラムを終了して、再度『Product』→『Run』でプログラムを実行してください。<br>
+		　　　　( この現象は2019年3月10日現在確認できるのですが、どうやら Mac のバグのようなので、<br>
+		　　　　　暫くしたら修正され、この現象は発生しなくなるかもしれません、尚、実機でプログラムを<br>
+		　　　　　実行した場合はこの現象は発生しません )<br><br>
+		</FONT>
+
+		　　④　エラーがあった場合は Xcode のウィンドウの左側に一覧で表示されますので、エラー内容を読み取って問題を修正してください。<BR><BR>
+		</FONT>
+
+		　シミュレーターでのプログラムの実行は時間が掛かるので、数分( 長いと10分以上 )待ってみてください。<BR>
+		…画面の中心に四角形が表示されたでしょうか？<BR>
+		　シミュレーターの起動に時間が掛かりすぎると Xcode がエラーとして実行を停止してしまいますが、その場合は<BR>
+		シミュレーターの動作が落ち着いてからもう一度『Product』→『Run』でプログラムを実行してみてください。<BR>
+		　あと、プログラムを終了する場合は Xcode のメニューから<BR>
+		<FONT COLOR="#550088">『Product』→『Stop』</FONT>を選択します。<BR><BR>
+
+		　これでＤＸライブラリを使っての iOSアプリ開発の方法はわかりました。後は好きにプログラムを組んで<BR>
+		ゲームを作るだけです。ですがまだＤＸライブラリの機能は初期化と終了とドットを描画する関数しかわかっていません。<BR>
+		　この他の関数は <A HREF="../dxfunc.html">ＤＸライブラリ関数リファレンスのページ</A> で解説されていますのでそちらを参照して下さい。<BR><BR>
+
+		　あと、iOSアプリの開発に関する基礎的な情報や注意点を <A HREF="../lecture/iOS/iOS.html">iOSアプリ開発の基礎的な情報や注意点など</A> で<BR>
+		解説していますので、こちらも併せてご覧ください。<BR><BR><BR><BR>
+
+		<HR>
+		<A HREF="../dxuse.html">戻る</A>
+
+		</B></FONT>
+		</TD></TR>
+	</TABLE>
+	</div>
+	</BODY>
+</HTML>

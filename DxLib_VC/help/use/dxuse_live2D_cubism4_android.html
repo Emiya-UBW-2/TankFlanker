@@ -1,0 +1,106 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="ja-JP">
+	<HEAD>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <TITLE>ＤＸライブラリ置き場　Live2D 関係の関数を使うための準備</TITLE>
+	<link rel="shortcut icon" href="../DxLib.ico">
+	<link rel="stylesheet" href="../style.css" type="text/css">
+	</HEAD>
+	<BODY BGCOLOR="#ffffff" TEXT="#000000" LINK="#0033CC" VLINK="#800040">
+	<div class="NormalFont">
+	<TABLE ALIGN="CENTER" WIDTH=1300  CELLSPACING=0 CELLPADDING=0 >
+		<TR>
+		<TD ALIGN="CENTER">
+		<FONT SIZE="4" COLOR="#000000"><B>
+			ＤＸライブラリの Live2D 関係の関数を使うための準備( Android編 )
+		</B></FONT>
+		</TD></TR>
+		<TR><TD>
+		<HR>
+		<FONT SIZE="3" COLOR="#000000"><B>
+		<BR>
+
+		　ＤＸライブラリAndroid版の Live2D 関係の関数を使うには以下の準備を行う必要があります。<BR><BR>
+
+		<A HREF="#R1">1.Cubism 4 SDK for Native をダウンロードする<BR><BR></A>
+		<A HREF="#R2">2.Live2D対応 Android版のＤＸライブラリを使用する<BR><BR></A>
+		<A HREF="#R3">3.プロジェクトの Live2D用の設定を行う<BR><BR><br><br></A>
+
+
+		<A NAME="R1">
+		<FONT COLOR="#008800">
+		1.Cubism 4 SDK for Native をダウンロードする<BR><BR>
+		</FONT>
+		</A>
+
+		　ＤＸライブラリ Android版で Live2D 関係の関数を使うには、<FONT COLOR="#880022">Live2D Cubism 4 SDK for Native</FONT> の中にある<br>
+		　ライブラリファイル( <FONT COLOR="#880022">libLive2DCubismCore.a</FONT> )が必要なので、以下のダウンロードページから <FONT COLOR="#880022">Cubism 4 SDK for Native</FONT> をダウンロードしてください。<BR><BR>
+
+			　<a href="https://live2d.github.io/#native">Live2D Cubism 4 SDK for Native ダウンロードページ</a><br><br>
+
+			　( ダウンロードページに記載されている英文の利用規約の日本語版はこちらです<br>
+			　　　<a href="https://www.live2d.com/eula/live2d-open-software-license-agreement_jp.html">Live2D Open Software 使用許諾契約書</a><br>
+			　　　<a href="https://www.live2d.com/eula/live2d-proprietary-software-license-agreement_jp.html">Live2D Proprietary Software 使用許諾契約書</a> )<br><br><br><br>
+
+
+		<A NAME="R2">
+		<FONT COLOR="#008800">
+		2.Live2D対応 Android版のＤＸライブラリをダウンロードする<BR><BR>
+		</FONT>
+		</A>
+
+		　更に、通常の ＤＸライブラリ Android版 では Live2D 関係の関数が使用できないので、<a href="../dxdload.html">ダウンロードページ</a> から<br>
+		　『<FONT COLOR="#880022">Live2D対応 Android版</FONT>』をダウンロードして、その中にあるＤＸライブラリファイルを使用します。<br><br><br><br>
+
+
+		<A NAME="R3">
+		<FONT COLOR="#008800">
+		3.プロジェクトの Live2D用の設定を行う<BR><BR>
+		</FONT>
+		</A>
+
+		　最後に Live2D SDK の中のファイルを使用するためのプロジェクトの設定を行います。<br>
+		　( 通常のＤＸライブラリAndroid版が使用できる状態のプロジェクトがある前提での解説なので、通常のプロジェクトの設定については <br>
+		　　『<a href="dxuse_vscom2019_android.html">Visual Studio Community 2019 の Androidアプリ開発でのＤＸライブラリの使い方</a>』を参照してください )<br><br>
+
+		<FONT COLOR="#550088">
+	　　①.『ソリューションエクスプローラー』と書かれているリストに表示されている<BR>
+	　　　　『(プロジェクト名).NativeActivity(android-19)』を右クリックして、プルダウンメニューから<BR>
+	　　　　『プロパティ(R)』をクリックして『(プロジェクト名).NativeActivity プロパティページ』を表示します。<BR><BR>
+
+	　　②. ダイアログの上部にある『プラットフォーム(P):』を『ARM』に変更します。<BR><BR>
+
+	　　③. 次に左側のリストから『構成プロパティ』→『リンカー』→『全般』を選びます。<BR><BR>
+
+	　　④. 右側に表示されている『追加のライブラリ ディレクトリ』の項目に Live2D Cubism 4 SDK for Native の中の<BR>
+	　　　　フォルダ Core\lib\android\armeabi-v7a のパスを追加します。<BR>
+	　　　　( 例えばSDKのパスが D:\Cubism4SDKforNative-beta12-1 の場合は、D:\Cubism4SDKforNative-beta12-1\Core\lib\android\armeabi-v7a となります )<BR><br>
+
+	　　⑤. 次にダイアログの上部にある『プラットフォーム(P):』を今度は『x86』に変更して、<BR>
+	　　　　右側に表示されている『追加のライブラリ ディレクトリ』の項目に Live2D Cubism 4 SDK for Native の中の<BR>
+	　　　　フォルダ Core\lib\android\x86 のパスを追加します。<BR>
+	　　　　( 例えばSDKのパスが D:\Cubism4SDKforNative-beta12-1 の場合は、D:\Cubism4SDKforNative-beta12-1\Core\lib\android\x86 となります )<BR><br>
+
+	　　⑥. 次にダイアログの上部にある『プラットフォーム(P):』を今度は『ARM64』に変更して、<BR>
+	　　　　右側に表示されている『追加のライブラリ ディレクトリ』の項目に Live2D Cubism 4 SDK for Native の中の<BR>
+	　　　　フォルダ Core\lib\android\arm64-v8a のパスを追加します。<BR>
+	　　　　( 例えばSDKのパスが D:\Cubism4SDKforNative-beta12-1 の場合は、D:\Cubism4SDKforNative-beta12-1\Core\lib\android\arm64-v8a となります )<BR><br>
+
+	　　⑦. 次にダイアログの上部にある『プラットフォーム(P):』を今度は『すべてのプラットフォーム』に変更し、<BR>
+	　　　　加えてダイアログの左上にある『構成(C):』と書かれている項目を『すべての構成』に変更します。<BR><BR>
+
+	　　⑧. 次に左側のリストから『構成プロパティ』→『リンカー』→『入力』を選びます。<BR><BR>
+
+	　　⑨. ダイアログ右側に表示されている『ライブラリの依存ファイル』の項目に『Live2DCubismCore』を追加します。<BR>
+	　　　　( 他の項目とはセミコロン『;』で区切ります )<BR><br>
+		</FONT>
+
+		　ＤＸライブラリAndroid版の Live2D 関係の関数を使うための準備は以上で完了です。
+			<br><br><br><br>
+
+		</B></FONT>
+		</TD></TR>
+	</TABLE>
+	</div>
+	</BODY>
+</HTML>

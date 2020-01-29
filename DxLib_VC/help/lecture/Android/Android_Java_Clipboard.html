@@ -1,0 +1,436 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="ja-JP">
+	<HEAD>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <TITLE>ＤＸライブラリ Android版を使用した Androidアプリで Java のコードでクリップボードを使用する</TITLE>
+	<link rel="shortcut icon" href="../../DxLib.ico">
+	<link rel="stylesheet" href="../../style.css" type="text/css">
+	</HEAD>
+	<BODY BGCOLOR="#ffffff" TEXT="#000000" LINK="#0033CC" VLINK="#800040">
+	<div class="NormalFont">
+	<TABLE ALIGN="CENTER" WIDTH=1400  CELLSPACING=0 CELLPADDING=0 >
+		<TR>
+		<TD ALIGN="CENTER">
+		<FONT SIZE="6" COLOR="#000000"><B>
+			ＤＸライブラリ Android版を使用した Androidアプリで Java のコードでクリップボードを使用する
+		</B></FONT>
+		</TD></TR>
+		<TR><TD>
+		<HR>
+		<FONT SIZE="3" COLOR="#000000"><B>
+		<BR>
+
+		　すべての処理を C++ で実行できれば良いのですが、Android の基本言語が Java である関係で、<BR>
+		今のところ Java を使用しないとクリップボードの機能を使用することができません。<BR><BR>
+
+		　なので、ここでは<FONT COLOR="#880022">『ＤＸライブラリ Android版』</FONT>には無いクリップボードの機能を Java を使用して<BR>
+		行うための手順を記します。<BR><BR><BR>
+
+
+		　<A HREF="#R1">1.プロジェクトに Java のソースファイルを追加する<BR><BR></A>
+
+		　<A HREF="#R2">2.Java のコードを入力する<BR><BR></A>
+
+		　<A HREF="#R3">3.Java の情報を取得する C++ のコードを入力する<BR><BR><BR><BR></A>
+
+
+		<A NAME="R1">
+		<FONT COLOR="#008800">
+		1.プロジェクトに Java のソースファイルを追加する<BR><BR>
+		</FONT>
+		</A>
+
+		　　まずに Java のソースファイルを以下の手順でプロジェクトに追加します。<BR><BR>
+
+		<FONT COLOR="#550088">
+		　　①　『ソリューションエクスプローラー』と書かれているリストに表示されている『<FONT COLOR="#880022">(プロジェクト名)</FONT>.Packaging』<BR>
+		　　　　を右クリックして、表示されるプルダウンメニューから『追加(D)』→『新しいフォルダー(D)』を選択して、<BR>
+		　　　　『新しいフォルダー』を追加して、名前を『src』としてください。<BR><BR>
+
+		　　②　次に追加した『src』フォルダーを右クリックして、再びプルダウンメニューから『追加(D)』→『新しいフォルダー(D)』を選択して、<BR>
+		　　　　『新しいフォルダー』を追加して、今度は名前を『com』としてください。<BR><BR>
+
+		　　③　次に追加した『com』フォルダーを右クリックして、再びプルダウンメニューから『追加(D)』→『新しいフォルダー(D)』を選択して、<BR>
+		　　　　『新しいフォルダー』を追加して、今度は名前を『<FONT COLOR="#880022">(プロジェクト名)</FONT>』( <FONT COLOR="#880022">(プロジェクト名)</FONT> はお手元のプロジェクトの名前に置き換えてください )としてください。<BR><BR>
+
+		　　④　次に追加した『<FONT COLOR="#880022">(プロジェクト名)</FONT>』フォルダーを右クリックして、再びプルダウンメニューから『追加(D)』→『新しいフォルダー(D)』を選択して、<BR>
+		　　　　『新しいフォルダー』を追加して、今度は名前を『Packaging』としてください。<BR><BR>
+
+		　　　　と、要は『<FONT COLOR="#880022">(プロジェクト名)</FONT>.Packaging』以下に『src』→『com』→『<FONT COLOR="#880022">(プロジェクト名)</FONT>』→『Packaging』というフォルダ<BR>
+		　　　　を作ります。次に漸く Java ファイルの追加です。<BR><BR>
+
+		　　⑤　追加した『Packaging』フォルダーを右クリックして、今度は『新しい項目(W)...』を選択して『新しい項目の追加』ダイアログを表示します。<BR><BR>
+
+		　　⑥　ダイアログ左側のリストから『インストール済み』→『Cross Platform』→『Android』を選び、<BR>
+		　　　　右側のリストから『Java』を選びます。<BR><BR>
+
+		　　⑦　ダイアログ下側の『名前(N):』の項目に『<FONT COLOR="#880022">(プロジェクト名)</FONT>.java』と入力して『追加(A)』ボタンを押します。<BR><BR>
+
+		　　⑧　次に追加された『<FONT COLOR="#880022">(プロジェクト名)</FONT>.java』を開いた状態でメニューから『ファイル(F)』→『名前を付けて<FONT COLOR="#880022">(プロジェクト名)</FONT>.javaを保存(A)...』を<BR>
+		　　　　選択して、『名前を付けてファイルを保存』ダイアログを表示します。<BR>
+		　　　　<FONT COLOR="#886600">( VisualStudio 2015 の場合はメニューから『ファイル(F)』→『保存オプションの詳細設定(V)...』を選択して、『保存オプションの詳細設定』ダイアログを表示します )</FONT><BR><BR>
+
+		　　⑨　『名前を付けてファイルを保存』ダイアログの右下にある『上書き保存(S)』の項目を『エンコード付きで保存(V)...』<BR>
+		　　　　に変更します。すると変更した瞬間に『名前を付けて保存の確認』ダイアログが表示されますので『はい(Y)』を選択してください。<BR>
+		　　　　<FONT COLOR="#886600">( VisualStudio 2015 の場合はこの工程が無いので、手順⑩に進んでください )</FONT><BR><BR>
+
+		　　⑩　次に『保存オプションの詳細設定』ダイアログの『エンコード(E):』の項目を『日本語 (シフト JIS) - コードページ 932』から<BR>
+		　　　　『Unicode (UTF-8 シグネチャなし) - コードページ 65001』に変更して『OK』ボタンを押します。<BR>
+		　　　　<FONT COLOR="#880022">( 『Unicode (UTF-8 シグネチャ付き) - コードページ 65001』と間違えないようにしてください、<BR>
+		　　　　　『Unicode (UTF-8 シグネチャなし) - コードページ 65001』はリストのかなり下の方にあります )</FONT><BR><BR>
+		</FONT>
+		　( <FONT COLOR="#880022">(プロジェクト名)</FONT>となっている箇所は、お手元のプロジェクトの名前を入力してください )<BR><BR><BR>
+
+		　　これで java ファイルの追加は完了です。<BR><BR><BR><BR>
+
+
+		<A NAME="R2">
+		<FONT COLOR="#008800">
+		2.Java のコードを入力する<BR><BR>
+		</FONT>
+		</A>
+
+		　　追加した『<FONT COLOR="#880022">(プロジェクト名)</FONT>.java』には最初から数行書かれていますが、それを全部消して、代わりに<BR>
+		　今回の<FONT COLOR="#880022">『クリップボードの処理』</FONT>を行うための以下のコードを入力します。
+
+</B><FONT COLOR="#000000">
+<pre><div class="NormalFont">
+package com.<FONT COLOR="#880022">(プロジェクト名)</FONT>.Packaging;
+
+import android.app.NativeActivity ;
+import android.content.ClipboardManager ;
+import android.content.ClipData ;
+
+public class com.<FONT COLOR="#880022">(プロジェクト名)</FONT> extends NativeActivity
+{
+	<FONT COLOR="#008800">// クリップボードの処理が完了したかどうかを保存するメンバー変数</FONT>
+	int FinishClipboardProcess ;
+
+	<FONT COLOR="#008800">// クリップボードに設定したり取得したりするテキストを保存するためのメンバー変数</FONT>
+	String ClipboardText ;
+
+	<FONT COLOR="#008800">// クリップボードにテキストを設定するための関数</FONT>
+	public void SetClipboardText( String SetText )
+	{
+		<FONT COLOR="#008800">// クリップボードの処理が完了したかどうかを保存するメンバー変数に 0 を代入</FONT>
+		FinishClipboardProcess = 0 ;
+
+		<FONT COLOR="#008800">// クリップボードに設定するテキストを ClipboardText にセット</FONT>
+		ClipboardText = SetText ;
+
+		<FONT COLOR="#008800">// UIスレッドで実行する処理を登録する</FONT>
+		runOnUiThread( 
+			new Runnable() 
+			{
+				<FONT COLOR="#008800">// UIスレッドで呼ばれる関数</FONT>
+				@Override public void run()
+				{
+					<FONT COLOR="#008800">// システムのクリップボードを取得</FONT>
+					ClipboardManager cm = ( ClipboardManager )getSystemService( CLIPBOARD_SERVICE ) ;
+
+					<FONT COLOR="#008800">// クリップボードにテキストを設定</FONT>
+					cm.setPrimaryClip( ClipData.newPlainText( "", ClipboardText.subSequence( 0, ClipboardText.length() ) ) ) ;
+
+					<FONT COLOR="#008800">// クリップボードの処理が完了したかどうかを保存するメンバー変数に 1 を代入</FONT>
+					FinishClipboardProcess = 1 ;
+				}
+			}
+		) ;
+	}
+
+	<FONT COLOR="#008800">// クリップボードのテキストを取得するための関数</FONT>
+	public void GetClipboardText()
+	{
+		<FONT COLOR="#008800">// クリップボードの処理が完了したかどうかを保存するメンバー変数に 0 を代入</FONT>
+		FinishClipboardProcess = 0 ;
+
+		<FONT COLOR="#008800">// クリップボードのテキストを保存する変数を初期化</FONT>
+		ClipboardText = "" ;
+
+		<FONT COLOR="#008800">// UIスレッドで実行する処理を登録する</FONT>
+		runOnUiThread( 
+			new Runnable() 
+			{
+				<FONT COLOR="#008800">// UIスレッドで呼ばれる関数</FONT>
+				@Override public void run()
+				{
+					<FONT COLOR="#008800">// システムのクリップボードを取得</FONT>
+					ClipboardManager cm = ( ClipboardManager )getSystemService( CLIPBOARD_SERVICE ) ;
+ 
+					<FONT COLOR="#008800">// クリップボードにテキストが保存されていなければ何もしない</FONT>
+					if( cm.hasPrimaryClip() )
+					{
+						<FONT COLOR="#008800">// クリップボードからテキストを取得</FONT>
+						ClipboardText = cm.getPrimaryClip().getItemAt( 0 ).getText().toString() ;
+					}
+
+					<FONT COLOR="#008800">// クリップボードの処理が完了したかどうかを保存するメンバー変数に 1 を代入</FONT>
+					FinishClipboardProcess = 1 ;
+				}
+			}
+		) ;
+	}
+}
+</pre>
+</FONT><B>
+		　( <FONT COLOR="#880022">(プロジェクト名)</FONT>となっている箇所は、お手元のプロジェクトの名前を入力してください )<BR><BR><BR><BR>
+
+
+		<A NAME="R3">
+		<FONT COLOR="#008800">
+		3.Java の情報を取得する C++ のコードを入力する<BR><BR>
+		</FONT>
+		</A>
+
+		　　次に Java で書いたクリップボードの機能を使用する C++ 側のプログラムです。<BR>
+		　　<FONT COLOR="#880022">『ＤＸライブラリ Android版』</FONT>でのみ使用できる <FONT COLOR="#880022">GetNativeActivity</FONT> という関数を使用しています。<BR>
+
+
+</B><FONT COLOR="#000000">
+<pre><div class="NormalFont">
+#include "DxLib.h"
+#include &lt;string.h&gt;
+
+<FONT COLOR="#008800">// クリップボードにテキストを設定する</FONT>
+int ClipboardText_Set( const char *Text )
+{
+	JNIEnv *env ;
+	const ANativeActivity *NativeActivity ;
+
+	<FONT COLOR="#008800">// アプリの NativeActivity を取得</FONT>
+	NativeActivity = GetNativeActivity() ;
+
+	<FONT COLOR="#008800">// Java の関数 SetClipboardText の呼び出し</FONT>
+	{
+		<FONT COLOR="#008800">// JavaVM とソフト実行用スレッドを関連付け( C++ から Java の機能を使用するために必要 )</FONT>
+		if( NativeActivity->vm->AttachCurrentThreadAsDaemon( &env, NULL ) != JNI_OK )
+		{
+			return -1 ;
+		}
+
+		<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> を取得</FONT>
+		jclass jclass_<FONT COLOR="#880022">(プロジェクト名)</FONT> = env->GetObjectClass( NativeActivity->clazz ) ;
+
+		<FONT COLOR="#008800">// 関数の引数に渡す jstring を作成</FONT>
+		jstring jstring_SetText = env->NewStringUTF( Text ) ;
+
+		<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> のメンバー関数 SetClipboardText の ID を取得</FONT>
+		jmethodID jmethodID_SetClipboardText = env->GetMethodID( jclass_<FONT COLOR="#880022">(プロジェクト名)</FONT>, "SetClipboardText", "(Ljava/lang/String;)V" ) ;
+
+		<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> のメンバー関数 SetClipboardText の呼び出し</FONT>
+		env->CallVoidMethod( NativeActivity->clazz, jmethodID_SetClipboardText, jstring_SetText ) ;
+
+		<FONT COLOR="#008800">// 関数の引数用に作成した jstring の参照を削除</FONT>
+		env->DeleteLocalRef( jstring_SetText ) ;
+
+		<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> の参照を削除</FONT>
+		env->DeleteLocalRef( jclass_<FONT COLOR="#880022">(プロジェクト名)</FONT> ) ;
+
+		<FONT COLOR="#008800">// JavaVM とソフト実行用スレッドの関連付け終了</FONT>
+		NativeActivity->vm->DetachCurrentThread() ;
+	}
+
+	<FONT COLOR="#008800">// Java の関数 SetClipboardText の処理完了待ち</FONT>
+	while( true )
+	{
+		<FONT COLOR="#008800">// JavaVM とソフト実行用スレッドを関連付け( C++ から Java の機能を使用するために必要 )</FONT>
+		if( NativeActivity->vm->AttachCurrentThreadAsDaemon( &env, NULL ) != JNI_OK )
+		{
+			return -1 ;
+		}
+
+		<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> を取得</FONT>
+		jclass jclass_<FONT COLOR="#880022">(プロジェクト名)</FONT> = env->GetObjectClass( NativeActivity->clazz ) ;
+
+		<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> のメンバー関数 FinishClipboardProcess の ID を取得</FONT>
+		jfieldID jfieldID_FinishClipboardProcess = env->GetFieldID( jclass_<FONT COLOR="#880022">(プロジェクト名)</FONT>, "FinishClipboardProcess", "I" ) ;
+
+		<FONT COLOR="#008800">// Java のクラス (プロジェクト名) のメンバー変数 FinishClipboardProcess の値をローカル変数 FinishClipboardProcess に代入</FONT>
+		int FinishClipboardProcess = env->GetIntField( NativeActivity->clazz, jfieldID_FinishClipboardProcess ) ;
+
+		<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> の参照を削除</FONT>
+		env->DeleteLocalRef( jclass_<FONT COLOR="#880022">(プロジェクト名)</FONT> ) ;
+
+		<FONT COLOR="#008800">// JavaVM とソフト実行用スレッドの関連付け終了</FONT>
+		NativeActivity->vm->DetachCurrentThread() ;
+
+		<FONT COLOR="#008800">// 処理が完了していたらループを抜ける</FONT>
+		if( FinishClipboardProcess == 1 )
+		{
+			break ;
+		}
+	}
+
+	<FONT COLOR="#008800">// 正常終了</FONT>
+	return 0 ;
+}
+
+<FONT COLOR="#008800">// クリップボードのテキストを取得する</FONT>
+int ClipboardText_Get( char *TextBuffer, int TextBufferSize )
+{
+	JNIEnv *env ;
+	const ANativeActivity *NativeActivity ;
+
+	<FONT COLOR="#008800">// アプリの NativeActivity を取得</FONT>
+	NativeActivity = GetNativeActivity() ;
+
+	<FONT COLOR="#008800">// Java の関数 GetClipboardText の呼び出し</FONT>
+	{
+		<FONT COLOR="#008800">// JavaVM とソフト実行用スレッドを関連付け( C++ から Java の機能を使用するために必要 )</FONT>
+		if( NativeActivity->vm->AttachCurrentThreadAsDaemon( &env, NULL ) != JNI_OK )
+		{
+			return -1 ;
+		}
+
+		<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> を取得</FONT>
+		jclass jclass_<FONT COLOR="#880022">(プロジェクト名)</FONT> = env->GetObjectClass( NativeActivity->clazz ) ;
+
+		<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> のメンバー関数 GetClipboardText の ID を取得</FONT>
+		jmethodID jmethodID_GetClipboardText = env->GetMethodID( jclass_<FONT COLOR="#880022">(プロジェクト名)</FONT>, "GetClipboardText", "()V" ) ;
+
+		<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> のメンバー関数 GetClipboardText の呼び出し</FONT>
+		env->CallVoidMethod( NativeActivity->clazz, jmethodID_GetClipboardText ) ;
+
+		<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> の参照を削除</FONT>
+		env->DeleteLocalRef( jclass_<FONT COLOR="#880022">(プロジェクト名)</FONT> ) ;
+
+		<FONT COLOR="#008800">// JavaVM とソフト実行用スレッドの関連付け終了</FONT>
+		NativeActivity->vm->DetachCurrentThread() ;
+	}
+
+	<FONT COLOR="#008800">// Java の関数 GetClipboardText の処理完了待ち</FONT>
+	while( true )
+	{
+		<FONT COLOR="#008800">// JavaVM とソフト実行用スレッドを関連付け( C++ から Java の機能を使用するために必要 )</FONT>
+		if( NativeActivity->vm->AttachCurrentThreadAsDaemon( &env, NULL ) != JNI_OK )
+		{
+			return -1 ;
+		}
+
+		<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> を取得</FONT>
+		jclass jclass_<FONT COLOR="#880022">(プロジェクト名)</FONT> = env->GetObjectClass( NativeActivity->clazz ) ;
+
+		<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> のメンバー関数 FinishClipboardProcess の ID を取得</FONT>
+		jfieldID jfieldID_FinishClipboardProcess = env->GetFieldID( jclass_<FONT COLOR="#880022">(プロジェクト名)</FONT>, "FinishClipboardProcess", "I" ) ;
+
+		<FONT COLOR="#008800">// Java のクラス (プロジェクト名) のメンバー変数 FinishClipboardProcess の値をローカル変数 FinishClipboardProcess に代入</FONT>
+		int FinishClipboardProcess = env->GetIntField( NativeActivity->clazz, jfieldID_FinishClipboardProcess ) ;
+
+		<FONT COLOR="#008800">// 処理が完了していたらテキストを取得する</FONT>
+		if( FinishClipboardProcess == 1 )
+		{
+			<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> のメンバー変数 ClipboardText の ID を取得</FONT>
+			jfieldID jfieldID_ClipboardText = env->GetFieldID( jclass_<FONT COLOR="#880022">(プロジェクト名)</FONT>, "ClipboardText", "Ljava/lang/String;" ) ;
+
+			<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> のメンバー変数 ClipboardText の jstring オブジェクトを取得</FONT>
+			jstring jstring_ClipboardText = ( jstring )env->GetObjectField( NativeActivity->clazz, jfieldID_ClipboardText ) ;
+
+			<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> のメンバー変数 ClipboardText の jstring から C++ 用の文字列のアドレスを取得</FONT>
+			const char *chars_ClipboardText = env->GetStringUTFChars( jstring_ClipboardText, NULL ) ;
+
+			<FONT COLOR="#008800">// 文字列をローカル変数 ClipboardText にコピー</FONT>
+			strncpy( TextBuffer, chars_ClipboardText, TextBufferSize - 1 ) ;
+
+			<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> のメンバー変数 ClipboardText の jstring から取得した C++ 用の文字列のアドレスを解放</FONT>
+			env->ReleaseStringUTFChars( jstring_ClipboardText, chars_ClipboardText ) ;
+
+			<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> のメンバー変数 ClipboardText の jstring オブジェクトの参照を削除</FONT>
+			env->DeleteLocalRef( jstring_ClipboardText ) ;
+		}
+
+		<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> の参照を削除</FONT>
+		env->DeleteLocalRef( jclass_<FONT COLOR="#880022">(プロジェクト名)</FONT> ) ;
+
+		<FONT COLOR="#008800">// JavaVM とソフト実行用スレッドの関連付け終了</FONT>
+		NativeActivity->vm->DetachCurrentThread() ;
+
+		<FONT COLOR="#008800">// 処理が完了していたらループを抜ける</FONT>
+		if( FinishClipboardProcess == 1 )
+		{
+			break ;
+		}
+	}
+
+	<FONT COLOR="#008800">// 正常終了</FONT>
+	return 0 ;
+}
+
+int android_main( void )
+{
+	<FONT COLOR="#008800">// 背景の色をグレーにする</FONT>
+	SetBackgroundColor( 128,128,128 ) ;
+
+	<FONT COLOR="#008800">// ＤＸライブラリの初期化</FONT>
+	if( DxLib_Init() < 0 ) return -1 ;
+
+	<FONT COLOR="#008800">// 描画先を裏画面にする</FONT>
+	SetDrawScreen( DX_SCREEN_BACK ) ;
+
+	<FONT COLOR="#008800">// クリップボードにテキストを設定する</FONT>
+	ClipboardText_Set( "テストテキスト" ) ;
+
+	<FONT COLOR="#008800">// メインループ</FONT>
+	while( ProcessMessage() == 0 )
+	{
+		char StringBuffer[ 256 ] ;
+
+		<FONT COLOR="#008800">// 画面のクリア</FONT>
+		ClearDrawScreen() ;
+
+		<FONT COLOR="#008800">// クリップボードのテキストを取得</FONT>
+		ClipboardText_Get( StringBuffer, sizeof( StringBuffer ) ) ;
+
+		<FONT COLOR="#008800">// クリップボードのテキストを画面に表示</FONT>
+		DrawFormatString( 0, 0, GetColor( 255,255,255 ), "クリップボードのテキスト[ %s ]", StringBuffer ) ;
+
+		<FONT COLOR="#008800">// 裏画面の内容を表画面に反映</FONT>
+		ScreenFlip() ;
+	}
+
+	<FONT COLOR="#008800">// ＤＸライブラリの後始末</FONT>
+	DxLib_End() ;
+
+	<FONT COLOR="#008800">// ソフトの終了</FONT>
+	return 0 ;
+}
+</pre>
+</FONT><B>
+		　( <FONT COLOR="#880022">(プロジェクト名)</FONT>となっている箇所は、お手元のプロジェクトの名前を入力してください )<BR><BR>
+
+		　　以上です。<BR>
+		　　これでプロジェクトを実行すると、画面に『クリップボードのテキスト[ テストテキスト ]』と表示されます。<BR><BR>
+
+		　　詳細は割愛しますが、C++ から Java にアクセスする基本的な流れは。<BR><BR>
+		
+		<FONT COLOR="#550088">
+		　　　①　AttachCurrentThreadAsDaemon でソフト実行用スレッドと JavaVM を関連付け、JNIEnv も取得。<BR><BR>
+
+		　　　②　GetObjectClass でアプリの Java クラスを取得。<BR><BR>
+
+		　　　③　GetMethodID や GetFieldID で Java の関数や変数の ID を取得。<BR><BR>
+
+		　　　④　Call???Method や Get???Field で Java の関数の呼び出しや変数の値を取得。<BR><BR>
+
+		　　　⑤　DeleteLocalRef で Get???Field で取得したオブジェクト系の変数の参照を削除。<BR><BR>
+
+		　　　⑥　DeleteLocalRef で GetObjectClass で取得したアプリの Java クラスの参照を削除。<BR><BR>
+
+		　　　⑦　DetachCurrentThread でソフト実行用スレッドと JavaVM の関連付けを終了。<BR><BR>
+		</FONT>
+
+		　　となります。<BR>
+		　　C++ と Java でのやり取りを行う機能( <FONT COLOR="#880022">JNI( Java Native Interface )</FONT> ) の詳しい扱い方については、検索サイトで<BR>
+		　『<FONT COLOR="#880022">Android Java JNI</FONT>』などのキーワードで検索して調べてみてください。<BR><BR>
+		
+		　　ただ、今回のサンプルでは JNI を使用した処理は ClipboardText_Set と ClipboardText_Get に纏められているので、<BR>
+		　そのまま使う場合は JNI のことを意識しなくてもクリップボードの機能を使用することができます。<BR><BR><BR><BR><BR><BR><BR>
+
+		<HR>
+		<A HREF="../../dxtec.html">戻る</A>
+
+		</B></FONT>
+		</TD></TR>
+	</TABLE>
+	</div>
+	</BODY>
+</HTML>

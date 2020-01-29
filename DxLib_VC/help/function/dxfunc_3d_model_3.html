@@ -1,0 +1,3499 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="ja-JP">
+    <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <link rel="shortcut icon" href="../DxLib.ico">
+    <link rel="stylesheet" href="../style.css" type="text/css">
+    <title>ＤＸライブラリ置き場　３Ｄ関係関数リファレンスページ</title>
+    </head>
+    <body bgcolor="#ffffff" text="#000000" link="#0033CC" vlink="#800040">
+    <div class="NormalFont">
+    <table align="center" width="600" cellspacing="0" cellpadding="0" >
+        <tr><td><font size="3" color="#005500"><b>メッシュ関係</b><br><br></font></td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N1">宣言</a></b></td><td><font color="#000088"><b>int MV1GetMeshNum( int MHandle ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>モデルに含まれるメッシュの数を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０以上：モデルに含まれるメッシュの数</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるメッシュの数を取得します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　モデルファイル DxChara.x に含まれるメッシュの情報を表示します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle, MeshNum, i ;
+    VECTOR Position ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // モデルに含まれるメッシュの数を取得する
+    MeshNum = <b><a href="dxfunc_3d_model_3.html#R7N1">MV1GetMeshNum</a></b>( ModelHandle ) ;
+
+    // メッシュの数だけループ
+    for( i = 0 ; i &lt; MeshNum ; i ++ )
+    {
+        // 画面をクリア
+        <b><a href="dxfunc_graph3.html#R4N4">ClearDrawScreen</a></b>() ;
+
+        // メッシュが使用しているマテリアルの描画
+        <b><a href="dxfunc_graph2.html#R17N20">DrawFormatString</a></b>( 0,  0, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255,255,255 ),  "Material              %d", <b><a href="dxfunc_3d_model_3.html#R7N2">MV1GetMeshMaterial</a></b>( ModelHandle, i ) ) ;
+
+        // メッシュに含まれる三角形ポリゴンの数を描画
+        DrawFormatString( 0, 16, GetColor( 255,255,255 ),  "Triangle Polygon Num  %d", <b><a href="dxfunc_3d_model_3.html#R7N3">MV1GetMeshTriangleNum</a></b>( ModelHandle, i ) ) ;
+
+        // メッシュの表示・非表示状態を描画
+        DrawFormatString( 0, 32, GetColor( 255,255,255 ),  "Visible               %d", <b><a href="dxfunc_3d_model_3.html#R7N5">MV1GetMeshVisible</a></b>( ModelHandle, i ) ) ;
+
+        // メッシュに半透明要素があるかどうかを描画
+        DrawFormatString( 0, 48, GetColor( 255,255,255 ),  "Semi Trans State      %d", <b><a href="dxfunc_3d_model_3.html#R7N26">MV1GetMeshSemiTransState</a></b>( ModelHandle, i ) ) ;
+
+        // メッシュがバックカリングを行うかどうかを描画
+        DrawFormatString( 0, 64, GetColor( 255,255,255 ),  "Back Culling          %d", <b><a href="dxfunc_3d_model_3.html#R7N21">MV1GetMeshBackCulling</a></b>( ModelHandle, i ) ) ;
+
+        // メッシュの頂点ディフューズカラーを使用するかどうかを描画
+        DrawFormatString( 0, 80, GetColor( 255,255,255 ),  "Use Vertex Dif Color  %d", <b><a href="dxfunc_3d_model_3.html#R7N28">MV1GetMeshUseVertDifColor</a></b>( ModelHandle, i ) ) ;
+
+        // メッシュの頂点スペキュラカラーを使用するかどうかを描画
+        DrawFormatString( 0, 96, GetColor( 255,255,255 ),  "Use Vertex Spc Color  %d", <b><a href="dxfunc_3d_model_3.html#R7N30">MV1GetMeshUseVertSpcColor</a></b>( ModelHandle, i ) ) ;
+
+        // メッシュに含まれる頂点のローカル座標の最大座標値を描画
+        Position = <b><a href="dxfunc_3d_model_3.html#R7N22">MV1GetMeshMaxPosition</a></b>( ModelHandle, i ) ;
+        DrawFormatString( 0, 112, GetColor( 255,255,255 ), "Max Position          x %f  y %f  z %f", Position.x, Position.y, Position.z ) ;
+
+        // メッシュに含まれる頂点のローカル座標の最小座標値を描画
+        Position = <b><a href="dxfunc_3d_model_3.html#R7N23">MV1GetMeshMinPosition</a></b>( ModelHandle, i ) ;
+        DrawFormatString( 0, 128, GetColor( 255,255,255 ), "Min Position          x %f  y %f  z %f", Position.x, Position.y, Position.z ) ;
+
+        // キーの入力待ち
+        <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N2">宣言</a></b></td><td><font color="#000088"><b>int MV1GetMeshMaterial( int MHandle, int MeshIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>メッシュが使用しているマテリアルの番号を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０以上：マテリアルの番号</td></tr>
+            <tr><td              WIDTH=100>           　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のメッシュで使用されているマテリアルの番号を取得します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_3.html#R7N1">MV1GetMeshNum関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N3">宣言</a></b></td><td><font color="#000088"><b>int MV1GetMeshTriangleNum( int MHandle, int MeshIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>メッシュに含まれる三角形ポリゴンの数を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０以上：三角形ポリゴンの数</td></tr>
+            <tr><td              WIDTH=100>           　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のメッシュに含まれる三角形ポリゴンの数を取得します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_3.html#R7N1">MV1GetMeshNum関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N4">宣言</a></b></td><td><font color="#000088"><b>int MV1SetMeshVisible( int MHandle, int MeshIndex, int VisibleFlag ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>メッシュの表示・非表示状態を変更する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュの番号<br>
+            int VisibleFlag ： 変更後の表示状態( TRUE：表示  FALSE：非表示 )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のメッシュの表示状態を変更します。<br><br>
+
+                    　VisibleFlag を FALSE にした場合、<b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b> 等の描画関数を呼んでも描画されなくなります。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　モデルファイル DxChara.x に含まれる１番目のメッシュを非表示にして描画します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, -300.0f, 600.0f ) ) ;
+
+    // １番のメッシュの表示状態を「非表示」にする
+    MV1SetMeshVisible( ModelHandle, 1, FALSE ) ;
+
+    // ３Ｄモデルの描画
+    <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キーの入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N5">宣言</a></b></td><td><font color="#000088"><b>int MV1GetMeshVisible( int MHandle, int MeshIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>メッシュの表示・非表示状態を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０以上：メッシュの表示状態( TRUE：表示  FALSE：非表示 )</td></tr>
+            <tr><td              WIDTH=100>           　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のメッシュの表示状態を取得します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_3.html#R7N1">MV1GetMeshNum関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N6">宣言</a></b></td><td><font color="#000088"><b>int MV1SetMeshDifColorScale( int MHandle, int MeshIndex, COLOR_F Scale ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>フレームのディフューズカラーのスケール値を設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュの番号<br>
+            COLOR_F Scale ： スケール値( 各色 0.0f ～ 1.0f )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td              WIDTH=100>           　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のメッシュを描画する際に行うマテリアルのディフューズカラーに対するスケーリングの値を設定します。<br><br>
+
+                    　モデル中の一部分だけ色を変えたい場合などに使用します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　モデルファイル SimpleModel.mqo に含まれる０番のメッシュのディフューズカラーを赤にします。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "SimpleModel.mqo" ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, 300.0f, 600.0f ) ) ;
+
+    // ０番のメッシュのディフューズカラーを赤にする
+    <b><a href="dxfunc_3d_model_3.html#R7N6">MV1SetMeshDifColorScale</a></b>( ModelHandle, 0, <b><a href="dxfunc_3d_draw.html#R14N14">GetColorF</a></b>( 1.0f, 0.0f, 0.0f, 1.0f ) ) ;
+
+    // ３Ｄモデルの描画
+    <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キーの入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N7">宣言</a></b></td><td><font color="#000088"><b>COLOR_F MV1GetMeshDifColorScale( int MHandle, int MeshIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>メッシュのディフューズカラーのスケール値を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュ番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>メッシュのディフューズカラーのスケール値<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のメッシュを描画する際に行うマテリアルのディフューズカラーに対するスケーリングの値を取得します。<br><br>
+
+                    　<b><a href="dxfunc_3d_model_3.html#R7N6">MV1SetMeshDifColorScale</a></b> 関数で設定された値をそのまま返すだけの関数です。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+                ありません
+            <br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N8">宣言</a></b></td><td><font color="#000088"><b>int MV1SetMeshSpcColorScale( int MHandle, int MeshIndex, COLOR_F Scale ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>フレームのスペキュラカラーのスケール値を設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュの番号<br>
+            COLOR_F Scale ： スケール値( 各色 0.0f ～ 1.0f )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td              WIDTH=100>           　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のメッシュを描画する際に行うマテリアルのスペキュラカラーに対するスケーリングの値を設定します。<br><br>
+
+                    　モデル中の一部分だけ色を変えたい場合などに使用します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　モデルファイル DxChara.x に含まれる１番のメッシュのスペキュラカラーを緑にします。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, -300.0f, 600.0f ) ) ;
+
+    // １番のメッシュのスペキュラカラーを緑にする
+    <b><a href="dxfunc_3d_model_3.html#R7N8">MV1SetMeshSpcColorScale</a></b>( ModelHandle, 1, <b><a href="dxfunc_3d_draw.html#R14N14">GetColorF</a></b>( 0.0f, 1.0f, 0.0f, 0.0f ) ) ;
+
+    // ３Ｄモデルの描画
+    <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キーの入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N9">宣言</a></b></td><td><font color="#000088"><b>COLOR_F MV1GetMeshSpcColorScale( int MHandle, int MeshIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>メッシュのスペキュラカラーのスケール値を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュ番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>メッシュのスペキュラカラーのスケール値<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のメッシュを描画する際に行うマテリアルのスペキュラカラーに対するスケーリングの値を取得します。<br><br>
+
+                    　<b><a href="dxfunc_3d_model_3.html#R7N8">MV1SetMeshSpcColorScale</a></b> 関数で設定された値をそのまま返すだけの関数です。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+                ありません
+            <br><br><br><br>
+        </td></tr>
+
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N10">宣言</a></b></td><td><font color="#000088"><b>int MV1SetMeshEmiColorScale( int MHandle, int MeshIndex, COLOR_F Scale ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>フレームのエミッシブカラーのスケール値を設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュの番号<br>
+            COLOR_F Scale ： スケール値( 各色 0.0f ～ 1.0f )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td              WIDTH=100>           　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のメッシュを描画する際に行うマテリアルのエミッシブカラーに対するスケーリングの値を設定します。<br><br>
+
+                    　モデル中の一部分だけ色を変えたい場合などに使用します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　モデルファイル SimpleModel.mqo に含まれる１番のメッシュのエミッシブカラーを青にします。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "SimpleModel.mqo" ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, 300.0f, 600.0f ) ) ;
+
+    // １番のメッシュのエミッシブカラーを青にする
+    <b><a href="dxfunc_3d_model_3.html#R7N10">MV1SetMeshEmiColorScale</a></b>( ModelHandle, 1, <b><a href="dxfunc_3d_draw.html#R14N14">GetColorF</a></b>( 0.0f, 0.0f, 1.0f, 1.0f ) ) ;
+
+    // ３Ｄモデルの描画
+    <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キーの入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N11">宣言</a></b></td><td><font color="#000088"><b>COLOR_F MV1GetMeshEmiColorScale( int MHandle, int MeshIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>メッシュのエミッシブカラーのスケール値を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュ番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>メッシュのエミッシブカラーのスケール値<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のメッシュを描画する際に行うマテリアルのエミッシブカラーに対するスケーリングの値を取得します。<br><br>
+
+                    　<b><a href="dxfunc_3d_model_3.html#R7N10">MV1SetMeshEmiColorScale</a></b> 関数で設定された値をそのまま返すだけの関数です。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+                ありません
+            <br><br><br><br>
+        </td></tr>
+
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N12">宣言</a></b></td><td><font color="#000088"><b>int MV1SetMeshAmbColorScale( int MHandle, int MeshIndex, COLOR_F Scale ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>フレームのアンビエントカラーのスケール値を設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュの番号<br>
+            COLOR_F Scale ： スケール値( 各色 0.0f ～ 1.0f )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td              WIDTH=100>           　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のメッシュを描画する際に行うマテリアルのアンビエントカラーに対するスケーリングの値を設定します。<br><br>
+
+                    　モデル中の一部分だけ色を変えたい場合などに使用します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　モデルファイル SimpleModel.mqo に含まれる３番のメッシュのアンビエントカラーを黄色にします。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "SimpleModel.mqo" ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, 300.0f, 600.0f ) ) ;
+
+    // ３番のメッシュのアンビエントカラーを黄色にする
+    <b><a href="dxfunc_3d_model_3.html#R7N12">MV1SetMeshAmbColorScale</a></b>( ModelHandle, 3, <b><a href="dxfunc_3d_draw.html#R14N14">GetColorF</a></b>( 0.0f, 0.0f, 1.0f, 1.0f ) ) ;
+
+    // ３Ｄモデルの描画
+    <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キーの入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N13">宣言</a></b></td><td><font color="#000088"><b>COLOR_F MV1GetMeshAmbColorScale( int MHandle, int MeshIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>メッシュのアンビエントカラーのスケール値を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュ番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>メッシュのアンビエントカラーのスケール値<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のメッシュを描画する際に行うマテリアルのアンビエントカラーに対するスケーリングの値を取得します。<br><br>
+
+                    　<b><a href="dxfunc_3d_model_3.html#R7N12">MV1SetMeshAmbColorScale</a></b> 関数で設定された値をそのまま返すだけの関数です。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+                ありません
+            <br><br><br><br>
+        </td></tr>
+
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N14">宣言</a></b></td><td><font color="#000088"><b>int MV1SetMeshOpacityRate( int MHandle, int MeshIndex, float Rate ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>メッシュの不透明度を設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュの番号<br>
+            float Rate ： 不透明度( 0.0f ～ 1.0f )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のメッシュの不透明度を設定します。<br><br>
+
+                    　Rate の値が 0.0f に近いほど不透明度が下がり( 透明度が上がり )、
+                    1.0f に近いほど不透明度が上がり( 透明度が下がり )ます。<br>
+
+                    　モデルの一部のメッシュを半透明で表示したかったり、だんだん透明になって消えていくなどの演出をしたい場合に使用します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　モデルファイル SimpleModel.mqo の０番目のメッシュの不透明度を５０％にして描画します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "SimpleModel.mqo" ) ;
+
+    // 透明で描画されているということが分かるように画面全体を赤で塗りつぶす
+    <b><a href="dxfunc_graph0.html#R2N2">DrawBox</a></b>( 0, 0, 640, 480, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255,0,0 ), TRUE ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, 100.0f, 600.0f ) ) ;
+
+    // ３Ｄモデルの０番目のメッシュの不透明度を50%にする
+    <b><a href="dxfunc_3d_model_3.html#R7N14">MV1SetMeshOpacityRate</a></b>( ModelHandle, 0, 0.5f ) ;
+
+    // ３Ｄモデルの描画
+    <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キー入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N15">宣言</a></b></td><td><font color="#000088"><b>float MV1GetMeshOpacityRate( int MHandle, int MeshIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>メッシュの不透明度を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>メッシュに設定されている不透明度<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のメッシュに設定されている不透明度を取得します。<br>
+                    　<b><a href="dxfunc_3d_model_3.html#R7N14">MV1SetMeshOpacityRate</a></b> でセットした値を取得するだけの関数です。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+                ありません
+            <br><br><br><br>
+        </td></tr>
+
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N16">宣言</a></b></td><td><font color="#000088"><b>int MV1SetMeshDrawBlendMode( int MHandle, int MeshIndex, int BlendMode ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>メッシュの描画ブレンドモードを設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュの番号<br>
+            int BlendMode ： 描画ブレンドモード( DX_BLENDMODE_ALPHA 等 )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるメッシュの描画ブレンドモードを変更します。<br>
+                    　マテリアルにも描画ブレンドモードの設定がありますので、この関数はマテリアルの設定を無視して描画ブレンドモードを変更したい場合に使用します。
+                    ( BlendMode を -1 にすると、マテリアルのブレンドモードが使用されるようになります )<br><br>
+
+                    　尚、現在モデル描画で正常に動作するブレンドモードは DX_BLENDMODE_ALPHA, DX_BLENDMODE_ADD の２種類のみです。
+                    ( ハードウエアが対応している場合は DX_BLENDMODE_SUB も正常に機能します )<br>
+                    　ブレンドモードの説明に関しては <b><a href="dxfunc_graph1.html#R3N17">SetDrawBlendMode</a></b> 関数の解説を参照してください。<br><br>
+
+                    　ブレンドモードのパラメータの変更は関数 <b><a href="dxfunc_3d_model_3.html#R7N18">MV1SetMeshDrawBlendParam</a></b> を使用します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　モデルファイル DxChara.x に含まれる１番目のメッシュの描画ブレンドモードを加算ブレンド( DX_BLENDMODE_ADD )に変更します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // ブレンドモードが変更されたことがわかるように画面全体を青色で塗りつぶす
+    <b><a href="dxfunc_graph0.html#R2N2">DrawBox</a></b>( 0, 0, 640, 480, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 0,0,255 ), TRUE ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, -300.0f, 600.0f ) ) ;
+
+    // ３Ｄモデルに含まれる１番目のメッシュの描画ブレンドモードを DX_BLENDMODE_ADD に変更する
+    <b><a href="dxfunc_3d_model_3.html#R7N16">MV1SetMeshDrawBlendMode</a></b>( ModelHandle, 1, DX_BLENDMODE_ADD ) ;
+
+    // ３Ｄモデルの描画
+    <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キーの入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N17">宣言</a></b></td><td><font color="#000088"><b>int MV1GetMeshDrawBlendMode( int MHandle, int MeshIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定のマテリアルの描画ブレンドモードを取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>描画ブレンドモード( DX_BLENDMODE_ALPHA 等 )</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるメッシュのの描画ブレンドモードを取得します。<br><br>
+                
+                    　<b><a href="dxfunc_3d_model_3.html#R7N16">MV1SetMeshDrawBlendMode</a></b> 関数で設定した値を返すだけの関数です。<br><br>
+                <br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+                ありません
+            <br><br><br><br>
+        </td></tr>
+
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N18">宣言</a></b></td><td><font color="#000088"><b>int MV1SetMeshDrawBlendParam( int MHandle, int MeshIndex, int BlendParam ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>メッシュの描画ブレンドパラメータを設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュの番号<br>
+            int BlendParame ： 描画ブレンドパラメータ( 0 ～ 255 )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるメッシュのブレンドパラメータを変更します。<br>
+                    ( ブレンドパラメータの説明に関しては <b><a href="dxfunc_graph1.html#R3N17">SetDrawBlendMode</a></b> 関数の解説を参照してください )<br><br>
+
+                    　尚、ブレンドモードの変更は <b><a href="dxfunc_3d_model_3.html#R7N16">MV1SetMeshDrawBlendMode</a></b> 関数を使用してください。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　モデルファイル DxChara.x に含まれる１番目のメッシュの描画ブレンドモードを加算ブレンド( DX_BLENDMODE_ADD )に変更して、
+            ブレンドパラメータを128にして描画します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // ブレンドモードが変更されたことがわかるように画面全体を青色で塗りつぶす
+    <b><a href="dxfunc_graph0.html#R2N2">DrawBox</a></b>( 0, 0, 640, 480, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 0,0,255 ), TRUE ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, -300.0f, 600.0f ) ) ;
+
+    // ３Ｄモデルに含まれる１番目のメッシュの描画ブレンドモードを DX_BLENDMODE_ADD に変更する
+    <b><a href="dxfunc_3d_model_3.html#R7N16">MV1SetMeshDrawBlendMode</a></b>( ModelHandle, 1, DX_BLENDMODE_ADD ) ;
+
+    // モデルに含まれる１番目のメッシュのブレンドパラメータを 128 に変更する
+    <b><a href="dxfunc_3d_model_3.html#R7N18">MV1SetMeshDrawBlendParam</a></b>( ModelHandle, 1, 128 ) ;
+
+    // ３Ｄモデルの描画
+    <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キーの入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N19">宣言</a></b></td><td><font color="#000088"><b>int MV1GetMeshDrawBlendParam( int MHandle, int MeshIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>メッシュの描画ブレンドパラメータを取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>描画ブレンドパラメータ( 0 ～ 255 )</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるメッシュの描画ブレンドパラメータを取得します。<br><br>
+
+                    　この関数は <b><a href="dxfunc_3d_model_3.html#R7N18">MV1SetMeshDrawBlendParam</a></b> 関数で設定した値を返すだけの関数です。<br><br>
+                <br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+                ありません
+            <br><br><br><br>
+        </td></tr>
+
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N20">宣言</a></b></td><td><font color="#000088"><b>int MV1SetMeshBackCulling( int MHandle, int MeshIndex, int CullingFlag ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>メッシュのバックカリングを行うかどうかを設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュの番号<br>
+            int CullingFlag ： バックカリングを行うかどうか( TRUE：行う  FALSE：行わない )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるメッシュを描画する際にバックカリング( 反対向きのポリゴンを描画しない )を行うかどうか変更します。<br><br>
+
+                    　ポリゴンは多くの場合裏から見られることはありませんので、基本的にはバックカリングを行うという設定にしておくことで描画負荷を下げることが出来、それで何も問題はありませんが、
+                    例えばペラペラの紙やスカート等、態々裏面のポリゴンを用意するのはポリゴン数的に勿体無いという場合はこの関数でバックかリングを無効にします。<br><br>
+
+                    　ただし裏面のポリゴンを描画する際も表面のポリゴンを描画する際もライティング計算に使用される法線は同じものとなりますので、
+                    ライティングの影響が強いメッシュに対してバックカリングを無効にすると見た目が変になります。( その場合は仕方が無いので裏面用に別のポリゴンを用意するしかありません )<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　モデルファイル BackCulling.mqo に含まれる０番目のメッシュのバックカリングを有効な状態と無効にした状態での２パターンで描画します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "BackCulling.mqo" ) ;
+
+    // バックカリングされているのがわかり易いように画面全体を青で塗りつぶす
+    <b><a href="dxfunc_graph0.html#R2N2">DrawBox</a></b>( 0, 0, 640, 480, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 0,0,255 ), TRUE ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 490.0f, 50.0f, 600.0f ) ) ;
+
+    // 最初は何もせずに３Ｄモデルを描画
+    <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+    // 最初の位置から少し移動
+    MV1SetPosition( ModelHandle, VGet( 50.0f, 50.0f, 600.0f ) ) ;
+
+    // ３Ｄモデルに含まれる０番目のバックカリングを無効にする
+    MV1SetMeshBackCulling( ModelHandle, 0, FALSE ) ;
+
+    // ３Ｄモデルの描画
+    MV1DrawModel( ModelHandle ) ;
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キーの入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N21">宣言</a></b></td><td><font color="#000088"><b>int MV1GetMeshBackCulling( int MHandle, int MeshIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>メッシュのバックカリングを行うかどうかを取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０以上：バックカリングを行うかどうか( TRUE：行う  FALSE：行わない )</td></tr>
+            <tr><td              WIDTH=100>           　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のメッシュでバックカリングを行うかどうかを取得します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_3.html#R7N1">MV1GetMeshNum関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N22">宣言</a></b></td><td><font color="#000088"><b>VECTOR MV1GetMeshMaxPosition( int MHandle, int MeshIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>メッシュに含まれる頂点のローカル座標での最大値を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>メッシュに含まれる頂点のローカル座標での最大値<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のメッシュに含まれる頂点のローカル座標での最大値を取得します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_3.html#R7N1">MV1GetMeshNum関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N23">宣言</a></b></td><td><font color="#000088"><b>VECTOR MV1GetMeshMinPosition( int MHandle, int MeshIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>メッシュに含まれる頂点のローカル座標での最小値を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>メッシュに含まれる頂点のローカル座標での最小値<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のメッシュに含まれる頂点のローカル座標での最小値を取得します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_3.html#R7N1">MV1GetMeshNum関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N31">宣言</a></b></td><td><font color="#000088"><b>int MV1GetMeshTListNum( int MHandle, int MeshIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>メッシュに含まれるトライアングルリストの数を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０以上：メッシュに含まれるトライアングルリストの数</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のメッシュに含まれるトライアングルリストの数を取得します。( メッシュは１つ又は複数のトライアングルリスト( ポリゴンの塊 )で構成されています )<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　モデルファイル DxChara.x の１番目のメッシュに含まれるトライアングルリストの情報を表示します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle, TriangleListNum, i, TriangleListIndex ;
+    int y ;
+
+    // ＤＸライブラリの初期化
+    if( DxLib_Init() &lt; 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = MV1LoadModel( "DxChara.x" ) ;
+
+    // １番目のメッシュに含まれるトライアングルリストの数を取得する
+    TriangleListNum = MV1GetMeshTListNum( ModelHandle, 1 ) ;
+
+    // トライアングルリストの数だけループ
+    y = 0 ;
+    for( i = 0 ; i &lt; TriangleListNum ; i ++ )
+    {
+        // トライアングルリスト番号の取得
+        TriangleListIndex = MV1GetMeshTList( ModelHandle, 1, i ) ;
+
+        // トライアングルリスト番号を描画
+        DrawFormatString( 0, y, GetColor( 255,255,255 ), "TriangleListIndex %d", TriangleListIndex ) ;
+
+        // トライアングルリストの頂点タイプを描画
+        switch( MV1GetTriangleListVertexType( ModelHandle, TriangleListIndex ) )
+        {
+        case DX_MV1_VERTEX_TYPE_1FRAME :
+            DrawString( 0, y + 16, "頂点タイプ：１フレームの影響を受ける頂点", GetColor( 255,255,255 ) ) ;
+            break ;
+
+        case DX_MV1_VERTEX_TYPE_4FRAME :
+            DrawString( 0, y + 16, "頂点タイプ：１～４フレームの影響を受ける頂点", GetColor( 255,255,255 ) ) ;
+            break ;
+
+        case DX_MV1_VERTEX_TYPE_8FRAME :
+            DrawString( 0, y + 16, "頂点タイプ：１～８フレームの影響を受ける頂点", GetColor( 255,255,255 ) ) ;
+            break ;
+
+        case DX_MV1_VERTEX_TYPE_FREE_FRAME :
+            DrawString( 0, y + 16, "頂点タイプ：９フレーム以上の影響を受ける頂点", GetColor( 255,255,255 ) ) ;
+            break ;
+
+        case DX_MV1_VERTEX_TYPE_NMAP_1FRAME :
+            DrawString( 0, y + 16, "頂点タイプ：法線マップ用の情報が含まれる１フレームの影響を受ける頂点", GetColor( 255,255,255 ) ) ;
+            break ;
+
+        case DX_MV1_VERTEX_TYPE_NMAP_4FRAME :
+            DrawString( 0, y + 16, "頂点タイプ：法線マップ用の情報が含まれる１～４フレームの影響を受ける頂点", GetColor( 255,255,255 ) ) ;
+            break ;
+
+        case DX_MV1_VERTEX_TYPE_NMAP_8FRAME :
+            DrawString( 0, y + 16, "頂点タイプ：法線マップ用の情報が含まれる１～８フレームの影響を受ける頂点", GetColor( 255,255,255 ) ) ;
+            break ;
+
+        case DX_MV1_VERTEX_TYPE_NMAP_FREE_FRAME :
+            DrawString( 0, y + 16, "頂点タイプ：法線マップ用の情報が含まれる９フレーム以上の影響を受ける頂点", GetColor( 255,255,255 ) ) ;
+            break ;
+        }
+
+        // トライアングルリストのポリゴン数と頂点数を描画
+        DrawFormatString( 0, y + 32, GetColor( 255,255,255 ), "ポリゴン数：%-5d   頂点数：%-5d",
+            MV1GetTriangleListPolygonNum( ModelHandle, TriangleListIndex ),
+            MV1GetTriangleListVertexNum( ModelHandle, TriangleListIndex ) ) ;
+
+        // 描画Ｙ座標を進める
+        y += 64 ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キーの入力待ち
+    WaitKey() ;
+
+    // ＤＸライブラリの後始末
+    DxLib_End() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N32">宣言</a></b></td><td><font color="#000088"><b>int MV1GetMeshTList( int MHandle, int MeshIndex, int Index ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>メッシュに含まれるトライアングルリストを取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュの番号<br>
+            int Index ： メッシュ内トライアングルリストの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０以上：トライアングルリストの番号</td></tr>
+            <tr><td              WIDTH=100>           　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のメッシュに含まれるトライアングルリストの番号を取得します。<br><br>
+
+                    　Index に <b><a href="dxfunc_3d_model_2.html#R6N31">MV1GetMeshTListNum</a></b> 関数の戻り値以上の値を渡すとエラーになります。<br><br>
+
+                    　取得したトライアングルリストの番号は MV1DrawTriangleList や MV1GetTriangleListVertexType などの関数で使用します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_3.html#R7N31">MV1GetMeshTListNum関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+
+
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N26">宣言</a></b></td><td><font color="#000088"><b>int MV1GetMeshSemiTransState( int MHandle, int MeshIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>メッシュに半透明要素があるかどうかを取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>TRUE：半透明要素がある　FALSE：半透明要素は無い</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のメッシュに半透明の要素があるかどうかを取得します。<br><br>
+
+                    　例えば、メッシュが使用しているマテリアルのテクスチャに半透明の部分があったり、
+                    メッシュの不透明度が 1.0f ではなかったりすると TRUE が返ってきます。<br><br>
+
+                    　半透明要素を持つメッシュをＺソートする場合に、各メッシュに半透明要素があるかどうかを判定する際などに使用します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　モデルファイル DxChara.x の０番目のメッシュの不透明度を上下キーで操作できるようにした上で、
+              画面上に MV1GetMeshSemiTransState 関数の戻り値を表示して半透明要素があるかどうかを確認できるようにしています。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+    float OpacityRate ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "DxChara.x" ) ;
+
+    // 描画先を裏画面に変更
+    <b><a href="dxfunc_graph3.html#R4N6">SetDrawScreen</a></b>( DX_SCREEN_BACK ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, -300.0f, 600.0f ) ) ;
+
+    // 不透明度を初期化
+    OpacityRate = 1.0f ;
+
+    // ESCキーが押されるかウインドウが閉じられるまでループ
+    while( <b><a href="../dxfunc.html#R1N3">ProcessMessage</a></b>() == 0 &amp;&amp; <b><a href="dxfunc_input.html#R5N2">CheckHitKey</a></b>( KEY_INPUT_ESCAPE ) == 0 )
+    {
+        // 画面のクリア
+        <b><a href="dxfunc_graph3.html#R4N4">ClearDrawScreen</a></b>() ;
+
+        // 上キーが押されたら不透明度を上げる
+        if( CheckHitKey( KEY_INPUT_UP ) )
+        {
+            OpacityRate += 0.05f ;
+            if( OpacityRate > 1.0f )
+            {
+                OpacityRate = 1.0f ;
+            }
+        }
+
+        // 下キーが押されたら不透明度を下げる
+        if( CheckHitKey( KEY_INPUT_DOWN ) )
+        {
+            OpacityRate -= 0.05f ;
+            if( OpacityRate < 0.0f )
+            {
+                OpacityRate = 0.0f ;
+            }
+        }
+
+        // ３Ｄモデルの１番目のメッシュの不透明度を設定する
+        <b><a href="dxfunc_3d_model_3.html#R7N14">MV1SetMeshOpacityRate</a></b>( ModelHandle, 1, OpacityRate ) ;
+
+        // ３Ｄモデルの描画
+        <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+        // 現在の不透明度と、MV1GetMeshSemiTransState の戻り値を描画する
+        <b><a href="dxfunc_graph2.html#R17N20">DrawFormatString</a></b>( 0, 0, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255,255,255 ),
+            "ESC Key:Exit OpacityRate:%f SemiTransState:%d",
+            OpacityRate, <b><a href="dxfunc_3d_model_3.html#R7N26">MV1GetMeshSemiTransState</a></b>( ModelHandle, 1 ) ) ;
+
+        // 裏画面の内容を表画面に反映
+        <b><a href="dxfunc_graph3.html#R4N7">ScreenFlip</a></b>() ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N27">宣言</a></b></td><td><font color="#000088"><b>int MV1SetMeshUseVertDifColor( int MHandle, int MeshIndex, int UseFlag ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>メッシュの頂点ディフューズカラーをマテリアルのディフューズカラーの代わりに使用するかどうかを設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュの番号<br>
+            int UseFlag ： 頂点ディフューズカラーをマテリアルのディフューズカラーの代わりに使用するかどうか( TRUE：使用する  FALSE：使用しない )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のメッシュに含まれる頂点ディフューズカラーをマテリアルのディフューズカラーの代わりに使用するかどうかを設定します。<br>
+                    ( デフォルトでは頂点ディフューズカラーは使用しません )<br><br>
+
+                    　この関数で頂点ディフューズカラーを使用する設定にした場合はマテリアルのディフューズカラー設定は無視され、代わりに頂点ディフューズカラーが使用されます。<br><br>
+
+                    　モデリングソフトでライティングの結果を頂点カラーに反映した場合等に使用します。<br>
+                    　尚、ライティング計算を <b><a href="dxfunc_3d_light.html#R13N44">SetUseLighting</a></b> 関数で無効にした場合はこの関数の設定に関係なくマテリアルのディフューズカラーは無視され、頂点ディフューズカラーが使用されます。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　モデルファイル SimpleModelVertexColor.mqo を最初は普通に描画し、キーが押された後３番目のメッシュの頂点ディフューズカラーを<br>
+            　有効にして( マテリアルのディフューズカラーを無効にして )再度モデルを描画します。<br>
+            　　３番目のメッシュの頂点ディフューズカラーは真っ黒なので、キーが押された後はエミッシブカラー( 自己発光色 )と<br>
+            　アンビエントカラー( 環境光色 )のみの平坦な見た目に変化します。
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "SimpleModelVertexColor.mqo" ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, 300.0f, 600.0f ) ) ;
+
+    // ３Ｄモデルの描画
+    <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+    // キーの入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // 画面をクリア
+    <b><a href="dxfunc_graph3.html#R4N4">ClearDrawScreen</a></b>() ;
+
+    // ３番目のメッシュの頂点ディフューズカラーを使用する設定に変更する
+    MV1SetMeshUseVertDifColor( ModelHandle, 3, TRUE ) ;
+
+    // ３Ｄモデルの描画
+    MV1DrawModel( ModelHandle ) ;
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キーの入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N28">宣言</a></b></td><td><font color="#000088"><b>int MV1GetMeshUseVertDifColor( int MHandle, int MeshIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>メッシュの頂点ディフューズカラーをマテリアルのディフューズカラーの代わりに使用するかどうかの設定を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>頂点ディフューズカラーをマテリアルのディフューズカラーの代わりに使用するかどうか( TRUE：使用する  FALSE：使用しない )<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のメッシュに含まれる頂点のディフューズカラーをマテリアルのディフューズカラーの代わりに使用するかどうかを取得します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_3.html#R7N1">MV1GetMeshNum関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N29">宣言</a></b></td><td><font color="#000088"><b>int MV1SetMeshUseVertSpcColor( int MHandle, int MeshIndex, int UseFlag ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>メッシュの頂点スペキュラカラーをマテリアルのスペキュラカラーの代わりに使用するかどうかを設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュの番号<br>
+            int UseFlag ： 頂点スペキュラカラーをマテリアルのスペキュラカラーの代わりに使用するかどうか( TRUE：使用する  FALSE：使用しない )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のメッシュに含まれる頂点スペキュラカラーをマテリアルのスペキュラカラーの代わりに使用するかどうかを設定します。<br><br>
+
+                    　この関数で頂点スペキュラカラーを使用する設定にした場合はマテリアルのスペキュラカラー設定は無視され、代わりに頂点スペキュラカラーが使用されます。<br><br>
+
+                    　ただ、現時点ではライブラリのモデルデータ読みこみプログラムに頂点のスペキュラカラーを設定する処理が組み込まれていないので、
+                    この関数で頂点スペキュラカラーを有効にしてもマテリアルのスペキュラカラーが無効化されるだけとなります。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+                ありません
+            <br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R7N30">宣言</a></b></td><td><font color="#000088"><b>int MV1GetMeshUseVertSpcColor( int MHandle, int MeshIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>メッシュの頂点スペキュラカラーをマテリアルのスペキュラカラーの代わりに使用するかどうかの設定を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int MeshIndex ： メッシュの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>頂点スペキュラカラーをマテリアルのスペキュラカラーの代わりに使用するかどうか( TRUE：使用する  FALSE：使用しない )<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のメッシュに含まれる頂点のスペキュラカラーをマテリアルのスペキュラカラーの代わりに使用するかどうかを取得します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_3.html#R7N1">MV1GetMeshNum関数</a> のサンプルを参照してください。<br><br><br><br><br><br>
+        </td></tr>
+
+
+
+
+
+
+        <tr><td><font size="3" color="#005500"><b>シェイプ関数</b><br><br></font></td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R21N1">宣言</a></b></td><td><font color="#000088"><b>int MV1GetShapeNum( int MHandle ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>モデルに含まれるシェイプの数を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０以上：モデルに含まれるシェイプの数</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるシェイプ( キャラクターモデルの表情などに使用される一部の頂点の変形情報 )の数を取得します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+                ありません
+            <br><br><br><br>
+        </td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R21N2">宣言</a></b></td><td><font color="#000088"><b>int MV1SearchShape( int MHandle, char *ShapeName ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>指定名のシェイプをモデル中から検索する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            char *ShapeName ： 検索するシェイプの名前
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０以上：指定名のシェイプの番号</td></tr>
+            <tr><td              WIDTH=100>　           </td><td>－２：指定名のシェイプが見つからなかった</td></tr>
+            <tr><td              WIDTH=100>　           </td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるシェイプ( キャラクターモデルの表情などに使用される一部の頂点の変形情報 )から、指定の名前のものを検索します。<br><br>
+
+                    　同名のシェイプが複数含まれる場合は番号の若いシェイプが返ってきます。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+                ありません
+            <br><br><br><br>
+        </td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R21N3">宣言</a></b></td><td><font color="#000088"><b>int MV1SetShapeRate( int MHandle, int ShapeIndex, float Rate ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>シェイプの適用率を設定する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int ShapeIndex ： 有効率を変更するシェイプの番号<br>
+            float Rate ： 適用率（ 0.0f（０％） ～ 1.0f（１００％） ）<br>
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>
+		　MHandle のモデルハンドルが示すモデルに含まれるシェイプ( キャラクターモデルの表情などに使用される一部の頂点の変形情報 )の適用率を変更します。<br>
+                　第二引数の ShapeIndex で渡すシェイプの番号はＤＸライブラリ付属のモデルビューアー( DxLibModelViewer.exe )で確認できる他に、
+		<a href="dxfunc_3d_model_3.html#R21N2">MV1SearchShape</a> を使用してシェイプの名前から検索することもできます。<br>
+		　第三引数の Rate でシェイプの適用率を float 型の値で指定します、有効な値は 0.0f（ ０％ ）から 1.0f（ １００％ ）となります。
+		<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+                ありません
+            <br><br><br>
+        </td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R21N4">宣言</a></b></td><td><font color="#000088"><b>float MV1GetShapeRate( int MHandle, int ShapeIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>シェイプの適用率を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int ShapeIndex ： 適用率を取得するシェイプの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　0.0f以上：シェイプの適用率（ 0.0f（０％） ～ 1.0f（１００％） ）</td></tr>
+            <tr><td width="100">　</td><td>-1.0f：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>
+		　MHandle のモデルハンドルが示すモデルに含まれるシェイプ( キャラクターモデルの表情などに使用される一部の頂点の変形情報 )の適用率を取得します。<br>
+                　第二引数の ShapeIndex で渡すシェイプの番号はＤＸライブラリ付属のモデルビューアー( DxLibModelViewer.exe )で確認できる他に、
+		<a href="dxfunc_3d_model_3.html#R21N2">MV1SearchShape</a> を使用してシェイプの名前から検索することもできます。
+		<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+                ありません
+            <br><br><br><br><BR><BR>
+        </td></tr>
+
+
+
+
+
+
+
+
+
+        <tr><td><font size="3" color="#005500"><b>トライアングルリスト関係</b><br><br></font></td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R18N1">宣言</a></b></td><td><font color="#000088"><b>int MV1GetTriangleListNum( int MHandle ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>モデルに含まれるトライアングルリストの数を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０以上：モデルに含まれるトライアングルリストの数</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルに含まれるトライアングルリストの数を取得します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　モデルファイル DxChara.x に含まれるトライアングルリストの情報を表示します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle, TriangleListNum, i ;
+    int y ;
+
+    // ＤＸライブラリの初期化
+    if( DxLib_Init() &lt; 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = MV1LoadModel( "DxChara.x" ) ;
+
+    // モデルに含まれるトライアングルリストの数を取得する
+    TriangleListNum = MV1GetTriangleListNum( ModelHandle ) ;
+
+    // トライアングルリストの数だけループ
+    y = 0 ;
+    for( i = 0 ; i &lt; TriangleListNum ; i ++ )
+    {
+        // トライアングルリスト番号を描画
+        DrawFormatString( 0, y, GetColor( 255,255,255 ), "No %d", i ) ;
+
+        // トライアングルリストのポリゴン数と頂点数を描画
+        DrawFormatString( 48, y, GetColor( 255,255,255 ), "ポリゴン数：%-5d   頂点数：%-5d",
+            MV1GetTriangleListPolygonNum( ModelHandle, i ),
+            MV1GetTriangleListVertexNum( ModelHandle, i ) ) ;
+
+        // トライアングルリストの頂点タイプを描画
+        switch( MV1GetTriangleListVertexType( ModelHandle, i ) )
+        {
+        case DX_MV1_VERTEX_TYPE_1FRAME :
+            DrawString( 0, y + 16, "頂点タイプ：１フレームの影響を受ける頂点", GetColor( 255,255,255 ) ) ;
+            break ;
+
+        case DX_MV1_VERTEX_TYPE_4FRAME :
+            DrawString( 0, y + 16, "頂点タイプ：１～４フレームの影響を受ける頂点", GetColor( 255,255,255 ) ) ;
+            break ;
+
+        case DX_MV1_VERTEX_TYPE_8FRAME :
+            DrawString( 0, y + 16, "頂点タイプ：１～８フレームの影響を受ける頂点", GetColor( 255,255,255 ) ) ;
+            break ;
+
+        case DX_MV1_VERTEX_TYPE_FREE_FRAME :
+            DrawString( 0, y + 16, "頂点タイプ：９フレーム以上の影響を受ける頂点", GetColor( 255,255,255 ) ) ;
+            break ;
+
+        case DX_MV1_VERTEX_TYPE_NMAP_1FRAME :
+            DrawString( 0, y + 16, "頂点タイプ：法線マップ用の情報が含まれる１フレームの影響を受ける頂点", GetColor( 255,255,255 ) ) ;
+            break ;
+
+        case DX_MV1_VERTEX_TYPE_NMAP_4FRAME :
+            DrawString( 0, y + 16, "頂点タイプ：法線マップ用の情報が含まれる１～４フレームの影響を受ける頂点", GetColor( 255,255,255 ) ) ;
+            break ;
+
+        case DX_MV1_VERTEX_TYPE_NMAP_8FRAME :
+            DrawString( 0, y + 16, "頂点タイプ：法線マップ用の情報が含まれる１～８フレームの影響を受ける頂点", GetColor( 255,255,255 ) ) ;
+            break ;
+
+        case DX_MV1_VERTEX_TYPE_NMAP_FREE_FRAME :
+            DrawString( 0, y + 16, "頂点タイプ：法線マップ用の情報が含まれる９フレーム以上の影響を受ける頂点", GetColor( 255,255,255 ) ) ;
+            break ;
+        }
+
+        // 描画Ｙ座標を進める
+        y += 32 ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キーの入力待ち
+    WaitKey() ;
+
+    // ＤＸライブラリの後始末
+    DxLib_End() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R18N2">宣言</a></b></td><td><font color="#000088"><b>int MV1GetTriangleListVertexType( int MHandle, int TListIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>トライアングルリストの頂点データタイプを取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int TListIndex ： トライアングルリストの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０以上：頂点データタイプ</td></tr>
+            <tr><td              WIDTH=100>           　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のトライアングルリストに含まれる頂点のデータタイプを取得します。<br>
+                    　オリジナルの頂点シェーダープログラムを使用する場合は頂点のデータタイプによって頂点シェーダープログラムを変えなければならないので、
+                    主にどの頂点シェーダープログラムを使用するべきかを判断する際にこの関数を使用します。<br><br>
+
+                    　頂点データのシェーダー内での具体的なデータ形式については関数 <b><a href="dxfunc_3d_shader.html#R17N2">LoadVertexShader</a></b> の解説をご覧ください。<br><br>
+
+                    <font color="#660000"><b>頂点データタイプ一覧</b></font><br><br>
+
+                    <b>DX_MV1_VERTEX_TYPE_1FRAME</b><br><br>
+
+                    　１フレームの影響のみ受ける頂点データタイプです。<br>
+                    　１頂点が複数のフレームの影響を受けないモデルはこのデータタイプになります。<br><br>
+
+                    <b>DX_MV1_VERTEX_TYPE_4FRAME</b><br><br>
+                    
+                    　１～４フレームの影響を受ける頂点データタイプです。<br>
+                    　１頂点が２フレーム以上４フレーム以下の影響を受ける頂点が一つでも存在するトライアングルリストは<br>
+                    　このデータタイプになります。<br>
+                    　PMDモデルは基本的に全てこの頂点データタイプになります。<br><br>
+
+                    <b>DX_MV1_VERTEX_TYPE_8FRAME</b><br><br>
+                    
+                    　１～８フレームの影響を受ける頂点データタイプです。<br>
+                    　１頂点が５フレーム以上４フレーム以下の影響を受ける頂点が一つでも存在するトライアングルリストは<br>
+                    　このデータタイプになります。<br>
+                    　普通の人型モデルなどでは普通１頂点が５フレーム以上の影響を受けることはありませんので、<br>
+                    　特殊なモデルのみこの形式になります。<br><br>
+
+                    <b>DX_MV1_VERTEX_TYPE_FREE_FRAME</b><br><br>
+                    
+                    　９フレーム以上の影響を受ける頂点データタイプです。<br>
+                    　１頂点が９フレーム以上の影響を受ける頂点が一つでも存在するトライアングルリストは<br>
+                    　このデータタイプになります。<br>
+                    　滅多にこの形式になることはありません。<br>
+                    　尚、DirectX9 では一般的な方法では頂点シェーダーで１頂点９フレーム以上を扱う手段が無いので、<br>
+                    　この形式の場合は頂点シェーダーを使用することはできません。<br><br>
+
+                    <b>DX_MV1_VERTEX_TYPE_NMAP_1FRAME</b><br>
+                    <b>DX_MV1_VERTEX_TYPE_NMAP_4FRAME</b><br>
+                    <b>DX_MV1_VERTEX_TYPE_NMAP_8FRAME</b><br>
+                    <b>DX_MV1_VERTEX_TYPE_NMAP_FREE_FRAME</b><br><br>
+
+                    　それぞれ NMAP が付いていない名称のタイプに法線マップの情報が追加されたものです。<br>
+                    　MV1GetMaterialNormalMapTexture の戻り値が -1 以外のマテリアルを使用するメッシュに含まれる<br>
+                    　トライアングルリストは全て上記４タイプのいずれかになります。<br><br>
+
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_3.html#R18N1">MV1GetTriangleListNum関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R18N3">宣言</a></b></td><td><font color="#000088"><b>int MV1GetTriangleListPolygonNum( int MHandle, int TListIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>トライアングルリストに含まれるポリゴンの数を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int TListIndex ： トライアングルリストの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０以上：三角形ポリゴンの数</td></tr>
+            <tr><td              WIDTH=100>           　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のトライアングルリストに含まれる三角形ポリゴンの数を取得します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_3.html#R18N1">MV1GetTriangleListNum関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R18N4">宣言</a></b></td><td><font color="#000088"><b>int MV1GetTriangleListVertexNum( int MHandle, int TListIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>トライアングルリストに含まれる頂点の数を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int TListIndex ： トライアングルリストの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>０以上：頂点の数</td></tr>
+            <tr><td              WIDTH=100>           　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のトライアングルリストに含まれる頂点データの数を取得します。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_3.html#R18N1">MV1GetTriangleListNum関数</a> のサンプルを参照してください。<br><br><br><br><br><br><br>
+        </td></tr>
+
+
+
+        <tr><td><font size="3" color="#005500"><b>コリジョン( 衝突判定 )関係</b><br><br></font></td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R9N1">宣言</a></b></td><td><font color="#000088"><b>int MV1SetupCollInfo( int MHandle, int FrameIndex, int XDivNum, int YDivNum, int ZDivNum ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>コリジョン情報を構築する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int FrameIndex ： コリジョンの情報を構築するフレームの番号<br>
+            int XDivNum ： コリジョン情報のＸ軸方向の空間分割数<br>
+            int YDivNum ： コリジョン情報のＹ軸方向の空間分割数<br>
+            int ZDivNum ： コリジョン情報のＺ軸方向の空間分割数
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のフレーム( 若しくはモデル全体 )に含まれるポリゴンとの当たり判定を行うための情報のセットアップを行います。<br><br>
+
+                    　３Ｄを扱うゲームでは多くの場合３Ｄモデルとの当たり判定を行っています。
+                    この MV1SetupCollInfo を含むコリジョン関係関数は、その当たり判定処理の手助けをするものです。<br><br>
+
+                    　その使い方ですが、コリジョン関係の機能を使用するにはまずこの関数でコリジョン情報として使用したいポリゴンを持つフレームのポリゴンをコリジョン情報として使うための準備をしてやる必要があります。
+                    そのフレームは FrameIndex で指定しますが、ここで FrameIndex を -1 にすることでモデル全体のポリゴンをコリジョン情報として準備することができます。<br>
+                    　因みにコリジョン処理は非常に負荷の高い処理ですので、
+                    例えばステージモデルとの当たり判定を行う場合等は描画用のステージモデルをそのまま当たり判定用のモデルとして使うのではなく、
+                    当たり判定用の粗いポリゴンメッシュを収めるフレームを用意して、
+                    そのフレームに対して MV1SetupCollInfo をした方が良いです。
+                    ( そしてそのフレームは <b><a href="dxfunc_3d_model_2.html#R6N13">MV1SetFrameVisible</a></b> 関数で描画されないようにしておきます )<br><br>
+
+                    　セットアップ時に指定する XDivNum, YDivNum, ZDivNum ですが、
+                    コリジョン処理の仕組みとして、
+                    あるコリジョン処理をする際にコリジョン用のフレーム内に存在するすべてのポリゴンと接触判定をすると大変な処理負荷になってしまいますので、
+                    コリジョン用のポリゴンはまずポリゴンが存在する空間を格子状に区切ってどの枠にどのポリゴンが存在するかを整理して、
+                    コリジョン処理を行いたい領域の周辺に存在するポリゴンとだけ接触判定をするようにして、
+                    処理負荷があまり大きくならないようにします。<br>
+                    　分割数の最適値ですが、
+                    一つの格子が、コリジョン処理を行うオブジェクトの大きさとコリジョン用ポリゴンの平均的な大きさを比較して、
+                    大きい方と同じくらいになる分割数が良いです。
+                    検索対象となるポリゴンが多くなるのは問題ですが、検索対象となる格子の数が多すぎるのもまた問題ですので・・・
+                    ( 例えば人型キャラクターが登場するステージの分割数でしたら、
+                    人型キャラクターのモデルとコリジョン用ポリゴンの平均的な大きさを比較して、
+                    人型キャラクターモデルの方が大きい場合は格子一つのサイズが人型キャラクターと同じ位の大きさになる分割数、
+                    コリジョン用ポリゴンの平均的な大きさのほうが大きい場合は格子一つのサイズがコリジョン用ポリゴンの平均的な大きさと同じくらいの大きさになる分割数が最適となります )<br><br>
+
+                    　ちなみにコリジョン情報の構築は負荷の高い処理ですので、
+                    コリジョン情報の更新は <b><a href="dxfunc_3d_model_3.html#R9N3">MV1RefreshCollInfo</a></b> 関数を使用して明示的に行う必要があります。<br>
+                    　動かないモデルをコリジョンとして使用する場合は一度この関数でコリジョン情報をセットアップした後は何もする必要はありませんが、
+                    動くモデルをコリジョンとして使用する場合は MV1RefreshCollInfo を呼ばないとコリジョン情報の形状が最後に更新したときの状態のままとなってしまいますので注意してください。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　モデルファイル SimpleModel.mqo の０番目のフレーム( 中心の球体 )と線分の当たり判定をし、<br>
+            　当たったところまで線分を描画します。<br>
+            　　あと、当たっているのかどうかを判断するために上下キーで線分を移動できるようにしています。
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+    float y ;
+    VECTOR StartPos, EndPos ;
+    MV1_COLL_RESULT_POLY HitPoly ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "SimpleModel.mqo" ) ;
+
+    // 描画先を裏画面に変更
+    <b><a href="dxfunc_graph3.html#R4N6">SetDrawScreen</a></b>( DX_SCREEN_BACK ) ;
+
+    // 画面に映る位置に３Ｄモデルを移動
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, 300.0f, 600.0f ) ) ;
+
+    // モデルの０番目のフレームのコリジョン情報を構築
+    <b><a href="dxfunc_3d_model_3.html#R9N1">MV1SetupCollInfo</a></b>( ModelHandle, 0, 8, 8, 8 ) ;
+
+    // 当たり判定用のラインを出すＹ座標を初期化
+    y = 300.0f ;
+
+    // ウインドウが閉じられるかＥＳＣキーが押されるまでループ
+    while( <b><a href="../dxfunc.html#R1N3">ProcessMessage</a></b>() == 0 &amp;&amp; <b><a href="dxfunc_input.html#R5N2">CheckHitKey</a></b>( KEY_INPUT_ESCAPE ) == 0 )
+    {
+        // 画面をクリア
+        <b><a href="dxfunc_graph3.html#R4N4">ClearDrawScreen</a></b>() ;
+
+        // 上下キーで線分の y 座標を操作できる
+        if( CheckHitKey( KEY_INPUT_UP ) == 1 )
+        {
+            y += 16.0f ;
+        }
+        if( CheckHitKey( KEY_INPUT_DOWN ) == 1 )
+        {
+            y -= 16.0f ;
+        }
+
+        // ３Ｄモデルの描画
+        <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+        // ０番のフレームと線分との当たり判定
+        StartPos = <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 0.0f, y, 600.0f ) ;
+        EndPos   = VGet( 1000.0f, y, 600.0f ) ;
+        HitPoly = <b><a href="dxfunc_3d_model_3.html#R9N4">MV1CollCheck_Line</a></b>( ModelHandle, 0, StartPos, EndPos ) ;
+
+        // 当たった場合はその位置を描画する線分の終点とする
+        if( HitPoly.HitFlag == 1 )
+        {
+            EndPos = HitPoly.HitPosition ;
+        }
+
+        // 線分の描画
+        <b><a href="dxfunc_3d.html#R14N1">DrawLine3D</a></b>( StartPos, EndPos, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255,255,0 ) ) ;
+
+        // 当たったかどうかを表示する
+        <b><a href="dxfunc_graph2.html#R17N20">DrawFormatString</a></b>( 0, 0, GetColor( 255,255,255 ), "HIT:%d", HitPoly.HitFlag ) ;
+
+        // 裏画面の内容を表画面に反映
+        <b><a href="dxfunc_graph3.html#R4N7">ScreenFlip</a></b>() ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R9N2">宣言</a></b></td><td><font color="#000088"><b>int MV1TerminateCollInfo( int MHandle, int FrameIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>コリジョン情報の後始末をする<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int FrameIndex ： コリジョンの情報の後始末を行うフレームの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のフレーム( 若しくはモデル全体 )に含まれるポリゴンとの当たり判定を行うための情報の後始末を行います。<br><br>
+                
+                    　この関数を使用して明示的に情報を破棄しなくても、
+                    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b> や <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b> が呼ばれた際にモデル情報と共にコリジョン情報の後始末は行われますので、
+                    この関数を使用する機会はあまり無いかもしれません。<br><br>
+
+                    　尚、<b><a href="dxfunc_3d_model_3.html#R9N1">MV1SetupCollInfo</a></b> で FrameIndex を -1 にした場合は、この関数でも FrameIndex を -1 にする必要があります。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　ありません<br><br><br><br>
+        </td></tr>
+
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R9N3">宣言</a></b></td><td><font color="#000088"><b>int MV1RefreshCollInfo( int MHandle, int FrameIndex ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>コリジョン情報を更新する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int FrameIndex ： コリジョンの情報を更新するフレームの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のフレーム( 若しくはモデル全体 )に含まれるポリゴンとの当たり判定を行うための情報の更新を行います。<br><br>
+
+                    　動作させないモデルをコリジョンポリゴンとして使用している場合はこの関数を呼ぶ必要はありませんが、
+                    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b> で座標を移動したり、アニメーションを流したりするモデルをコリジョンポリゴンとして使用している場合はこの関数を使用して明示的にコリジョン情報を更新する必要があります。
+                    ( 更新しない場合は最後に更新した状態のままとなります )<br><br>
+
+                    　尚、<b><a href="dxfunc_3d_model_3.html#R9N1">MV1SetupCollInfo</a></b> で FrameIndex を -1 にした場合は、この関数でも FrameIndex を -1 にする必要があります。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　モデルファイル SimpleModel.mqo の０番目のフレーム( 中心の球体 )と線分の当たり判定をし、<br>
+            　当たったところまで線分を描画します。<br>
+            　　そして、モデルを上下に動かしながら MV1RefreshCollInfo でコリジョン情報を更新しています。
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+    int Add, y ;
+    VECTOR StartPos, EndPos ;
+    MV1_COLL_RESULT_POLY HitPoly ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "SimpleModel.mqo" ) ;
+
+    // 描画先を裏画面に変更
+    <b><a href="dxfunc_graph3.html#R4N6">SetDrawScreen</a></b>( DX_SCREEN_BACK ) ;
+
+    // モデルの０番目のフレームのコリジョン情報を構築
+    <b><a href="dxfunc_3d_model_3.html#R9N1">MV1SetupCollInfo</a></b>( ModelHandle, 0, 8, 8, 8 ) ;
+
+    // モデルの進行方向をセット
+    Add = 8 ;
+
+    // モデルの移動位置をセット
+    y = 0 ;
+
+    // ウインドウが閉じられるかＥＳＣキーが押されるまでループ
+    while( <b><a href="../dxfunc.html#R1N3">ProcessMessage</a></b>() == 0 &amp;&amp; <b><a href="dxfunc_input.html#R5N2">CheckHitKey</a></b>( KEY_INPUT_ESCAPE ) == 0 )
+    {
+        // 画面をクリア
+        <b><a href="dxfunc_graph3.html#R4N4">ClearDrawScreen</a></b>() ;
+
+        // ３Ｄモデルの移動位置を上下に移動させる
+        y += Add ;
+        if( y &lt; -300 || y &gt; 300 )
+            Add = -Add ;
+
+        // ３Ｄモデルの位置を変更する
+        <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, 300.0f + y, 600.0f ) ) ;
+
+        // ０番目のフレームのコリジョン情報を更新する
+        <b><a href="dxfunc_3d_model_3.html#R9N3">MV1RefreshCollInfo</a></b>( ModelHandle, 0 ) ;
+
+        // ３Ｄモデルの描画
+        <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+        // ０番のフレームと線分との当たり判定
+        StartPos = VGet(    0.0f, 300.0f, 600.0f ) ;
+        EndPos   = VGet( 1000.0f, 300.0f, 600.0f ) ;
+        HitPoly = <b><a href="dxfunc_3d_model_3.html#R9N4">MV1CollCheck_Line</a></b>( ModelHandle, 0, StartPos, EndPos ) ;
+
+        // 当たった場合はその位置を描画する線分の終点とする
+        if( HitPoly.HitFlag == 1 )
+        {
+            EndPos = HitPoly.HitPosition ;
+        }
+
+        // 線分の描画
+        <b><a href="dxfunc_3d.html#R14N1">DrawLine3D</a></b>( StartPos, EndPos, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255,255,0 ) ) ;
+
+        // 当たったかどうかを表示する
+        <b><a href="dxfunc_graph2.html#R17N20">DrawFormatString</a></b>( 0, 0, GetColor( 255,255,255 ), "HIT:%d", HitPoly.HitFlag ) ;
+
+        // 裏画面の内容を表画面に反映
+        <b><a href="dxfunc_graph3.html#R4N7">ScreenFlip</a></b>() ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+        
+        
+        
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R9N4">宣言</a></b></td><td><font color="#000088"><b>MV1_COLL_RESULT_POLY MV1CollCheck_Line( int MHandle, int FrameIndex, VECTOR PosStart, VECTOR PosEnd ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>線分とモデルの当たり判定<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int FrameIndex ： コリジョンの情報を更新するフレームの番号<br>
+            VECTOR PosStart ： 当たり判定で使用する線分の始点<br>
+            VECTOR PosEnd ： 当たり判定で使用する線分の終点
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>当たり判定結果構造体<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のフレーム( 若しくはモデル全体 )に含まれるポリゴンと線分との当たり判定を行います。<br>
+                    ( この関数でモデルのポリゴンと線分との当たり判定を行う場合は対象となるフレーム( 若しくはモデル全体 )に対して事前に <b><a href="dxfunc_3d_model_3.html#R9N1">MV1SetupCollInfo</a></b> を呼んで準備を行っておく必要があります、
+                    また、MV1SetupCollInfo で FrameIndex を -1 にした場合は、この関数でも FrameIndex を -1 にする必要があります )<br><br>
+                    　戻り値である MV1_COLL_RESULT_POLY は当たり判定の結果が代入されている構造体で、以下のような内容になっています。<br><br>
+<pre><div class="NormalFont">// コリジョン結果代入用ポリゴン
+struct MV1_COLL_RESULT_POLY
+{
+    // どれかのポリゴンに当たったかどうか
+    // ( 1：当たった  0：当たらなかった )
+    int    HitFlag ;
+
+    // 線分とポリゴンが交差した座標
+    VECTOR    HitPosition ;
+
+    // 当たったポリゴンが含まれるフレームの番号
+    int    FrameIndex ;
+
+	// 当たったポリゴンのフレーム内番号
+	int PolygonIndex ;
+
+	// 当たったポリゴンが使用しているマテリアルの番号
+	int	MaterialIndex ;
+
+    // 当たったポリゴンを形成する三点の座標
+    VECTOR    Position[ 3 ] ;
+
+    // 当たったポリゴンの法線
+    VECTOR    Normal ;
+} ;
+</div></pre>
+                    　注釈の通りですが、
+                    どれかのポリゴンに当たったかどうかはメンバ変数 HitFlag が 1 かどうかで判断することができ、
+                    線分とポリゴンが交差した座標は HitPosition に代入されます。<br>
+                    　当たったポリゴンが含まれるメッシュを所有しているフレームの番号はメンバ変数 FrameIndex に、
+                    当たったポリゴンが使用しているマテリアルの番号はメンバ変数 MaterialIndex に、
+                    当たったポリゴンを形成する三頂点の座標はメンバ配列 Position に、
+                    当たったポリゴンの法線はメンバ変数 Normal にそれぞれ代入されます。<br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　モデルファイル SimpleModel.mqo と上下に動く線分との当たり判定をして、当たったところまでの線分の描画と、<br>
+            　当たり判定の結果を画面に描画します。
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+    int Add, y ;
+    VECTOR StartPos, EndPos ;
+    MV1_COLL_RESULT_POLY HitPoly ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "SimpleModel.mqo" ) ;
+
+    // ３Ｄモデルを見える位置に移動する
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, 300.0f, 600.0f ) ) ;
+
+    // 描画先を裏画面に変更
+    <b><a href="dxfunc_graph3.html#R4N6">SetDrawScreen</a></b>( DX_SCREEN_BACK ) ;
+
+    // モデル全体のコリジョン情報を構築
+    <b><a href="dxfunc_3d_model_3.html#R9N1">MV1SetupCollInfo</a></b>( ModelHandle, -1, 8, 8, 8 ) ;
+
+    // モデルの進行方向をセット
+    Add = 8 ;
+
+    // モデルの移動位置をセット
+    y = 0 ;
+
+    // ウインドウが閉じられるか何かキーが押されるまでループ
+    while( <b><a href="../dxfunc.html#R1N3">ProcessMessage</a></b>() == 0 &amp;&amp; CheckHitKeyAll() == 0 )
+    {
+        // 画面をクリア
+        <b><a href="dxfunc_graph3.html#R4N4">ClearDrawScreen</a></b>() ;
+
+        // ３Ｄモデルの移動位置を上下に移動させる
+        y += Add ;
+        if( y &lt; 0 || y &gt; 600 )
+            Add = -Add ;
+
+        // ３Ｄモデルの描画
+        <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+        // モデルと線分との当たり判定
+        StartPos = <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( -300.0f, y, 600.0f ) ;
+        EndPos   = VGet( 1000.0f, y, 600.0f ) ;
+        HitPoly = MV1CollCheck_Line( ModelHandle, -1, StartPos, EndPos ) ;
+
+        // 当たった場合はその位置を描画する線分の終点とする
+        if( HitPoly.HitFlag == 1 )
+        {
+            EndPos = HitPoly.HitPosition ;
+        }
+
+        // 線分の描画
+        <b><a href="dxfunc_3d.html#R14N1">DrawLine3D</a></b>( StartPos, EndPos, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255,255,0 ) ) ;
+
+        // 当たったかどうかで処理を分岐
+        if( HitPoly.HitFlag == 1 )
+        {
+            // 当たった場合は衝突の情報を描画する
+
+            // 交差した座標を描画
+            <b><a href="dxfunc_graph2.html#R17N20">DrawFormatString</a></b>( 0, 0, GetColor( 255,255,255 ),  "Hit Pos   %f  %f  %f",
+                HitPoly.HitPosition.x, HitPoly.HitPosition.y, HitPoly.HitPosition.z ) ;
+
+            // 当たったポリゴンが含まれるフレームの番号を描画
+            DrawFormatString( 0, 16, GetColor( 255,255,255 ), "Frame     %d", HitPoly.FrameIndex ) ;
+
+            // 当たったポリゴンが使用しているマテリアルの番号を描画
+            DrawFormatString( 0, 32, GetColor( 255,255,255 ), "Material  %d", HitPoly.MaterialIndex ) ;
+
+            // 当たったポリゴンを形成する三頂点の座標を描画
+            DrawFormatString( 0, 48, GetColor( 255,255,255 ), "Position  %f  %f  %f",
+                HitPoly.Position[ 0 ].x, HitPoly.Position[ 0 ].y, HitPoly.Position[ 0 ].z ) ;
+            DrawFormatString( 0, 64, GetColor( 255,255,255 ), "          %f  %f  %f",
+                HitPoly.Position[ 1 ].x, HitPoly.Position[ 1 ].y, HitPoly.Position[ 1 ].z ) ;
+            DrawFormatString( 0, 80, GetColor( 255,255,255 ), "          %f  %f  %f",
+                HitPoly.Position[ 2 ].x, HitPoly.Position[ 2 ].y, HitPoly.Position[ 2 ].z ) ;
+
+            // 当たったポリゴンの法線を描画
+            DrawFormatString( 0, 96, GetColor( 255,255,255 ), "Normal    %f  %f  %f",
+                HitPoly.Normal.x, HitPoly.Normal.y, HitPoly.Normal.z ) ;
+        }
+        else
+        {
+            // 当たらなかった場合は衝突しなかった旨だけ描画する
+            <b><a href="dxfunc_graph2.html#R17N1">DrawString</a></b>( 0, 0, "NO HIT", GetColor( 255,255,255 ) ) ;
+        }
+
+        // 裏画面の内容を表画面に反映
+        <b><a href="dxfunc_graph3.html#R4N7">ScreenFlip</a></b>() ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R9N5">宣言</a></b></td><td><font color="#000088"><b>MV1_COLL_RESULT_POLY_DIM MV1CollCheck_Sphere( int MHandle, int FrameIndex, VECTOR CenterPos, float r ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>球とモデルの当たり判定<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int FrameIndex ： コリジョンの情報を更新するフレームの番号<br>
+            VECTOR CenterPos ： 当たり判定で使用する球の中心座標<br>
+            float r ： 当たり判定で使用する球の半径
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>当たり判定結果ポリゴン配列構造体<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のフレーム( 若しくはモデル全体 )に含まれるポリゴンと球との当たり判定を行います。<br>
+                    ( この関数でモデルのポリゴンと線分との当たり判定を行う場合は対象となるフレーム( 若しくはモデル全体 )に対して事前に <b><a href="dxfunc_3d_model_3.html#R9N1">MV1SetupCollInfo</a></b> を呼んで準備を行っておく必要があります、
+                    また、MV1SetupCollInfo で FrameIndex を -1 にした場合は、この関数でも FrameIndex を -1 にする必要があります )<br><br>
+
+                    　戻り値である MV1_COLL_RESULT_POLY_DIM は当たり判定の結果が代入されている構造体で、以下のような内容になっています。<br><br>
+<pre><div class="NormalFont">// コリジョン結果代入用ポリゴン配列
+struct MV1_COLL_RESULT_POLY_DIM
+{
+    // 当たったポリゴンの数
+    int            HitNum ;
+
+    // 当たったポリゴンの配列へのポインタ
+    // ( 配列の要素数は HitNum です )
+    MV1_COLL_RESULT_POLY    *Dim ;
+} ;
+</div></pre>
+                    　また、MV1_COLL_RESULT_POLY_DIM 構造体で使用されている MV1_COLL_RESULT_POLY 構造体は以下のような内容になっています。<br><br>
+
+<pre><div class="NormalFont">// コリジョン結果代入用ポリゴン
+struct MV1_COLL_RESULT_POLY
+{
+    // どれかのポリゴンに当たったかどうか
+    // ( 球との当たり判定の場合は必ず 1 )
+    int    HitFlag ;
+
+    // 球とポリゴンの最近点の座標
+    VECTOR    HitPosition ;
+
+    // 当たったポリゴンが含まれるフレームの番号
+    int    FrameIndex ;
+
+    // 当たったポリゴンが使用しているマテリアルの番号
+    int    MaterialIndex ;
+
+    // 当たったポリゴンを形成する三点の座標
+    VECTOR    Position[ 3 ] ;
+
+    // 当たったポリゴンの法線
+    VECTOR    Normal ;
+} ;
+</div></pre>
+                    　構造体の説明ですが、まず球とフレーム( 若しくはモデル全体 )との当たり判定を行うと戻り値として MV1_COLL_RESULT_POLY_DIM 構造体が返ってきます。<br>
+                    　この構造体の中身にはメンバ変数 HitNum と Dim があり、当たったポリゴンの数が HitNum に代入されています。<br>
+                    　この HitNum が 0 だったら球は対象のフレーム( 若しくはモデル全体 )に含まれるポリゴンに一枚も当たらなかったということです。<br>
+                    　そして当たった場合は、当たったポリゴンの数が HitNum に代入され、
+                    どんなポリゴンと当たったかに関する情報がポインタ Dim が示すアドレスに当たったポリゴンの数だけ要素がある配列として格納されます。<br><br>
+
+                    　当たったかどうかだけを判断する場合は HitNum が 0 かどうかを判定するだけで、
+                    当たったポリゴンに関する情報を扱いたい場合は Dim の先にある配列にアクセスするという使い方になります。<br><br>
+                    ( Dim へのアクセスの仕方についてはサンプルプログラムを見ていただくとわかりやすいと思います )
+
+                    　また、この関数は当たるポリゴンの数が不定である関係上、動的にメモリを確保していますので、
+                    戻り値の情報が必要なくなった場合は <b><a href="dxfunc_3d_model_3.html#R9N6">MV1CollResultPolyDimTerminate</a></b> 関数に戻り値の構造体を渡して後始末を行う必要があります。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　モデルファイル SimpleModel.mqo と上下に動く球の当たり判定をして、球と当たったポリゴンとの最近点を表示します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+    int Add, y, i ;
+    VECTOR SpherePos ;
+    MV1_COLL_RESULT_POLY_DIM HitPolyDim ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "SimpleModel.mqo" ) ;
+
+    // ３Ｄモデルを見える位置に移動する
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, 300.0f, 600.0f ) ) ;
+
+    // 描画先を裏画面に変更
+    <b><a href="dxfunc_graph3.html#R4N6">SetDrawScreen</a></b>( DX_SCREEN_BACK ) ;
+
+    // モデル全体のコリジョン情報を構築
+    <b><a href="dxfunc_3d_model_3.html#R9N1">MV1SetupCollInfo</a></b>( ModelHandle, -1, 8, 8, 8 ) ;
+
+    // モデルの進行方向をセット
+    Add = 8 ;
+
+    // モデルの移動位置をセット
+    y = 0 ;
+
+    // ウインドウが閉じられるか何かキーが押されるまでループ
+    while( <b><a href="../dxfunc.html#R1N3">ProcessMessage</a></b>() == 0 &amp;&amp; CheckHitKeyAll() == 0 )
+    {
+        // 画面をクリア
+        <b><a href="dxfunc_graph3.html#R4N4">ClearDrawScreen</a></b>() ;
+
+        // ３Ｄモデルの移動位置を上下に移動させる
+        y += Add ;
+        if( y &lt; 0 || y &gt; 600 )
+            Add = -Add ;
+
+        // ３Ｄモデルの描画
+        <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+        // 当たり判定を行う球の位置をセット
+        SpherePos = <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 250.0f, y, 600.0f ) ;
+
+        // モデルと球との当たり判定
+        HitPolyDim = <b><a href="dxfunc_3d_model_3.html#R9N5">MV1CollCheck_Sphere</a></b>( ModelHandle, -1, SpherePos, 100.0f ) ;
+
+        // 球の描画
+        <b><a href="dxfunc_3d_draw.html#R14N4">DrawSphere3D</a></b>( SpherePos, 100.0f, 8, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255,255,0 ), GetColor( 255,255,255 ), FALSE ) ;
+
+        // 当たったかどうかで処理を分岐
+        if( HitPolyDim.HitNum >= 1 )
+        {
+            // 当たった場合は衝突の情報を描画する
+
+            // 当たったポリゴンの数を描画
+            <b><a href="dxfunc_graph2.html#R17N20">DrawFormatString</a></b>( 0, 0, GetColor( 255,255,255 ), "Hit Poly Num   %d", HitPolyDim.HitNum ) ;
+
+            // 当たったポリゴンの数だけ繰り返し
+            for( i = 0 ; i &lt; HitPolyDim.HitNum ; i ++ )
+            {
+                // 当たったポリゴンを描画
+                DrawTriangle3D(
+                    HitPolyDim.Dim[ i ].Position[ 0 ], 
+                    HitPolyDim.Dim[ i ].Position[ 1 ], 
+                    HitPolyDim.Dim[ i ].Position[ 2 ], GetColor( 0,255,255 ), TRUE ) ;
+            }
+        }
+
+        // 当たり判定情報の後始末
+        <b><a href="dxfunc_3d_model_3.html#R9N6">MV1CollResultPolyDimTerminate</a></b>( HitPolyDim ) ;
+
+        // 裏画面の内容を表画面に反映
+        <b><a href="dxfunc_graph3.html#R4N7">ScreenFlip</a></b>() ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R9N8">宣言</a></b></td><td><font color="#000088"><b>MV1_COLL_RESULT_POLY_DIM MV1CollCheck_Capsule( int MHandle, int FrameIndex, VECTOR Pos1, VECTOR Pos2, float r ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>カプセル形状とモデルの当たり判定<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int FrameIndex ： コリジョンの情報を更新するフレームの番号<br>
+            VECTOR Pos1 ： カプセルを形成する二点中の一点の座標<br>
+            VECTOR Pos2 ： カプセルを形成する二点中の一点の座標<br>
+            float r ： カプセルの半径
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>当たり判定結果ポリゴン配列構造体<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のフレーム( 若しくはモデル全体 )に含まれるポリゴンとカプセル形状( 二つの球を円筒で繋いだ形状 )との当たり判定を行います。<br>
+                    ( この関数でモデルのポリゴンと線分との当たり判定を行う場合は対象となるフレーム( 若しくはモデル全体 )に対して事前に <b><a href="dxfunc_3d_model_3.html#R9N1">MV1SetupCollInfo</a></b> を呼んで準備を行っておく必要があります、
+                    また、MV1SetupCollInfo で FrameIndex を -1 にした場合は、この関数でも FrameIndex を -1 にする必要があります )<br><br>
+
+                    　戻り値である MV1_COLL_RESULT_POLY_DIM は当たり判定の結果が代入されている構造体で、以下のような内容になっています。<br><br>
+<pre><div class="NormalFont">// コリジョン結果代入用ポリゴン配列
+struct MV1_COLL_RESULT_POLY_DIM
+{
+    // 当たったポリゴンの数
+    int            HitNum ;
+
+    // 当たったポリゴンの配列へのポインタ
+    // ( 配列の要素数は HitNum です )
+    MV1_COLL_RESULT_POLY    *Dim ;
+} ;
+</div></pre>
+                    　また、MV1_COLL_RESULT_POLY_DIM 構造体で使用されている MV1_COLL_RESULT_POLY 構造体は以下のような内容になっています。<br><br>
+
+<pre><div class="NormalFont">// コリジョン結果代入用ポリゴン
+struct MV1_COLL_RESULT_POLY
+{
+    // どれかのポリゴンに当たったかどうか
+    // ( カプセルとの当たり判定の場合は必ず 1 )
+    int    HitFlag ;
+
+    // 無効です
+    VECTOR    HitPosition ;
+
+    // 当たったポリゴンが含まれるフレームの番号
+    int    FrameIndex ;
+
+    // 当たったポリゴンが使用しているマテリアルの番号
+    int    MaterialIndex ;
+
+    // 当たったポリゴンを形成する三点の座標
+    VECTOR    Position[ 3 ] ;
+
+    // 当たったポリゴンの法線
+    VECTOR    Normal ;
+} ;
+</div></pre>
+                    　構造体の説明ですが、まずカプセルとフレーム( 若しくはモデル全体 )との当たり判定を行うと戻り値として MV1_COLL_RESULT_POLY_DIM 構造体が返ってきます。<br>
+                    　この構造体の中身にはメンバ変数 HitNum と Dim があり、当たったポリゴンの数が HitNum に代入されています。<br>
+                    　この HitNum が 0 だったら球は対象のフレーム( 若しくはモデル全体 )に含まれるポリゴンに一枚も当たらなかったということです。<br>
+                    　そして当たった場合は、当たったポリゴンの数が HitNum に代入され、
+                    どんなポリゴンと当たったかに関する情報がポインタ Dim が示すアドレスに当たったポリゴンの数だけ要素がある配列として格納されます。<br><br>
+
+                    　当たったかどうかだけを判断する場合は HitNum が 0 かどうかを判定するだけで、
+                    当たったポリゴンに関する情報を扱いたい場合は Dim の先にある配列にアクセスするという使い方になります。<br><br>
+                    ( Dim へのアクセスの仕方についてはサンプルプログラムを見ていただくとわかりやすいと思います )
+
+                    　また、この関数は当たるポリゴンの数が不定である関係上、動的にメモリを確保していますので、
+                    戻り値の情報が必要なくなった場合は <b><a href="dxfunc_3d_model_3.html#R9N6">MV1CollResultPolyDimTerminate</a></b> 関数に戻り値の構造体を渡して後始末を行う必要があります。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　モデルファイル SimpleModel.mqo と上下に動くカプセルの当たり判定をして、カプセルと当たったポリゴンとの最近点を表示します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+// カプセルの高さ
+#define CAPSULE_H        64.0f
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+    int Add, y, i ;
+    VECTOR CapsulePos1, CapsulePos2 ;
+    MV1_COLL_RESULT_POLY_DIM HitPolyDim ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "SimpleModel.mqo" ) ;
+
+    // ３Ｄモデルを見える位置に移動する
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, 300.0f, 600.0f ) ) ;
+
+    // 描画先を裏画面に変更
+    <b><a href="dxfunc_graph3.html#R4N6">SetDrawScreen</a></b>( DX_SCREEN_BACK ) ;
+
+    // モデル全体のコリジョン情報を構築
+    <b><a href="dxfunc_3d_model_3.html#R9N1">MV1SetupCollInfo</a></b>( ModelHandle, -1, 8, 8, 8 ) ;
+
+    // モデルの進行方向をセット
+    Add = 8 ;
+
+    // モデルの移動位置をセット
+    y = 0 ;
+
+    // ウインドウが閉じられるか何かキーが押されるまでループ
+    while( <b><a href="../dxfunc.html#R1N3">ProcessMessage</a></b>() == 0 &amp;&amp; CheckHitKeyAll() == 0 )
+    {
+        // 画面をクリア
+        <b><a href="dxfunc_graph3.html#R4N4">ClearDrawScreen</a></b>() ;
+
+        // ３Ｄモデルの移動位置を上下に移動させる
+        y += Add ;
+        if( y &lt; 0 || y &gt; 600 )
+            Add = -Add ;
+
+        // ３Ｄモデルの描画
+        <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+        // 当たり判定を行う球の位置をセット
+        CapsulePos1 = <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 250.0f, y, 600.0f ) ;
+        CapsulePos2 = <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 250.0f, y + CAPSULE_H, 600.0f ) ;
+
+        // モデルとカプセルとの当たり判定
+        HitPolyDim = MV1CollCheck_Capsule( ModelHandle, -1, CapsulePos1, CapsulePos2,  100.0f ) ;
+
+        // カプセルの描画
+        <b><a href="dxfunc_3d_draw.html#R14N5">DrawCapsule3D</a></b>( CapsulePos1, CapsulePos2, 100.0f, 8, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255,255,0 ), GetColor( 255,255,255 ), FALSE ) ;
+
+        // 当たったかどうかで処理を分岐
+        if( HitPolyDim.HitNum >= 1 )
+        {
+            // 当たった場合は衝突の情報を描画する
+
+            // 当たったポリゴンの数を描画
+            <b><a href="dxfunc_graph2.html#R17N20">DrawFormatString</a></b>( 0, 0, GetColor( 255,255,255 ), "Hit Poly Num   %d", HitPolyDim.HitNum ) ;
+
+            // 当たったポリゴンの数だけ繰り返し
+            for( i = 0 ; i &lt; HitPolyDim.HitNum ; i ++ )
+            {
+                // 当たったポリゴンを描画
+                <b><a href="dxfunc_3d_draw.html#R14N2">DrawTriangle3D</a></b>(
+                    HitPolyDim.Dim[ i ].Position[ 0 ], 
+                    HitPolyDim.Dim[ i ].Position[ 1 ], 
+                    HitPolyDim.Dim[ i ].Position[ 2 ], GetColor( 0,255,255 ), TRUE ) ;
+            }
+        }
+
+        // 当たり判定情報の後始末
+        <b><a href="dxfunc_3d_model_3.html#R9N6">MV1CollResultPolyDimTerminate</a></b>( HitPolyDim ) ;
+
+        // 裏画面の内容を表画面に反映
+        <b><a href="dxfunc_graph3.html#R4N7">ScreenFlip</a></b>() ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R9N7">宣言</a></b></td><td><font color="#000088"><b>MV1_COLL_RESULT_POLY MV1CollCheck_GetResultPoly( MV1_COLL_RESULT_POLY_DIM ResultPolyDim, int PolyNo ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>当たり判定結果ポリゴン配列から指定番のポリゴン情報を取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            MV1_COLL_RESULT_POLY_DIM ResultPolyDim ： 当たり判定結果ポリゴン配列構造体<br>
+            int PolyNo ： 取得したいポリゴンの番号
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>当たり判定結果ポリゴン<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルと球の当たり判定を <b><a href="dxfunc_3d_model_3.html#R9N5">MV1CollCheck_Sphere</a></b> で行った結果の MV1_COLL_RESULT_POLY_DIM
+                    構造体から指定番号の当たったポリゴンの情報を取得するための関数です。<br>
+                    　MV1_COLL_RESULT_POLY_DIM 関数の中にある Dim が示す配列から情報を返すだけの関数ですが、
+                    ポインタが苦手な方はこちらの関数を使用してください。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　　モデルファイル SimpleModel.mqo と上下に動く球の当たり判定をして、球と当たったポリゴンとの最近点を表示します。<br>
+            　　( MV1CollCheck_Sphere 関数のサンプルを MV1CollCheck_GetResultPoly を使用するように変更したものです )<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+    int Add, y, i ;
+    VECTOR SpherePos ;
+    MV1_COLL_RESULT_POLY_DIM HitPolyDim ;
+    MV1_COLL_RESULT_POLY HitPoly ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "SimpleModel.mqo" ) ;
+
+    // ３Ｄモデルを見える位置に移動する
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, 300.0f, 600.0f ) ) ;
+
+    // 描画先を裏画面に変更
+    <b><a href="dxfunc_graph3.html#R4N6">SetDrawScreen</a></b>( DX_SCREEN_BACK ) ;
+
+    // モデル全体のコリジョン情報を構築
+    <b><a href="dxfunc_3d_model_3.html#R9N1">MV1SetupCollInfo</a></b>( ModelHandle, -1, 8, 8, 8 ) ;
+
+    // モデルの進行方向をセット
+    Add = 8 ;
+
+    // モデルの移動位置をセット
+    y = 0 ;
+
+    // ウインドウが閉じられるか何かキーが押されるまでループ
+    while( <b><a href="../dxfunc.html#R1N3">ProcessMessage</a></b>() == 0 &amp;&amp; CheckHitKeyAll() == 0 )
+    {
+        // 画面をクリア
+        <b><a href="dxfunc_graph3.html#R4N4">ClearDrawScreen</a></b>() ;
+
+        // ３Ｄモデルの移動位置を上下に移動させる
+        y += Add ;
+        if( y &lt; 0 || y &gt; 600 )
+            Add = -Add ;
+
+        // ３Ｄモデルの描画
+        <b><a href="dxfunc_3d_model_0.html#R2N1">MV1DrawModel</a></b>( ModelHandle ) ;
+
+        // 当たり判定を行う球の位置をセット
+        SpherePos = <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 250.0f, y, 600.0f ) ;
+
+        // モデルと球との当たり判定
+        HitPolyDim = <b><a href="dxfunc_3d_model_3.html#R9N5">MV1CollCheck_Sphere</a></b>( ModelHandle, -1, SpherePos, 100.0f ) ;
+
+        // 球の描画
+        <b><a href="dxfunc_3d_draw.html#R14N4">DrawSphere3D</a></b>( SpherePos, 100.0f, 8, <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255,255,0 ), GetColor( 255,255,255 ), FALSE ) ;
+
+        // 当たったかどうかで処理を分岐
+        if( HitPolyDim.HitNum >= 1 )
+        {
+            // 当たった場合は衝突の情報を描画する
+
+            // 当たったポリゴンの数を描画
+            <b><a href="dxfunc_graph2.html#R17N20">DrawFormatString</a></b>( 0, 0, GetColor( 255,255,255 ), "Hit Poly Num   %d", HitPolyDim.HitNum ) ;
+
+            // 当たったポリゴンの数だけ繰り返し
+            for( i = 0 ; i &lt; HitPolyDim.HitNum ; i ++ )
+            {
+                // 当たったポリゴンとの最近点の座標を描画
+                HitPoly = MV1CollCheck_GetResultPoly( HitPolyDim, i ) ;
+                DrawFormatString( 0, 16 + 16 * i, GetColor( 255,255,255 ), "Position   %f  %f  %f",
+                    HitPoly.HitPosition.x, HitPoly.HitPosition.y, HitPoly.HitPosition.z ) ;
+            }
+        }
+
+        // 当たり判定情報の後始末
+        <b><a href="dxfunc_3d_model_3.html#R9N6">MV1CollResultPolyDimTerminate</a></b>( HitPolyDim ) ;
+
+        // 裏画面の内容を表画面に反映
+        <b><a href="dxfunc_graph3.html#R4N7">ScreenFlip</a></b>() ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R9N6">宣言</a></b></td><td><font color="#000088"><b>int MV1CollResultPolyDimTerminate( MV1_COLL_RESULT_POLY_DIM ResultPolyDim ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>当たり判定結果ポリゴン配列の後始末をする<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            MV1_COLL_RESULT_POLY_DIM ResultPolyDim ： 当たり判定結果ポリゴン配列構造体
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　<b><a href="dxfunc_3d_model_3.html#R9N5">MV1CollCheck_Sphere</a></b> 関数の戻り値である ResultPolyDim 構造体の後始末を行います。<br><br>
+
+                    　MV1CollCheck_Sphere 関数が返す構造体 MV1_COLL_RESULT_POLY_DIM は当たるポリゴンの数が不定な関係上、
+                    当たり判定結果を代入するメモリ領域を動的に確保しているので、
+                    当たり判定結果を使った処理が終了した際はこの関数で構造体の後始末を行う必要があります。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_3.html#R9N5">MV1CollCheck_Sphere関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+
+
+        <tr><td><font size="3" color="#005500"><b>参照用メッシュ関係</b><br><br></font></td></tr>
+
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R10N1">宣言</a></b></td><td><font color="#000088"><b>int MV1SetupReferenceMesh( int MHandle, int FrameIndex, int IsTransform ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>参照用メッシュのセットアップ<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int FrameIndex ： 参照用メッシュを構築するフレームの番号<br>
+            int IsTransform ： 参照用メッシュは頂点座標変換を施したものにするかどうか<br>
+            　　　　　　( TRUE：変換を施したもの  FALSE：変換を施さないローカル座標のもの )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のフレーム( 若しくはモデル全体 )に含まれるポリゴンの座標や法線、ＵＶ値などの情報にアクセスするための準備を行います。<br><br>
+
+                    　３Ｄを扱うゲームを作成していると、
+                    しばしば３Ｄモデルを描画する以外の用途で３Ｄモデルのポリゴンの頂点座標や法線座標を扱いたくなるときがあります、
+                    最も一般的な例はモデルとの当たり判定ですが、
+                    それ以外の用途でも・・・あんまり一般的な例は思いつきませんがあったりします。<br>
+                    　参照用メッシュはそんなときに有効なモデルの頂点座標やポリゴン情報にアクセスするための機能です。<br><br>
+
+                    　その使い方ですが、参照用メッシュの機能を使用するにはまずこの関数で参照したいポリゴンを参照するための準備を行う必要があります。
+                    参照対象としたいフレームを引数 FrameIndex で指定して( FrameIndex を -1 にすることでモデル全体のポリゴンを参照するための準備をすることができます )、
+                    加えて参照用メッシュの頂点座標を、
+                    頂点座標変換を施した頂点にするかどうかを引数 IsTransform で指定します。
+                    ( TRUE にすると <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b> や <b><a href="dxfunc_3d_model_1.html#R4N1">MV1AttachAnim</a></b> 等で設定された頂点座標変換が行われたものが、
+                    FALSE にすると MV1SetPosition や MV1AttachAnim 等の設定を無視して何も頂点座標変換が行われていないものがそれぞれ取得できます )<br>
+                    　因みに参照用メッシュの構築処理はそれなりに負荷の高い処理ですので、
+                    できる限り参照したいポリゴンを持つフレームのみを指定した方が良いです。<br><br>
+
+                    　セットアップが完了した後は参照用メッシュの情報が入った構造体 MV1_REF_POLYGONLIST
+                    を戻り値として返してくる関数 <b><a href="dxfunc_3d_model_3.html#R10N4">MV1GetReferenceMesh</a></b> を使用して、実際にポリゴンの情報を取得します。<br>
+
+<pre><div class="NormalFont">// 参照用ポリゴンデータ構造体
+struct MV1_REF_POLYGONLIST
+{
+    // ポリゴンの数
+    int    PolygonNum ;
+
+    // 頂点の数
+    int    VertexNum ;
+
+    // 頂点座標の最小値
+    VECTOR    MinPosition ;
+
+    // 頂点座標の最大値
+    VECTOR    MaxPosition ;
+
+    // ポリゴン構造体の配列へのポインタ
+    MV1_REF_POLYGON    *Polygons ;
+
+    // 頂点構造体の配列へのポインタ
+    MV1_REF_VERTEX    *Vertexs ;
+} ;
+</div></pre>
+                    int PolygonNum<br>
+                    　参照用メッシュに含まれるポリゴンの数です。<br>
+                    　参照の対象をフレームにした場合はフレームに含まれるメッシュが持つポリゴンの総数が、
+                    参照の対象をモデルにした場合はモデルに含まれる全メッシュが持つポリゴンの総数が代入されます。<br><br>
+
+                    int VertexNum<br>
+                    　参照用メッシュに含まれる頂点の数です。<br>
+                    　参照の対象をフレームにした場合はフレームに含まれるメッシュが持つ頂点の総数が、
+                    参照の対象をモデルにした場合はモデルに含まれる全メッシュが持つ頂点の総数が代入されます。<br><br>
+
+                    VECTOR MinPosition<br>
+                    　参照用メッシュに含まれる頂点座標の最小値です。<br>
+                    　座標値は頂点座標変換をする指定をしていた場合は座標変換されたものの最小値となります。<br><br>
+
+                    VECTOR MaxPosition<br>
+                    　参照用メッシュに含まれる頂点座標の最大値です。<br>
+                    　座標値は頂点座標変換をする指定をしていた場合は座標変換されたものの最大値となります。<br><br>
+
+                    MV1_REF_POLYGON *Polygons<br>
+                    　参照用メッシュに含まれるポリゴン情報の配列へのポインタです。<br>
+                    　配列の要素数は PolygonNum 個で、
+                    中身はポリゴンが含まれているフレームの番号、
+                    ポリゴンに使用されているマテリアルの番号、
+                    ポリゴンの形成に使用されている頂点の番号３つなどです。<br><br>
+
+                    MV1_REF_VERTEX *Vertexs<br>
+                    　参照用メッシュに含まれる頂点情報の配列へのポインタです。<br>
+                    　配列の要素数は VertexNum 個で、
+                    中身は頂点の位置・法線・テクスチャ座標・頂点カラーなどです。<br>
+                    　ポリゴンの情報と頂点の情報が分かれているのは多くの場合一つの頂点は複数のポリゴンで使用されているので、
+                    ポリゴンの情報の中に頂点の情報を含めてしまうと同じ頂点情報が幾つものポリゴン情報の中に含まれてデータサイズが無駄に大きくなってしまうからです。<br><br>
+
+                    　次に頂点の情報が格納される構造体 MV1_REF_VERTEX は次のような内容になっています。<br>
+<pre><div class="NormalFont">struct MV1_REF_VERTEX
+{
+    // 位置
+    VECTOR    Position ;
+
+    // 法線
+    VECTOR    Normal ;
+
+    // テクスチャ座標
+    UV    TexCoord[ 2 ] ;
+
+    // ディフューズカラー
+    COLOR_U8    DiffuseColor ;
+
+    // スペキュラカラー
+    COLOR_U8    SpecularColor ;
+} ;
+</div></pre>
+                    VECTOR Position<br>
+                    　頂点の座標です。<br>
+                    　頂点座標変換をする指定をした場合は <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b> や <b><a href="dxfunc_3d_model_1.html#R4N1">MV1AttachAnim</a></b> などの設定が反映された座標が、
+                    座標変換をしないようにした場合は読み込み時のメッシュのローカル座標そのままが代入されます。<br>
+                    　座標変換をする指定をした場合は <b><a href="dxfunc_3d_model_3.html#R10N3">MV1RefreshReferenceMesh</a></b> 関数を呼ぶことで座標値が更新されます。<br><br>
+
+                    VECTOR Normal<br>
+                    　頂点の法線です。<br>
+                    　頂点座標変換をする指定をした場合は MV1SetRotation や MV1AttachAnim などの設定が反映された法線ベクトルが、
+                    座標変換をしないようにした場合は読み込み時のメッシュのローカル法線がそのまま代入されます。<br>
+                    　座標変換をする指定をした場合は MV1RefreshReferenceMesh 関数を呼ぶことで法線値が更新されます。<br><br>
+
+                    UV TexCoord[ 2 ]<br>
+                    　頂点のテクスチャ座標です。<br>
+                    　UV は構造体で、中身は float u, v となっています。<br>
+                    　一応マルチテクスチャを考慮して２つのテクスチャ座標を代入できるようになっていますが、
+                    現在のバージョンでは TexCoord[ 0 ] しか使いません。<br><br>
+                    
+                    COLOR_U8 DiffuseColor<br>
+                    　頂点のディフューズカラーです。<br>
+                    　メッシュに頂点カラーが無かった場合はポリゴンが使用しているマテリアルのディフューズカラーが代入されています。<br><br>
+
+                    COLOR_U8 SpecularColor<br>
+                    　頂点のスペキュラカラーです。<br>
+                    　現在のバージョンでは必ず r, g, b, a すべての要素が 0.0f となります。<br><br>
+
+                    　次にポリゴンの情報が格納される構造体 MV1_REF_POLYGON は以下のような内容になっています。<br>
+<pre><div class="NormalFont">struct MV1_REF_POLYGON
+{
+    // ポリゴンが含まれるメッシュを持っているフレームの番号
+    unsigned short    FrameIndex ;
+
+    // 使用しているマテリアルの番号
+    unsigned short    MaterialIndex ;
+
+    // VIndex が指すインデックスの参照先( 1：フレーム  0：モデル全体 )
+    int        VIndexTarget ;
+
+    // 三角形ポリゴンを形成する三頂点の番号
+    int        VIndex[ 3 ] ;
+
+    // 三角形ポリゴンを形成する三頂点の座標の最小値
+    VECTOR    MinPosition ;
+
+    // 三角形ポリゴンを形成する三頂点の座標の最大値
+    VECTOR    MaxPosition ;
+} ;
+</div></pre>
+                    unsigned short FrameIndex<br>
+                    　ポリゴンが含まれるメッシュを持っているフレームの番号です。<br>
+                    　すべてのポリゴンはどれかのメッシュに含まれていて、
+                    すべてのメッシュはどれかのフレームに含まれているので、
+                    この変数の値が不定になることはありません。<br><br>
+
+                    unsigned short MaterialIndex<br>
+                    　ポリゴンが使用しているマテリアルの番号です。<br><br>
+                    
+                    int VIndexTarget<br>
+                    　VIndex 配列が示すインデックスの参照先を表す番号が代入されています。<br>
+                    　ライブラリ内部で使用されている変数なので、通常ではこの値を利用することはありません。<br><br>
+
+                    int VIndex[ 3 ]
+                    　三角形ポリゴンを形成する三頂点の番号です。<br>
+                    　例えば０番目のポリゴンで使用されている三頂点の座標を取得したい場合は以下のように記述します。
+<pre><div class="NormalFont">VECTOR Position[ 3 ] ;
+
+Position[ 0 ] = PolygonList.Vertexs[ PolygonList.Polygons[ 0 ].VIndex[ 0 ] ].Position ;
+Position[ 1 ] = PolygonList.Vertexs[ PolygonList.Polygons[ 0 ].VIndex[ 1 ] ].Position ;
+Position[ 2 ] = PolygonList.Vertexs[ PolygonList.Polygons[ 0 ].VIndex[ 2 ] ].Position ;
+</div></pre>
+                    VECTOR MinPosition<br>
+                    　ポリゴンを形成する三頂点の座標の最小値です。<br>
+                    　座標値は頂点座標変換をする指定をしていた場合は座標変換されたものの最小値となります。<br><br>
+
+                    VECTOR MaxPosition<br>
+                    　ポリゴンを形成する三頂点の座標の最大値です。<br>
+                    　座標値は頂点座標変換をする指定をしていた場合は座標変換されたものの最大値となります。<br><br>
+
+                    　尚、参照用メッシュの情報を構築する処理はそれなりに負荷の高い処理ですので、
+                    頂点座標変換を行う設定にした場合でも <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b> や <b><a href="dxfunc_3d_model_1.html#R4N3">MV1SetAttachAnimTime</a></b> などで状態を変更しただけでは参照用メッシュの頂点座標と頂点法線は更新されません。<br>
+                    　状態を変更した後に MV1RefreshReferenceMesh 関数で明示的に参照用メッシュをする必要がありますのでご注意ください。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+                
+            　　モデルファイル SimpleModel.mqo 全体の参照用メッシュを構築したあと、ポリゴン一枚一枚の座標を利用して<br>
+            　モデルのワイヤーフレームを描画します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+    int i ;
+    MV1_REF_POLYGONLIST RefPoly ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "SimpleModel.mqo" ) ;
+
+    // ３Ｄモデルを見える位置に移動する
+    <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, 300.0f, 600.0f ) ) ;
+
+    // モデル全体の参照用メッシュを構築
+    <b><a href="dxfunc_3d_model_3.html#R10N1">MV1SetupReferenceMesh</a></b>( ModelHandle, -1, TRUE ) ;
+
+    // 参照用メッシュ情報の取得
+    RefPoly = <b><a href="dxfunc_3d_model_3.html#R10N4">MV1GetReferenceMesh</a></b>( ModelHandle, -1, TRUE ) ;
+
+    // ポリゴンの数だけ繰り返し
+    for( i = 0 ; i &lt; RefPoly.PolygonNum ; i ++ )
+    {
+        // ポリゴンを形成する三頂点を使用してワイヤーフレームを描画する
+        <b><a href="dxfunc_3d.html#R14N1">DrawLine3D</a></b>(
+            RefPoly.Vertexs[ RefPoly.Polygons[ i ].VIndex[ 0 ] ].Position,
+            RefPoly.Vertexs[ RefPoly.Polygons[ i ].VIndex[ 1 ] ].Position,
+            <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255,255,0 ) ) ;
+
+        DrawLine3D(
+            RefPoly.Vertexs[ RefPoly.Polygons[ i ].VIndex[ 1 ] ].Position,
+            RefPoly.Vertexs[ RefPoly.Polygons[ i ].VIndex[ 2 ] ].Position,
+            GetColor( 255,255,0 ) ) ;
+
+        DrawLine3D(
+            RefPoly.Vertexs[ RefPoly.Polygons[ i ].VIndex[ 2 ] ].Position,
+            RefPoly.Vertexs[ RefPoly.Polygons[ i ].VIndex[ 0 ] ].Position,
+            GetColor( 255,255,0 ) ) ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // キー入力待ち
+    <b><a href="dxfunc_other.html#R6N3">WaitKey</a></b>() ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+        
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R10N2">宣言</a></b></td><td><font color="#000088"><b>int MV1TerminateReferenceMesh( int MHandle, int FrameIndex, int IsTransform ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>参照用メッシュの後始末をする<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int FrameIndex ： 参照用メッシュの後始末を行うフレームの番号<br>
+            int IsTransform ： 後始末の対象の参照用メッシュ<br>
+            　　( TRUE：頂点座標変換を施した参照用メッシュ　FALSE：頂点座標変換を施さない参照用メッシュ )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のフレーム( 若しくはモデル全体 )用に構築した参照用メッシュの後始末を行います。<br><br>
+                
+                    　この関数を使用して明示的に参照用メッシュを破棄しなくても、
+                    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b> や <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b> が呼ばれた際にモデル情報と参照用メッシュの後始末は行われますので、
+                    この関数を使用する機会はあまり無いかもしれません。<br><br>
+
+                    　尚、<b><a href="dxfunc_3d_model_3.html#R10N1">MV1SetupReferenceMesh</a></b> で FrameIndex を -1 にした場合は、この関数でも FrameIndex を -1 にする必要があります。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+            　　ありません<br><br><br><br>
+        </td></tr>
+
+        
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R10N3">宣言</a></b></td><td><font color="#000088"><b>int MV1RefreshReferenceMesh( int MHandle, int FrameIndex, int IsTransform ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>参照用メッシュを更新する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int FrameIndex ： 参照用メッシュを更新するフレームの番号<br>
+            int IsTransform ： 更新する参照用メッシュは頂点座標変換を施したものかどうか<br>
+            　　　　　　( TRUE：変換を施したもの  FALSE：変換を施していないもの )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>　０：成功</td></tr>
+            <tr><td width="100">　</td><td>－１：エラー発生<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のフレーム( 若しくはモデル全体 )の参照用メッシュを更新します。<br><br>
+
+                    　モデルを動かさない場合は参照用メッシュを更新する必要はありませんが、
+                    動くモデルをコリジョンポリゴンとして使用している場合はこの関数を使用して明示的にコリジョン情報を更新する必要があります。
+                    ( 更新しない場合は最後に更新した状態のままとなります )<br><br>
+
+                    　尚、<b><a href="dxfunc_3d_model_3.html#R10N1">MV1SetupReferenceMesh</a></b> で FrameIndex を -1 にした場合は、この関数でも FrameIndex を -1 にする必要があります。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+                
+            　　モデルファイル SimpleModel.mqo の０番目のフレームの参照用メッシュを構築したあと、上下にモデルを移動しながら<br>
+            　ポリゴン一枚一枚の座標を利用して０番目のフレームのワイヤーフレームを描画します。<br>
+            <hr>
+	    <FONT COLOR="#0000ff"><B>Windows用</B></FONT>
+<pre><div class="NormalFont">#include "DxLib.h"
+
+int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )
+{
+    int ModelHandle ;
+    int Add, y, i ;
+    MV1_REF_POLYGONLIST RefPoly ;
+
+    // ＤＸライブラリの初期化
+    if( <b><a href="../dxfunc.html#R1N1">DxLib_Init</a></b>() < 0 )
+    {
+        // エラーが発生したら直ちに終了
+        return -1 ;
+    }
+
+    // ３Ｄモデルの読み込み
+    ModelHandle = <b><a href="dxfunc_3d_model_0.html#R1N1">MV1LoadModel</a></b>( "SimpleModel.mqo" ) ;
+
+    // 描画先を裏画面に変更
+    <b><a href="dxfunc_graph3.html#R4N6">SetDrawScreen</a></b>( DX_SCREEN_BACK ) ;
+
+    // ０番目のフレームの参照用メッシュを構築
+    <b><a href="dxfunc_3d_model_3.html#R10N1">MV1SetupReferenceMesh</a></b>( ModelHandle, 0, TRUE ) ;
+
+    // モデルの進行方向をセット
+    Add = 8 ;
+
+    // モデルの移動位置をセット
+    y = 0 ;
+
+    // ウインドウが閉じられるか何かキーが押されるまでループ
+    while( <b><a href="../dxfunc.html#R1N3">ProcessMessage</a></b>() == 0 &amp;&amp; CheckHitKeyAll() == 0 )
+    {
+        // 画面をクリア
+        <b><a href="dxfunc_graph3.html#R4N4">ClearDrawScreen</a></b>() ;
+
+        // ３Ｄモデルの移動位置を上下に移動させる
+        y += Add ;
+        if( y &lt; 0 || y &gt; 600 )
+            Add = -Add ;
+
+        // ３Ｄモデルを移動する
+        <b><a href="dxfunc_3d_model_0.html#R3N2">MV1SetPosition</a></b>( ModelHandle, <b><a href="dxfunc_3d_math.html#R11N1">VGet</a></b>( 320.0f, y, 600.0f ) ) ;
+
+        // ０番目のフレームの参照用メッシュを更新する
+        <b><a href="dxfunc_3d_model_3.html#R10N3">MV1RefreshReferenceMesh</a></b>( ModelHandle, 0, TRUE ) ;
+
+        // ０番目のフレームの参照用メッシュの取得
+        RefPoly = <b><a href="dxfunc_3d_model_3.html#R10N4">MV1GetReferenceMesh</a></b>( ModelHandle, 0, TRUE ) ;
+
+        // ポリゴンの数だけ繰り返し
+        for( i = 0 ; i &lt; RefPoly.PolygonNum ; i ++ )
+        {
+            // ポリゴンを形成する三頂点を使用してワイヤーフレームを描画する
+            <b><a href="dxfunc_3d.html#R14N1">DrawLine3D</a></b>(
+                RefPoly.Vertexs[ RefPoly.Polygons[ i ].VIndex[ 0 ] ].Position,
+                RefPoly.Vertexs[ RefPoly.Polygons[ i ].VIndex[ 1 ] ].Position,
+                <b><a href="dxfunc_graph3.html#R4N5">GetColor</a></b>( 255,255,0 ) ) ;
+
+            DrawLine3D(
+                RefPoly.Vertexs[ RefPoly.Polygons[ i ].VIndex[ 1 ] ].Position,
+                RefPoly.Vertexs[ RefPoly.Polygons[ i ].VIndex[ 2 ] ].Position,
+                GetColor( 255,255,0 ) ) ;
+
+            DrawLine3D(
+                RefPoly.Vertexs[ RefPoly.Polygons[ i ].VIndex[ 2 ] ].Position,
+                RefPoly.Vertexs[ RefPoly.Polygons[ i ].VIndex[ 0 ] ].Position,
+                GetColor( 255,255,0 ) ) ;
+        }
+
+        // 裏画面の内容を表画面に反映
+        <b><a href="dxfunc_graph3.html#R4N7">ScreenFlip</a></b>() ;
+    }
+
+    // モデルハンドルの削除
+    <b><a href="dxfunc_3d_model_0.html#R1N3">MV1DeleteModel</a></b>( ModelHandle ) ;
+
+    // ＤＸライブラリの後始末
+    <b><a href="../dxfunc.html#R1N2">DxLib_End</a></b>() ;
+
+    // ソフトの終了
+    return 0 ;
+}
+</div></pre>
+            <hr>
+	    <FONT COLOR="#008800"><B>Android用</B></FONT>
+<pre><div class="NormalFont">Windows用のプログラムの
+<B>int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow )</B>
+を
+<B>int android_main( void )</B>
+に置き換える以外は Windows用のプログラムと同じです。
+</div></pre>
+            <hr><br><br><br>
+        </td></tr>
+
+    
+        <tr><td><table align="center" width="950"  cellspacing="0" cellpadding="0">
+            <tr><td valign="top" width="100"><b><a name="R10N4">宣言</a></b></td><td><font color="#000088"><b>MV1_REF_POLYGONLIST MV1GetReferenceMesh( int MHandle, int FrameIndex, int IsTransform ) ;</b></font><br><br></td></tr>
+            <tr><td valign="top" width="100"><b>概略</b></td><td>参照用メッシュを取得する<br><br></td></tr>
+            <tr><td valign="top" width="100"><b>引数</b></td>
+            <td>
+            int MHandle ： モデルのハンドル<br>
+            int FrameIndex ： 参照用メッシュを取得するフレームの番号<br>
+            int IsTransform ： 取得する参照用メッシュは頂点座標変換を施したものかどうか<br>
+            　　　　　　( TRUE：変換を施したもの  FALSE：変換を施していないもの )
+            </td></tr>
+            <tr><td valign="top" width="100"><b>戻り値</b></td><td>参照用メッシュを参照するための構造体<br><br></td></tr>
+            <tr>
+                <td valign="top" width="100"><b>解説</b></td>
+                <td>　MHandle のモデルハンドルが示すモデルの指定のフレーム( 若しくはモデル全体 )の参照用メッシュを取得します。<br>
+                    ( この関数で参照用メッシュの構造体を取得する場合は、対象となるフレーム( 若しくはモデル全体 )に対して事前に <b><a href="dxfunc_3d_model_3.html#R10N1">MV1SetupReferenceMesh</a></b> を呼んで準備を行っておく必要があります、
+                    また、MV1SetupReferenceMesh で FrameIndex を -1 にした場合は、この関数でも FrameIndex を -1 にする必要があります )<br><br>
+
+                    　この関数の戻り値である MV1_REF_POLYGONLIST の詳細は MV1SetupReferenceMesh 関数の解説を参照してください。<br><br>
+                </td>
+            </tr>
+        </table>
+        </td></tr>
+
+        <tr><td>
+            <b>サンプル</b><br><br>
+
+            　<a href="dxfunc_3d_model_3.html#R10N1">MV1SetupReferenceMesh関数</a> のサンプル、又は <a href="dxfunc_3d_model_3.html#R10N3">MV1RefreshReferenceMesh関数</a> のサンプルを参照してください。<br><br><br><br>
+        </td></tr>
+        
+        <tr><td colspan="4">
+            <hr>
+            <font size="3"><b>
+                <a href="../dxfunc.html">戻る</a>
+            </b></font>
+        </td></tr>
+    </table>
+    </div>
+    </body>
+</html>

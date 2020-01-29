@@ -29,7 +29,6 @@
 #include "GraphHandle.hpp"
 #include "FontHandle.hpp"
 
-
 using std::size_t;
 using std::uint8_t;
 inline const int dispx = (GetSystemMetrics(SM_CXSCREEN)); /*描画X*/
@@ -170,6 +169,7 @@ namespace std {
 
 struct players {
 	int camf{ false };		       /*撃破カメラ*/
+
 	size_t id;			       /*ID*/
 	vehicle* ptr;			       /*vehicle*/
 	MV1ModelHandle obj;		       /*モデル*/
@@ -194,20 +194,21 @@ struct players {
 	bool selc;			       /**/
 	size_t wayselect{ 0 }, waynow{ 0 };    /*cpu */
 	std::array<VECTOR_ref, waypc> waypos;  /*cpu ウェイポイント*/
-	std::array<int, waypc> wayspd;	       /*cpu 速度指定*/
-	int state{ 0 };			       /*cpu ステータス*/
+	std::array<short, waypc> wayspd;       /*cpu 速度指定*/
+	//int state{ 0 };			       /*cpu ステータス*/
 	int lost_sec{ 0 };		       /*cpu 見失いカウント*/
 	struct Guns {			       /**/
 		std::array<ammos, ammoc> Ammo; /*確保する弾*/
 		int loadcnt{ 0 };	       /*装てんカウンター*/
 		size_t useammo{};	       /*使用弾*/
 		float fired{ 0.f };	       /*駐退*/
-	} Gun[gunc];			       /*銃、砲全般*/
-	int gear{ 0 };			       /*変速*/
-	unsigned int gearu{ 0 };	       /*キー*/
-	unsigned int geard{ 0 };	       /*キー*/
+	};				       /**/
+	std::array<Guns,gunc> Gun;	       /*銃、砲全般*/
+	short gear{ 0 };		       /*変速*/
+	//unsigned int gearu{ 0 };	       /*キー*/
+	//unsigned int geard{ 0 };	       /*キー*/
 	float inertiax;			       /*慣性*/
-	float wheelrad[3]{ 0.f };	       /*履帯の送り、転輪旋回*/
+	std::array<float,3> wheelrad;	       /*履帯の送り、転輪旋回*/
 	VECTOR_ref gunrad;		       /*砲角度*/
 	VECTOR_ref gunrad_rec;		       /*砲角度*/
 	float gun_turn{ 0.f };		       /*砲旋回速度*/
@@ -296,15 +297,13 @@ public:
 	void set_se_vol(unsigned char size);
 	void play_sound(int p1);
 	int get_font(int p1) { return fonts[p1]; } //フォントハンドル取り出し
-	VECTOR_ref get_view_r(void) { return view_r; }
+	const auto get_view_r(void) { return view_r; }
 	const auto get_in(void) { return view_r.z() == 0.1f; }
 	VECTOR_ref get_view_pos(void) { return VScale(VGet(sin(view_r.y()) * cos(view_r.x()), sin(view_r.x()), cos(view_r.y()) * cos(view_r.x())), 15.0f * view_r.z()); }
 	EffekseerEffectHandle& get_effHandle(int p1) noexcept { return effHndle[p1]; }
 	const EffekseerEffectHandle& get_effHandle(int p1) const noexcept { return effHndle[p1]; }
-
 	EffekseerEffectHandle& get_gndhitHandle() noexcept { return gndsmkHndle; }
 	const EffekseerEffectHandle& get_gndhitHandle() const noexcept { return gndsmkHndle; }
-
 	vehicle* get_vehicle(int p1) { return &vecs[p1]; }
 };
 class HUMANS {

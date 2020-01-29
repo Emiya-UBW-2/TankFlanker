@@ -1,0 +1,899 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="ja-JP">
+	<HEAD>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <TITLE>ＤＸライブラリ Android版を使用した Androidアプリで Java のコードでカメラを使用する</TITLE>
+	<link rel="shortcut icon" href="../../DxLib.ico">
+	<link rel="stylesheet" href="../../style.css" type="text/css">
+	</HEAD>
+	<BODY BGCOLOR="#ffffff" TEXT="#000000" LINK="#0033CC" VLINK="#800040">
+	<div class="NormalFont">
+	<TABLE ALIGN="CENTER" WIDTH=1400  CELLSPACING=0 CELLPADDING=0 >
+		<TR>
+		<TD ALIGN="CENTER">
+		<FONT SIZE="6" COLOR="#000000"><B>
+			ＤＸライブラリ Android版を使用した Androidアプリで Java のコードでカメラを使用する
+		</B></FONT>
+		</TD></TR>
+		<TR><TD>
+		<HR>
+		<FONT SIZE="3" COLOR="#000000"><B>
+		<BR>
+
+		　すべての処理を C++ で実行できれば良いのですが、Android の基本言語が Java である関係で、<BR>
+		今のところ Java を使用しないと Android端末に搭載されているカメラを使用することができません。<BR><BR>
+
+		　なので、ここでは<FONT COLOR="#880022">『ＤＸライブラリ Android版』</FONT>には無いカメラの映像の取得を Java を使用して<BR>
+		行うための手順を記します。<BR><BR><BR>
+
+
+		　<A HREF="#R1">1.『AndroidManifest.xml』の内容をカメラの使用と Java のコードを実行できるように変更する<BR><BR></A>
+
+		　<A HREF="#R2">2.プロジェクトのターゲット API レベルを 23 に変更する<BR><BR></A>
+
+		　<A HREF="#R3">3.プロジェクトに Java のソースファイルを追加する<BR><BR></A>
+
+		　<A HREF="#R4">4.Java のコードを入力する<BR><BR></A>
+
+		　<A HREF="#R5">5.Java の情報を取得する C++ のコードを入力する<BR><BR><BR><BR></A>
+
+
+		<A NAME="R1">
+		<FONT COLOR="#008800">
+		1.プロジェクトの設定と『『AndroidManifest.xml』の内容をカメラの使用と Java のコードを実行できるように変更する<BR><BR>
+		</FONT>
+		</A>
+
+		　　<FONT COLOR="#880022">VisualStudio Community 2017 ( 又は 2015 )</FONT> で <FONT COLOR="#880022">『ＤＸライブラリ Android版』</FONT>を使用する Androidアプリのプロジェクトを開き<BR>
+		　<FONT COLOR="#880022">『ソリューションエクスプローラー』</FONT>と書かれているリストに表示されている<FONT COLOR="#880022">『AndroidManifest.xml』</FONT>を<BR>
+		　クリックして、内容を表示します。<BR><BR>
+
+		　　<FONT COLOR="#880022">『AndroidManifest.xml』</FONT>の内容は、<A HREF="../../use/dxuse_vscom2015_android.html">使い方ページ</A>に沿って編集した場合は以下のようになっていると思いますが、<BR>
+
+</B><FONT COLOR="#000000">
+<pre><div class="NormalFont">
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;!-- Changes made to Package Name should also be reflected in the Debugging - Package Name property, in the Property Pages --&gt;
+&lt;manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.$(ApplicationName)" android:versionCode="1" android:versionName="1.0"&gt;
+
+    &lt;!-- This is the platform API where NativeActivity was introduced. --&gt;
+    &lt;uses-sdk android:minSdkVersion="9" android:targetSdkVersion="19"/&gt;
+
+    &lt;!-- This .apk has no Java code itself, so set hasCode to false. --&gt;
+    &lt;application android:label="@string/app_name" android:hasCode="false" android:theme="@android:style/Theme.NoTitleBar"&gt;
+
+        &lt;!-- Our activity is the built-in NativeActivity framework class.
+             This will take care of integrating with our NDK code. --&gt;
+        &lt;activity android:name="android.app.NativeActivity" android:label="@string/app_name" android:configChanges="orientation|screenSize" android:launchMode="singleInstance"&gt;
+            &lt;!-- Tell NativeActivity the name of our .so --&gt;
+            &lt;meta-data android:name="android.app.lib_name" android:value="$(AndroidAppLibName)"/&gt;
+            &lt;intent-filter&gt;
+                &lt;action android:name="android.intent.action.MAIN"/&gt;
+                &lt;category android:name="android.intent.category.LAUNCHER"/&gt;
+            &lt;/intent-filter&gt;
+        &lt;/activity&gt;
+    &lt;/application&gt;
+&lt;/manifest&gt;
+</pre>
+</FONT><B><BR>
+
+		　　この中の以下のように変更します。(色が緑や赤の部分が変更箇所や追加箇所で、５箇所です)<BR>
+		
+</B><FONT COLOR="#000000">
+<pre><div class="NormalFont">
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;!-- Changes made to Package Name should also be reflected in the Debugging - Package Name property, in the Property Pages --&gt;
+&lt;manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.$(ApplicationName)" android:versionCode="1" android:versionName="1.0"&gt;
+
+    &lt;!-- This is the platform API where NativeActivity was introduced. --&gt;
+    &lt;uses-sdk android:minSdkVersion="<FONT COLOR="#008800">21</FONT>" android:targetSdkVersion="<FONT COLOR="#008800">23</FONT>"/&gt;
+
+    <FONT COLOR="#008800">&lt;uses-permission android:name="android.permission.CAMERA"/&gt;</FONT>
+
+    &lt;!-- This .apk has no Java code itself, so set hasCode to false. --&gt;
+    &lt;application android:label="@string/app_name" android:hasCode="<FONT COLOR="#008800">true</FONT>" android:theme="@android:style/Theme.NoTitleBar"&gt;
+
+        &lt;!-- Our activity is the built-in NativeActivity framework class.
+             This will take care of integrating with our NDK code. --&gt;
+        &lt;activity android:name="<FONT COLOR="#008800">com.<FONT COLOR="#880022">(プロジェクト名)</FONT>.Packaging.<FONT COLOR="#880022">(プロジェクト名)</FONT></FONT>" android:label="@string/app_name" android:configChanges="orientation|screenSize" android:launchMode="singleInstance"&gt;
+            &lt;!-- Tell NativeActivity the name of our .so --&gt;
+            &lt;meta-data android:name="android.app.lib_name" android:value="$(AndroidAppLibName)"/&gt;
+            &lt;intent-filter&gt;
+                &lt;action android:name="android.intent.action.MAIN"/&gt;
+                &lt;category android:name="android.intent.category.LAUNCHER"/&gt;
+            &lt;/intent-filter&gt;
+        &lt;/activity&gt;
+    &lt;/application&gt;
+&lt;/manifest&gt;
+</pre>
+</FONT><B>
+
+		　( <FONT COLOR="#880022">(プロジェクト名)</FONT>となっている箇所は、お手元のプロジェクトの名前を入力してください )<BR><BR><BR><BR>
+
+
+
+		<A NAME="R2">
+		<FONT COLOR="#008800">
+		2.プロジェクトのターゲット API レベルを 23 に変更する<BR><BR>
+		</FONT>
+		</A>
+
+		　　次に 以下の手順で Java プロジェクトのAPIレベルを 23 に変更します。<BR>
+		　　初期状態では APIレベルが 19 ですが、アプリがカメラを使う際に必要な権限取得の処理が、Android 6.0 ( APIレベル 23 )のときに<BR>
+		　大きく変更されたので、それに対応する処理を行うためには APIレベルを 23 以上にする必要がある為です。<BR><BR>
+
+		<FONT COLOR="#550088">
+		　　①　『ソリューションエクスプローラー』と書かれているリストに表示されている『<FONT COLOR="#880022">(プロジェクト名)</FONT>.Packaging』<BR>
+		　　　　を右クリックして、表示されるプルダウンメニューから『プロパティ(R)』を選択して、<BR>
+		　　　　『<FONT COLOR="#880022">(プロジェクト名)</FONT> プロパティページ』ダイアログを表示します。<BR><BR>
+
+		　　②　次にダイアログの左側のリストから『構成プロパティ』→『全般』を選びます。<BR><BR>
+
+		　　③　ダイアログ右側に表示されている『ターゲット API レベル』の項目を『KitKat 4.4 - 4.4.4、(android-19)』から<BR>
+		　　　　『Marshmallow 6.0、(android-23)』に変更した後、ダイアログ右下にある『ＯＫ』ボタンを押してダイアログを閉じます。<BR><BR>
+		</FONT>
+
+		　　これでプロジェクトで使用する Java の API レベルが 23 になります。<BR><BR><BR><BR>
+
+
+		<A NAME="R3">
+		<FONT COLOR="#008800">
+		3.プロジェクトに Java のソースファイルを追加する<BR><BR>
+		</FONT>
+		</A>
+
+		　　次に Java のソースファイルを以下の手順でプロジェクトに追加します。<BR><BR>
+
+		<FONT COLOR="#550088">
+		　　①　『ソリューションエクスプローラー』と書かれているリストに表示されている『<FONT COLOR="#880022">(プロジェクト名)</FONT>.Packaging』<BR>
+		　　　　を右クリックして、表示されるプルダウンメニューから『追加(D)』→『新しいフォルダー(D)』を選択して、<BR>
+		　　　　『新しいフォルダー』を追加して、名前を『src』としてください。<BR><BR>
+
+		　　②　次に追加した『src』フォルダーを右クリックして、再びプルダウンメニューから『追加(D)』→『新しいフォルダー(D)』を選択して、<BR>
+		　　　　『新しいフォルダー』を追加して、今度は名前を『com』としてください。<BR><BR>
+
+		　　③　次に追加した『com』フォルダーを右クリックして、再びプルダウンメニューから『追加(D)』→『新しいフォルダー(D)』を選択して、<BR>
+		　　　　『新しいフォルダー』を追加して、今度は名前を『<FONT COLOR="#880022">(プロジェクト名)</FONT>』( <FONT COLOR="#880022">(プロジェクト名)</FONT> はお手元のプロジェクトの名前に置き換えてください )としてください。<BR><BR>
+
+		　　④　次に追加した『<FONT COLOR="#880022">(プロジェクト名)</FONT>』フォルダーを右クリックして、再びプルダウンメニューから『追加(D)』→『新しいフォルダー(D)』を選択して、<BR>
+		　　　　『新しいフォルダー』を追加して、今度は名前を『Packaging』としてください。<BR><BR>
+
+		　　　　と、要は『<FONT COLOR="#880022">(プロジェクト名)</FONT>.Packaging』以下に『src』→『com』→『<FONT COLOR="#880022">(プロジェクト名)</FONT>』→『Packaging』というフォルダ<BR>
+		　　　　を作ります。次に漸く Java ファイルの追加です。<BR><BR>
+
+		　　⑤　追加した『Packaging』フォルダーを右クリックして、今度は『新しい項目(W)...』を選択して『新しい項目の追加』ダイアログを表示します。<BR><BR>
+
+		　　⑥　ダイアログ左側のリストから『インストール済み』→『Cross Platform』→『Android』を選び、<BR>
+		　　　　右側のリストから『Java』を選びます。<BR><BR>
+
+		　　⑦　ダイアログ下側の『名前(N):』の項目に『<FONT COLOR="#880022">(プロジェクト名)</FONT>.java』と入力して『追加(A)』ボタンを押します。<BR><BR>
+
+		　　⑧　次に追加された『<FONT COLOR="#880022">(プロジェクト名)</FONT>.java』を開いた状態でメニューから『ファイル(F)』→『名前を付けて<FONT COLOR="#880022">(プロジェクト名)</FONT>.javaを保存(A)...』を<BR>
+		　　　　選択して、『名前を付けてファイルを保存』ダイアログを表示します。<BR>
+		　　　　<FONT COLOR="#886600">( VisualStudio 2015 の場合はメニューから『ファイル(F)』→『保存オプションの詳細設定(V)...』を選択して、『保存オプションの詳細設定』ダイアログを表示します )</FONT><BR><BR>
+
+		　　⑨　『名前を付けてファイルを保存』ダイアログの右下にある『上書き保存(S)』の項目を『エンコード付きで保存(V)...』<BR>
+		　　　　に変更します。すると変更した瞬間に『名前を付けて保存の確認』ダイアログが表示されますので『はい(Y)』を選択してください。<BR>
+		　　　　<FONT COLOR="#886600">( VisualStudio 2015 の場合はこの工程が無いので、手順⑩に進んでください )</FONT><BR><BR>
+
+		　　⑩　次に『保存オプションの詳細設定』ダイアログの『エンコード(E):』の項目を『日本語 (シフト JIS) - コードページ 932』から<BR>
+		　　　　『Unicode (UTF-8 シグネチャなし) - コードページ 65001』に変更して『OK』ボタンを押します。<BR>
+		　　　　<FONT COLOR="#880022">( 『Unicode (UTF-8 シグネチャ付き) - コードページ 65001』と間違えないようにしてください、<BR>
+		　　　　　『Unicode (UTF-8 シグネチャなし) - コードページ 65001』はリストのかなり下の方にあります )</FONT><BR><BR>
+		</FONT>
+		　( <FONT COLOR="#880022">(プロジェクト名)</FONT>となっている箇所は、お手元のプロジェクトの名前を入力してください )<BR><BR><BR>
+
+		　　これで java ファイルの追加は完了です。<BR><BR><BR><BR>
+
+
+		<A NAME="R4">
+		<FONT COLOR="#008800">
+		4.Java のコードを入力する<BR><BR>
+		</FONT>
+		</A>
+
+		　　追加した『<FONT COLOR="#880022">(プロジェクト名)</FONT>.java』には最初から数行書かれていますが、それを全部消して、代わりに<BR>
+		　今回の<FONT COLOR="#880022">『カメラの映像の取得』</FONT>を行うための以下のコードを入力します。
+
+</B><FONT COLOR="#000000">
+<pre><div class="NormalFont">
+package com.<FONT COLOR="#880022">(プロジェクト名)</FONT>.Packaging;
+
+import android.content.Context;
+import android.content.res.Configuration;
+import android.content.pm.PackageManager;
+import android.app.NativeActivity;
+import android.widget.Toast;
+import android.Manifest;
+import android.util.Size;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.List;
+import android.graphics.ImageFormat;
+import android.graphics.SurfaceTexture;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCaptureSession;
+import android.hardware.camera2.CameraCaptureSession.CaptureCallback;
+import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraDevice;
+import android.hardware.camera2.CameraDevice.StateCallback;
+import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.params.StreamConfigurationMap;
+import android.hardware.camera2.TotalCaptureResult;
+import android.media.Image;
+import android.media.ImageReader;
+import android.media.ImageReader.OnImageAvailableListener;
+import android.view.Surface;
+
+
+public class <FONT COLOR="#880022">(プロジェクト名)</FONT> extends NativeActivity
+{
+	String mCameraId;
+	boolean mIsPortraitDevice;
+	CameraManager mCameraManager;
+	CameraCaptureSession mCameraCaptureSession;
+	CaptureRequest.Builder mCaptureRequestBuilder;
+	ImageReader mImageReader;
+
+	<FONT COLOR="#008800">// カメラ映像の解像度</FONT>
+	int mCameraImageSizeX;
+	int mCameraImageSizeY;
+
+	<FONT COLOR="#008800">// カメラ映像のYUVイメージのY要素を格納する配列とUV要素を格納する配列</FONT>
+	byte mCameraYImage[];
+	byte mCameraUVImage[];
+
+	<FONT COLOR="#008800">// カメラ映像のYUVフォーマット  1:NV21   2:NV12   3:I420</FONT>
+	int mImageFormat;
+
+	<FONT COLOR="#008800">// カメラの回転角度		0:0度  1:90度  2:180度  3:270度</FONT>
+	int mCameraRotation;
+
+ 	<FONT COLOR="#008800">// カメラの状態( 0:準備中   1:イメージ取得開始   2:エラー )</FONT>
+ 	int mCameraState;
+
+	<FONT COLOR="#008800">// カメラ情報取得の権限をリクエストする際に使用する識別番号</FONT>
+	static final int PERMISSIONS_REQUEST_CAMERA = 2 ;
+
+	<FONT COLOR="#008800">// ByteBuffer の実効アドレスを取得する関数</FONT>
+	private static long GetByteBufferAddress( final ByteBuffer buffer )
+	{
+		try {
+			<FONT COLOR="#008800">// Buffer クラスのメンバー変数 effectiveDirectAddress へアクセスする為の Field を取得</FONT>
+			final java.lang.reflect.Field field = java.nio.Buffer.class.getDeclaredField( "effectiveDirectAddress" );
+
+			<FONT COLOR="#008800">// 値へのアクセスを可能にする</FONT>
+			field.setAccessible( true );
+
+			<FONT COLOR="#008800">// 実効アドレスを取得して返す</FONT>
+			return field.getLong( buffer );
+		} catch( NoSuchFieldException e ) {
+			e.printStackTrace();	<FONT COLOR="#008800">// 例外が発生したらコールスタックをログに出力する</FONT>
+		} catch( IllegalAccessException e ) {
+			e.printStackTrace();	<FONT COLOR="#008800">// 例外が発生したらコールスタックをログに出力する</FONT>
+		}
+
+		return 0;
+	}
+
+	<FONT COLOR="#008800">// カメラマネージャの初期化を行う</FONT>
+	private void InitializeCameraManager()
+	{
+		<FONT COLOR="#008800">// スマートフォンかどうかを調べておく</FONT>
+		boolean isPortraitApp = getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
+		int orientation = getWindowManager().getDefaultDisplay().getRotation();
+		if( isPortraitApp )
+		{
+			mIsPortraitDevice = ( orientation == Surface.ROTATION_0 || orientation ==  Surface.ROTATION_180 );
+		}
+		else
+		{
+			mIsPortraitDevice = ( orientation == Surface.ROTATION_90 || orientation ==  Surface.ROTATION_270 );
+		}
+
+		<FONT COLOR="#008800">// カメラマネージャの取得</FONT>
+		mCameraManager = ( CameraManager )getSystemService( Context.CAMERA_SERVICE );
+
+		try {
+			<FONT COLOR="#008800">// 有効なカメラが見つかったかどうかのフラグを倒しておく</FONT>
+			boolean Flag = false;
+
+			<FONT COLOR="#008800">// 搭載されているカメラのID配列を取得</FONT>
+			String[] CameraIDs = mCameraManager.getCameraIdList();
+
+			<FONT COLOR="#008800">// カメラのIDの数だけループ</FONT>
+			for( String cameraId : CameraIDs )
+			{
+				<FONT COLOR="#008800">// カメラの情報を取得</FONT>
+				CameraCharacteristics characteristics = mCameraManager.getCameraCharacteristics( cameraId );
+
+				<FONT COLOR="#008800">// 背面カメラ以外はキャンセルする</FONT>
+				if( characteristics.get( CameraCharacteristics.LENS_FACING ) == CameraCharacteristics.LENS_FACING_BACK )
+				{
+					StreamConfigurationMap map = characteristics.get( CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP );
+
+					<FONT COLOR="#008800">// カメラが対応しているサイズの配列を取得</FONT>
+					Size[] CameraImageSizes = map.getOutputSizes( SurfaceTexture.class );
+
+					<FONT COLOR="#008800">// カメラのサイズ 640x480 か 320x240 を使用する</FONT>
+					boolean Valid640x480 = false;
+					boolean Valid320x240 = false;
+					for( Size cameraSize : CameraImageSizes )
+					{
+						if( cameraSize.getWidth() == 320 && cameraSize.getHeight() == 240 )
+						{
+							Valid320x240 = true;
+						}
+						else
+						if( cameraSize.getWidth() == 640 && cameraSize.getHeight() == 480 )
+						{
+							Valid640x480 = true;
+						}
+					}
+
+					<FONT COLOR="#008800">// 640x480 が有効な場合は 640x480 を、そうでない場合は 320x240 を使用する</FONT>
+					if( Valid640x480 )
+					{
+						mCameraImageSizeX = 640;
+						mCameraImageSizeY = 480;
+					}
+					else
+					if( Valid320x240 )
+					{
+						mCameraImageSizeX = 320;
+						mCameraImageSizeY = 240;
+					}
+					else
+					{
+						<FONT COLOR="#008800">// 640x480 にも 320x240 にも対応していなかったらキャンセル</FONT>
+						continue;
+					}
+
+					<FONT COLOR="#008800">// カメラのIDを保存</FONT>
+					mCameraId = cameraId;
+
+					<FONT COLOR="#008800">// 有効なカメラがあったかどうかのフラグを立てる</FONT>
+					Flag = true;
+					break;
+				}
+			}
+			
+			<FONT COLOR="#008800">// 有効なカメラが無かったらここで終了</FONT>
+			if( Flag == false )
+			{
+				return;
+			}
+		} catch( CameraAccessException e ) {
+			e.printStackTrace();	<FONT COLOR="#008800">// 例外が発生したらコールスタックをログに出力する</FONT>
+		}
+
+		<FONT COLOR="#008800">// カメラのYUVイメージのY要素を保存する配列を作成</FONT>
+		mCameraYImage  = new byte[ mCameraImageSizeX * mCameraImageSizeY ]; 
+
+		<FONT COLOR="#008800">// カメラのYUVイメージのUV要素を保存する配列を作成</FONT>
+		mCameraUVImage = new byte[ ( mCameraImageSizeX / 2 ) * ( mCameraImageSizeY / 2 ) * 2 ]; 
+
+		try {
+			<FONT COLOR="#008800">// カメラへの接続を開始</FONT>
+			mCameraManager.openCamera(
+				mCameraId,
+				new StateCallback()
+				{
+					<FONT COLOR="#008800">// カメラへの接続が完了したら呼ばれる関数</FONT>
+					@Override
+					public void onOpened( CameraDevice cameraDevice )
+					{
+						<FONT COLOR="#008800">// カメラのイメージを取得する為の ImageReader を作成</FONT>
+						mImageReader = ImageReader.newInstance( mCameraImageSizeX, mCameraImageSizeY, ImageFormat.YUV_420_888, 1 );
+
+						<FONT COLOR="#008800">// カメラのプレビューイメージの取得リクエストの作成</FONT>
+						try {
+							mCaptureRequestBuilder = cameraDevice.createCaptureRequest( CameraDevice.TEMPLATE_PREVIEW );
+						} catch( CameraAccessException e ) {
+							e.printStackTrace();	<FONT COLOR="#008800">// 例外が発生したらコールスタックをログに出力する</FONT>
+						}
+
+						<FONT COLOR="#008800">// カメラのプレビューイメージの取得リクエスト先に作成した ImageReader を追加</FONT>
+						mCaptureRequestBuilder.addTarget( mImageReader.getSurface() );
+
+						<FONT COLOR="#008800">// カメラのプレビューイメージの取得を開始</FONT>
+						try {
+							List< Surface > outputs = Arrays.asList( mImageReader.getSurface() );
+							cameraDevice.createCaptureSession(
+								outputs,
+								new CameraCaptureSession.StateCallback()
+								{
+									<FONT COLOR="#008800">// イメージの取得が開始されたら呼ばれる関数</FONT>
+									@Override
+									public void onConfigured( CameraCaptureSession session )
+									{
+										mCameraCaptureSession = session;
+
+										<FONT COLOR="#008800">// オートフォーカスモードを設定</FONT>
+										mCaptureRequestBuilder.set( CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE );
+
+										<FONT COLOR="#008800">// フラッシュの設定</FONT>
+										mCaptureRequestBuilder.set( CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH );
+
+										<FONT COLOR="#008800">// イメージの取得を繰り返し行う処理の開始</FONT>
+										try {
+											mCameraCaptureSession.setRepeatingRequest(
+												mCaptureRequestBuilder.build(),
+												new CaptureCallback()
+												{
+													@Override
+													public void onCaptureCompleted( CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result )
+													{
+														super.onCaptureCompleted( session, request, result );
+													}
+												},
+												null
+											);
+										} catch( CameraAccessException e ){
+											e.printStackTrace();	<FONT COLOR="#008800">// 例外が発生したらコールスタックをログに出力する</FONT>
+										}
+									}
+
+									@Override
+									public void onConfigureFailed( CameraCaptureSession session )
+									{
+									}
+								},
+								null
+							);
+						} catch( CameraAccessException e )
+						{
+							e.printStackTrace();	<FONT COLOR="#008800">// 例外が発生したらコールスタックをログに出力する</FONT>
+						}
+
+						<FONT COLOR="#008800">// ここまで来たらイメージの取得が開始されている</FONT>
+						mCameraState = 1;
+
+						<FONT COLOR="#008800">// ImageReader のイメージが更新されたら呼ばれる処理の設定</FONT>
+						mImageReader.setOnImageAvailableListener(
+							new OnImageAvailableListener()
+							{
+								<FONT COLOR="#008800">// ImageReader のイメージが更新された呼ばれる関数</FONT>
+								@Override
+								public void onImageAvailable( ImageReader reader )
+								{
+									<FONT COLOR="#008800">// このタイミングでカメラの向きも取得</FONT>
+									{
+										int orientation = getWindowManager().getDefaultDisplay().getRotation();
+										switch( orientation )
+										{
+										case Surface.ROTATION_0:
+											mCameraRotation = mIsPortraitDevice ? 3 : 0;
+											break;
+
+										case Surface.ROTATION_90:
+											mCameraRotation = mIsPortraitDevice ? 0 : 1;
+											break;
+
+										case Surface.ROTATION_180:
+											mCameraRotation = mIsPortraitDevice ? 1 : 2;
+											break;
+
+										case Surface.ROTATION_270:
+											mCameraRotation = mIsPortraitDevice ? 2 : 3;
+											break;
+										}
+									}
+
+									<FONT COLOR="#008800">// ImageReader から Image を取得</FONT>
+									Image image = mImageReader.acquireLatestImage();
+
+									<FONT COLOR="#008800">// カメラのイメージのフォーマットを取得</FONT>
+									if( mImageFormat == 0 )
+									{
+										<FONT COLOR="#008800">// Uイメージのストライドが1byteの場合は I420フォーマット</FONT>
+										if( image.getPlanes()[ 1 ].getPixelStride() == 1 )
+										{
+											mImageFormat = 3;
+										}
+										else
+										{
+											ByteBuffer uBuffer = image.getPlanes()[ 1 ].getBuffer();
+											ByteBuffer vBuffer = image.getPlanes()[ 2 ].getBuffer();
+											if( GetByteBufferAddress( uBuffer ) < GetByteBufferAddress( vBuffer ) )
+											{
+												<FONT COLOR="#008800">// UVの順番でイメージが格納されている場合は NV12フォーマット</FONT>
+												mImageFormat = 2 ;
+											}
+											else
+											{
+												<FONT COLOR="#008800">// VUの順番でイメージが格納されている場合は NV21フォーマット</FONT>
+												mImageFormat = 1 ;
+											}
+										}
+									}
+	
+									<FONT COLOR="#008800">// YUVイメージをクラスの配列にコピーする</FONT>
+									{
+										ByteBuffer ys = image.getPlanes()[ 0 ].getBuffer();
+										ByteBuffer us = image.getPlanes()[ 1 ].getBuffer();
+										ByteBuffer vs = image.getPlanes()[ 2 ].getBuffer();
+
+										<FONT COLOR="#008800">// Yイメージは全フォーマット共通</FONT>
+										int i ;
+										int loopNum = mCameraImageSizeX * mCameraImageSizeY ;
+										for( i = 0 ; i < loopNum ; i ++ )
+										{
+											mCameraYImage[ i ] = ys.get( i );
+										}
+
+										<FONT COLOR="#008800">// UVイメージはフォーマットによって処理が異なる</FONT>
+										int j = 0 ;
+										loopNum = ( mCameraImageSizeX / 2 ) * ( mCameraImageSizeY / 2 ) ;
+										switch( mImageFormat )
+										{
+										case 1:	<FONT COLOR="#008800">// I420</FONT>
+										case 2:	<FONT COLOR="#008800">// NV12</FONT>
+											for( i = 0 ; i < loopNum ; i ++ )
+											{
+												mCameraUVImage[ j + 0 ] = us.get( j );
+												mCameraUVImage[ j + 1 ] = vs.get( j );
+												j += 2 ;
+											}
+											break;
+
+										case 3:	<FONT COLOR="#008800">// NV21</FONT>
+											for( i = 0 ; i < loopNum ; i ++ )
+											{
+												mCameraUVImage[ j + 0 ] = us.get( i );
+												mCameraUVImage[ j + 1 ] = vs.get( i );
+												j += 2 ;
+											}
+											break;
+										}
+									}
+	
+									<FONT COLOR="#008800">// Image の解放</FONT>
+									image.close();
+								}
+							},
+							null
+						);
+					}
+
+					@Override
+					public void onError(CameraDevice camera, int error)
+					{
+					}
+
+					@Override
+					public void onDisconnected(CameraDevice camera)
+					{
+					}
+				},
+				null
+			);
+		} catch( CameraAccessException e ) {
+			e.printStackTrace();	<FONT COLOR="#008800">// 例外が発生したらコールスタックをログに出力する</FONT>
+		}
+	}
+
+	<FONT COLOR="#008800">// 権限の許可を求めるダイアログで許可か不許可が選択されたら呼ばれる関数</FONT>
+	public void onRequestPermissionsResult( int requestCode, String[] permissions, int[] grantResults )
+	{
+		<FONT COLOR="#008800">// カメラ情報取得の権限を求めるリクエストに対する結果の場合のみ処理を行う</FONT>
+		if( requestCode == PERMISSIONS_REQUEST_CAMERA )
+		{
+			<FONT COLOR="#008800">// 許可されたのかどうかを判定</FONT>
+			if( grantResults[ 0 ] == PackageManager.PERMISSION_GRANTED )
+			{
+				<FONT COLOR="#008800">// 許可されたらカメラマネージャを初期化</FONT>
+				Toast.makeText( <FONT COLOR="#880022">(プロジェクト名)</FONT>.this, "カメラ情報取得が許可されました", Toast.LENGTH_SHORT ).show() ;
+				InitializeCameraManager() ;
+			}
+			else
+			{
+				<FONT COLOR="#008800">// 許可されなかったらその旨を表示する</FONT>
+				Toast.makeText( <FONT COLOR="#880022">(プロジェクト名)</FONT>.this, "カメラ情報取得が拒否されました", Toast.LENGTH_SHORT ).show() ;
+
+				<FONT COLOR="#008800">// カメラ使用不可の状態にする</FONT>
+				mCameraState = 2 ;
+			}
+		}
+	}
+
+	<FONT COLOR="#008800">// カメラの処理を開始する</FONT>
+	public void StartCamera()
+	{
+		<FONT COLOR="#008800">// UIスレッドで実行する処理を登録する</FONT>
+		runOnUiThread( 
+			new Runnable() 
+			{
+				<FONT COLOR="#008800">// UIスレッドで呼ばれる関数</FONT>
+				@Override public void run()
+				{
+					<FONT COLOR="#008800">// Android のバージョンチェック</FONT>
+					if( android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M )
+					{
+						<FONT COLOR="#008800">// Android 6.0以上の場合はアプリ実行中に位置情報取得の権限があるかをチェックする</FONT>
+
+						<FONT COLOR="#008800">// カメラ情報取得の権限があるか判定</FONT>
+						if( checkSelfPermission( Manifest.permission.CAMERA ) == PackageManager.PERMISSION_GRANTED )
+						{
+							<FONT COLOR="#008800">// カメラ情報取得の権限があればカメラマネージャを初期化</FONT>
+							Toast.makeText( <FONT COLOR="#880022">(プロジェクト名)</FONT>.this, "このアプリはカメラ情報取得の権限が既にあります", Toast.LENGTH_SHORT ).show() ;
+							InitializeCameraManager() ;
+						}
+						else
+						{
+							<FONT COLOR="#008800">// カメラ情報取得の権限が無ければ権限を求めるダイアログを表示</FONT>
+							requestPermissions(
+								new String[]{ Manifest.permission.CAMERA },
+								PERMISSIONS_REQUEST_CAMERA
+							) ;
+						}
+					}
+					else
+					{
+						<FONT COLOR="#008800">// Android 6.0未満の場合はアプリ実行時にはカメラ情報取得の権限が許可されているので</FONT>
+						<FONT COLOR="#008800">// 無条件でカメラマネージャの初期化を行う</FONT>
+						InitializeCameraManager() ;
+					}
+				}
+			}
+		) ;
+	}
+}
+
+</pre>
+</FONT><B>
+		　( <FONT COLOR="#880022">(プロジェクト名)</FONT>となっている箇所は、お手元のプロジェクトの名前を入力してください )<BR><BR><BR><BR>
+
+
+		<A NAME="R5">
+		<FONT COLOR="#008800">
+		5.Java の情報を取得する C++ のコードを入力する<BR><BR>
+		</FONT>
+		</A>
+
+		　　次に Java のカメラの映像取得の処理を開始する関数を呼び出したり、カメラの状態やカメラの映像を画面に表示したりする C++ 側のプログラムです。<BR>
+		　　<FONT COLOR="#880022">『ＤＸライブラリ Android版』</FONT>でのみ使用できる <FONT COLOR="#880022">GetNativeActivity</FONT> という関数を使用しています。<BR>
+
+
+</B><FONT COLOR="#000000">
+<pre><div class="NormalFont">
+#include "DxLib.h"
+
+<FONT COLOR="#008800">// Java のクラスの int型のメンバー変数を取得する関数</FONT>
+int GetJavaClassIntValue( const ANativeActivity *NativeActivity, JNIEnv *env, jclass Class, const char *Name )
+{
+	return env->GetIntField( NativeActivity->clazz, env->GetFieldID( Class, Name, "I" ) ) ;
+}
+
+int android_main( void )
+{
+	JNIEnv *env ;
+	const ANativeActivity *NativeActivity ;
+	int CameraState = 0 ;
+	int CameraImageSizeX = 0 ;
+	int CameraImageSizeY = 0 ;
+	int CameraRotation = -1 ;
+	int CameraGraphHandle = -1 ;
+	int CameraSoftImageHandle = -1 ;
+
+	<FONT COLOR="#008800">// 背景を灰色にする</FONT>
+	SetBackgroundColor( 128,128,128 ) ;
+
+	SetGraphMode( 640, 960, 32 ) ;
+
+	<FONT COLOR="#008800">// ＤＸライブラリの初期化</FONT>
+	if( DxLib_Init() < 0 ) return -1 ;
+
+	<FONT COLOR="#008800">// 描画先を裏画面に変更</FONT>
+	SetDrawScreen( DX_SCREEN_BACK ) ;
+
+	<FONT COLOR="#008800">// アプリの NativeActivity を取得しておく</FONT>
+	NativeActivity = GetNativeActivity() ;
+
+	<FONT COLOR="#008800">// Java の関数 StartCamera の呼び出し</FONT>
+	{
+		<FONT COLOR="#008800">// JavaVM とソフト実行用スレッドを関連付け( C++ から Java の機能を使用するために必要 )</FONT>
+		if( NativeActivity->vm->AttachCurrentThreadAsDaemon( &env, NULL ) != JNI_OK )
+		{
+			return -1 ;
+		}
+
+		<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> を取得</FONT>
+		jclass jclass_<FONT COLOR="#880022">(プロジェクト名)</FONT> = env->GetObjectClass( NativeActivity->clazz ) ;
+
+		<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> のメンバー関数 StartCamera の ID を取得</FONT>
+		jmethodID jmethodID_StartCamera = env->GetMethodID( jclass_<FONT COLOR="#880022">(プロジェクト名)</FONT>, "StartCamera", "()V" ) ;
+
+		<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> のメンバー関数 StartCamera の呼び出し</FONT>
+		env->CallVoidMethod( NativeActivity->clazz, jmethodID_StartCamera ) ;
+
+		<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> の参照を削除</FONT>
+		env->DeleteLocalRef( jclass_<FONT COLOR="#880022">(プロジェクト名)</FONT> ) ;
+
+		<FONT COLOR="#008800">// JavaVM とソフト実行用スレッドの関連付け終了</FONT>
+		NativeActivity->vm->DetachCurrentThread() ;
+	}
+
+	<FONT COLOR="#008800">// メインループ</FONT>
+	while( ProcessMessage() == 0 )
+	{
+		<FONT COLOR="#008800">// 裏画面の内容をクリア</FONT>
+		ClearDrawScreen() ;
+
+		<FONT COLOR="#008800">// JNI 関連の処理</FONT>
+		{
+			<FONT COLOR="#008800">// JavaVM とソフト実行用スレッドを関連付け( C++ から Java の機能を使用するために必要 )</FONT>
+			if( NativeActivity->vm->AttachCurrentThreadAsDaemon( &env, NULL ) != JNI_OK )
+			{
+				return -1 ;
+			}
+
+			<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> を取得</FONT>
+			jclass jclass_<FONT COLOR="#880022">(プロジェクト名)</FONT> = env->GetObjectClass( NativeActivity->clazz ) ;
+
+			<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> のメンバー変数 CameraState の値を取得</FONT>
+			CameraState = GetJavaClassIntValue( NativeActivity, env, jclass_<FONT COLOR="#880022">(プロジェクト名)</FONT>, "mCameraState" ) ;
+
+			<FONT COLOR="#008800">// カメラが使用可能な状態になっていたら更に情報を取得する</FONT>
+			if( CameraState == 1 )
+			{
+				<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> の int型のメンバー変数の値を取得</FONT>
+				CameraImageSizeX = GetJavaClassIntValue( NativeActivity, env, jclass_<FONT COLOR="#880022">(プロジェクト名)</FONT>, "mCameraImageSizeX" ) ;
+				CameraImageSizeY = GetJavaClassIntValue( NativeActivity, env, jclass_<FONT COLOR="#880022">(プロジェクト名)</FONT>, "mCameraImageSizeY" ) ;
+				CameraRotation = GetJavaClassIntValue( NativeActivity, env, jclass_<FONT COLOR="#880022">(プロジェクト名)</FONT>, "mCameraRotation" ) ;
+
+				<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> のメンバー変数 mCameraYImage と mCameraUVImage の ID を取得</FONT>
+				jfieldID jfieldID_mCameraYImage  = env->GetFieldID( jclass_<FONT COLOR="#880022">(プロジェクト名)</FONT>, "mCameraYImage",  "[B" ) ;
+				jfieldID jfieldID_mCameraUVImage = env->GetFieldID( jclass_<FONT COLOR="#880022">(プロジェクト名)</FONT>, "mCameraUVImage", "[B" ) ;
+
+				<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> のメンバー変数 mCameraYImage と mCameraUVImage の値を取得</FONT>
+				{
+					<FONT COLOR="#008800">// ソフトイメージハンドルがまだ作成されていなかったらここで作成する</FONT>
+					if( CameraSoftImageHandle == -1 )
+					{
+						CameraSoftImageHandle = MakeARGB8ColorSoftImage( CameraImageSizeX, CameraImageSizeY ) ;
+					}
+
+					<FONT COLOR="#008800">// YイメージとUVイメージが格納されている配列のJNIオブジェクトを取得</FONT>
+					jbyteArray jbyteArray_CameraYImage  = ( jbyteArray )env->GetObjectField( NativeActivity->clazz, jfieldID_mCameraYImage );
+					jbyteArray jbyteArray_CameraUVImage = ( jbyteArray )env->GetObjectField( NativeActivity->clazz, jfieldID_mCameraUVImage );
+
+					<FONT COLOR="#008800">// JNIオブジェクトからYイメージとUVイメージが格納されているメモリアドレスを取得</FONT>
+					jbyte *jbyte_CameraYImage  = env->GetByteArrayElements( jbyteArray_CameraYImage,  NULL ) ;
+					jbyte *jbyte_CameraUVImage = env->GetByteArrayElements( jbyteArray_CameraUVImage, NULL ) ;
+				
+					<FONT COLOR="#008800">// ソフトイメージハンドルにYUVイメージをRGBイメージに変換しながら転送</FONT>
+					BYTE *yimg = ( BYTE * )jbyte_CameraYImage ;
+					BYTE *dest = ( BYTE * )GetImageAddressSoftImage( CameraSoftImageHandle ) ;
+					for( int i = 0 ; i < CameraImageSizeY ; i ++ )
+					{
+						BYTE *uvimg = ( BYTE * )jbyte_CameraUVImage + ( i / 2 ) * ( CameraImageSizeX / 2 ) * 2 ;
+						int k = 0 ;
+						for( int j = 0 ; j < CameraImageSizeX ; j ++ )
+						{
+							int b = ( int )( *yimg + ( 1.732446f * ( ( int )uvimg[ 0 ] - 128 ) ) );
+							int g = ( int )( *yimg - ( 0.698001f * ( ( int )uvimg[ 1 ] - 128 ) ) - ( 0.337633f * ( ( int )uvimg[ 0 ] - 128 ) ) );
+							int r = ( int )( *yimg + ( 1.370705f * ( ( int )uvimg[ 1 ] - 128 ) ) );
+
+							dest[ 0 ] = ( BYTE )( b < 0 ? 0 : ( b > 255 ? 255 : b ) ) ;
+							dest[ 1 ] = ( BYTE )( g < 0 ? 0 : ( g > 255 ? 255 : g ) ) ;
+							dest[ 2 ] = ( BYTE )( r < 0 ? 0 : ( r > 255 ? 255 : r ) ) ;
+							dest[ 3 ] = 0xff ;
+
+							dest += 4 ;
+
+							yimg ++ ;
+							k ++ ;
+							if( k == 2 )
+							{
+								k = 0 ;
+								uvimg += 2 ;
+							}
+						}
+					}
+
+					<FONT COLOR="#008800">// YイメージとUVイメージが格納されている配列へのアクセスの終了</FONT>
+					env->ReleaseByteArrayElements( jbyteArray_CameraYImage,  jbyte_CameraYImage, 0 ) ;
+					env->ReleaseByteArrayElements( jbyteArray_CameraUVImage, jbyte_CameraUVImage, 0 ) ;
+				}
+			}
+
+			<FONT COLOR="#008800">// Java のクラス <FONT COLOR="#880022">(プロジェクト名)</FONT> の参照を削除</FONT>
+			env->DeleteLocalRef( jclass_<FONT COLOR="#880022">(プロジェクト名)</FONT> ) ;
+
+			<FONT COLOR="#008800">// JavaVM とソフト実行用スレッドの関連付け終了</FONT>
+			NativeActivity->vm->DetachCurrentThread() ;
+		}
+
+		<FONT COLOR="#008800">// ソフトイメージハンドルが作成されている場合のみ画像の描画処理を行う</FONT>
+		if( CameraSoftImageHandle != -1 )
+		{
+			<FONT COLOR="#008800">// 既にカメラから取得した画像を描画する為のグラフィックハンドルが作成されているかどうかで処理を分岐</FONT>
+			if( CameraGraphHandle == -1 )
+			{
+				<FONT COLOR="#008800">// まだグラフィックハンドルが作成されていなかったらソフトイメージハンドルからグラフィックハンドルを作成する</FONT>
+				CameraGraphHandle = CreateGraphFromSoftImage( CameraSoftImageHandle ) ;
+			}
+			else
+			{
+				<FONT COLOR="#008800">// 既にグラフィックハンドルが作成されていたらソフトイメージハンドルのイメージをグラフィックハンドルに転送</FONT>
+				ReCreateGraphFromSoftImage( CameraSoftImageHandle, CameraGraphHandle ) ;
+			}
+
+			<FONT COLOR="#008800">// カメラの向きに応じて回転させつつ描画</FONT>
+			switch( CameraRotation )
+			{
+			case 0:
+				DrawRotaGraph( 320, 480, 1.0, DX_PI * 2.0, CameraGraphHandle, FALSE ) ;
+				break;
+
+			case 1:
+				DrawRotaGraph( 320, 480, 1.0, DX_PI * 1.5, CameraGraphHandle, FALSE ) ;
+				break;
+
+			case 2:
+				DrawRotaGraph( 320, 480, 1.0, DX_PI * 1.0, CameraGraphHandle, FALSE ) ;
+				break;
+
+			case 3:
+				DrawRotaGraph( 320, 480, 1.0, DX_PI * 0.5, CameraGraphHandle, FALSE ) ;
+				break;
+			}
+		}
+
+		<FONT COLOR="#008800">// カメラの状態と解像度を描画</FONT>
+		DrawFormatString( 0,  0, GetColor( 255,255,255 ), "CameraState : %s   Size : %d x %d",
+			CameraState == 0 ? "準備中" : ( CameraState == 1 ? "使用可能" : "使用不可能" ),
+			CameraImageSizeX, CameraImageSizeY
+		) ;
+
+		<FONT COLOR="#008800">// 裏画面の内容を表画面に反映</FONT>
+		ScreenFlip() ;
+	}
+
+	<FONT COLOR="#008800">// ＤＸライブラリの後始末</FONT>
+	DxLib_End() ;
+
+	<FONT COLOR="#008800">// ソフトの終了</FONT>
+	return 0 ;
+}
+</pre>
+</FONT><B>
+		　( <FONT COLOR="#880022">(プロジェクト名)</FONT>となっている箇所は、お手元のプロジェクトの名前を入力してください )<BR><BR>
+
+		　　以上です。<BR>
+		　　これでプロジェクトを実行すると、画面にカメラが使用可能かや、使用可能な場合はカメラの映像が表示されます。<BR><BR>
+
+		　　詳細は割愛しますが、C++ から Java にアクセスする基本的な流れは。<BR><BR>
+		
+		<FONT COLOR="#550088">
+		　　　①　AttachCurrentThreadAsDaemon でソフト実行用スレッドと JavaVM を関連付け、JNIEnv も取得。<BR><BR>
+
+		　　　②　GetObjectClass でアプリの Java クラスを取得。<BR><BR>
+
+		　　　③　GetMethodID や GetFieldID で Java の関数や変数の ID を取得。<BR><BR>
+
+		　　　④　Call???Method や Get???Field で Java の関数の呼び出しや変数の値を取得。<BR><BR>
+
+		　　　⑤　DeleteLocalRef で Get???Field で取得したオブジェクト系の変数の参照を削除。<BR><BR>
+
+		　　　⑥　DeleteLocalRef で GetObjectClass で取得したアプリの Java クラスの参照を削除。<BR><BR>
+
+		　　　⑦　DetachCurrentThread でソフト実行用スレッドと JavaVM の関連付けを終了。<BR><BR>
+		</FONT>
+
+		　　となります。<BR>
+		　　C++ と Java でのやり取りを行う機能( <FONT COLOR="#880022">JNI( Java Native Interface )</FONT> ) の詳しい扱い方については、検索サイトで<BR>
+		　『<FONT COLOR="#880022">Android Java JNI</FONT>』などのキーワードで検索して調べてみてください。<BR><BR><BR><BR><BR>
+
+
+		<HR>
+		<A HREF="../../dxtec.html">戻る</A>
+
+		</B></FONT>
+		</TD></TR>
+	</TABLE>
+	</div>
+	</BODY>
+</HTML>

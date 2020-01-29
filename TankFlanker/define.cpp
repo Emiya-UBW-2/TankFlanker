@@ -1112,23 +1112,33 @@ void MAPS::exit_shadow(void) {
 void MAPS::set_normal(VECTOR_ref& nor, MATRIX& ps_n, VECTOR_ref position, const float frate, const float fps) {
 	float x_nor = atan2f(nor.z(), nor.y());
 	float z_nor = atan2f(-nor.x(), nor.y());
+	//*
+	const auto hitp = get_gnd_hit(position + VGet(0.0f, 2.0f, 0.0f), position + VGet(0.0f, -2.0f, 0.0f));
+	fpsdiff(x_nor, atan2f(hitp.Normal.z, hitp.Normal.y), 0.05f);
+	fpsdiff(z_nor, atan2f(-hitp.Normal.x, hitp.Normal.y), 0.05f);
+	//0.20ms
+	//*/
 
-	/*X*/
+	/*
+	//X
 	const auto r0_0 = get_gnd_hit(position + VGet(0.0f, 2.0f, -0.5f), position + VGet(0.0f, -2.0f, -0.5f));
 	if (r0_0.HitFlag) {
 		const auto r0_1 = get_gnd_hit(position + VGet(0.0f, 2.0f, 0.5f), position + VGet(0.0f, -2.0f, 0.5f));
 		if (r0_1.HitFlag)
 			fpsdiff(x_nor, atan2(r0_0.HitPosition.y - r0_1.HitPosition.y, 1.0f), 0.05f);
 	}
-	/*Z*/
+	//Z
 	const auto r1_0 = get_gnd_hit(position + VGet(0.5f, 2.0f, 0.0f), position + VGet(0.5f, -2.0f, 0.0f));
 	if (r1_0.HitFlag) {
 		const auto r1_1 = get_gnd_hit(position + VGet(-0.5f, 2.0f, 0.0f), position + VGet(-0.5f, -2.0f, 0.0f));
 		if (r1_1.HitFlag)
 			fpsdiff(z_nor, atan2(r1_0.HitPosition.y - r1_1.HitPosition.y, 1.0f), 0.05f);
 	}
+	//0.38ms
+	//*/
+
 	ps_n = MMult(MGetRotX(x_nor), MGetRotZ(z_nor));
-	nor = VTransform(VGet(0, 1.f, 0), MMult(MGetRotX(x_nor), MGetRotZ(z_nor)));
+	nor = VTransform(VGet(0, 1.f, 0), ps_n);
 }
 //
 UIS::UIS() {
@@ -1547,7 +1557,7 @@ void set_gunrad(players& play, float rat_r) {
 	}
 }
 bool set_shift(players& play) {
-	int gearrec = play.gear;
+	const auto gearrec = play.gear;
 	/*自動変速機*/
 	if (play.gear > 0 && play.gear <= 3)
 		if (play.spd >= play.ptr->speed_flont[play.gear - 1] * 0.9)
@@ -1817,7 +1827,9 @@ void SOLDIERS::draw_soldiers() {
 	std::sort(sort.begin(), sort.end(), [](const pair& x, const pair& y) { return x.second < y.second; });
 
 	for (auto& tt : sort) {
-		if (tt.second == 9999.f || cnt++ >75)
+		if (tt.second == 9999.f)
+			break;
+		if (++cnt > 30)
 			break;
 		MV1DrawModel(sol[tt.first].obj.get());
 	}

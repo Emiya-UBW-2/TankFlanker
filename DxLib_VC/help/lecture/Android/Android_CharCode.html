@@ -1,0 +1,232 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="ja-JP">
+	<HEAD>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <TITLE>WindowsアプリとAndroidアプリでは使用する文字コードが異なることについて</TITLE>
+	<link rel="shortcut icon" href="../../DxLib.ico">
+	<link rel="stylesheet" href="../../style.css" type="text/css">
+	</HEAD>
+	<BODY BGCOLOR="#ffffff" TEXT="#000000" LINK="#0033CC" VLINK="#800040">
+	<div class="NormalFont">
+	<TABLE ALIGN="CENTER" WIDTH=1300  CELLSPACING=0 CELLPADDING=0 >
+		<TR>
+		<TD ALIGN="CENTER">
+		<FONT SIZE="6" COLOR="#000000"><B>
+			WindowsアプリとAndroidアプリでは使用する文字コードが異なることについて<BR>
+			( Windowsアプリでは主に『シフトJIS』、Androidアプリでは『UTF-8』 )
+		</B></FONT>
+		</TD></TR>
+		<TR><TD>
+		<HR>
+		<FONT SIZE="3" COLOR="#000000"><B>
+		<BR>
+
+		　ここでは主に Windowsアプリの開発経験がある方向けに、文字コードについての解説や Windowsアプリを<BR>
+		Androidアプリに移植する際の注意点などをご説明します。<BR><BR>
+
+		<A HREF="#R1">1.文字を数値で表現する際のフォーマット( 文字コード )について<BR><BR></A>
+
+		<A HREF="#R2">2.日本の Windowsアプリは特に気にしないと文字コード『シフトJIS』を使用するアプリになります<BR><BR></A>
+
+		<A HREF="#R3">3.Androidアプリでは文字コード『シフトJIS』の代わりに、文字コード『UTF-8』になります<BR><BR></A>
+
+		<A HREF="#R4">4.文字コード『シフトJIS』から文字コード『UTF-8』へ移行する際に必要な作業<BR><BR></A>
+
+		<A HREF="#R5">5.Windowsアプリで使用する文字コードを『UTF-8』にする方法<BR><BR><BR><BR></A>
+
+
+		<A NAME="R1">
+		<FONT COLOR="#008800">
+		1.文字を数値で表現する際のフォーマット( 文字コード )について<BR><BR>
+		</FONT>
+		</A>
+
+		　　　コンピュータ上では<FONT COLOR="#770000">画像も音も文章も全て数値</FONT>で扱いますが、例えばコンピュータ上の画像データは<BR>
+		　　<FONT COLOR="#770000">BMP</FONT> だったり <FONT COLOR="#770000">JPEG</FONT> だったり <FONT COLOR="#770000">PNG</FONT> だったりと、何れも画像を表現するための<FONT COLOR="#770000">データフォーマット</FONT>で、<BR>
+		　　ファイルの中身は数値の集合なのですが、<FONT COLOR="#770000">データフォーマットによってその表現の形</FONT>が異なります。<BR><BR>
+
+		　　　<FONT COLOR="#770000">テキストデータ</FONT>は<FONT COLOR="#770000">画像データ</FONT>や<FONT COLOR="#770000">サウンドデータ</FONT>ほどデータフォーマットについて気にすることなく<BR>
+		　　扱うことができるので知らない方も多いかもしれませんが、文字にもデータフォーマットのようなものである<BR>
+		　　<FONT COLOR="#770000">『文字コード』</FONT>があります。<BR><BR>
+
+		　　　例えば『<FONT COLOR="#770000">あ</FONT>』という文字は<FONT COLOR="#770000">『シフトJIS』</FONT>という<FONT COLOR="#770000">文字コード</FONT>では<FONT COLOR="#770000">16進数表現</FONT>で『<FONT COLOR="#770000">82 A0</FONT>』と <FONT COLOR="#770000">2バイト</FONT>で<BR>
+		　　表現されますが、<FONT COLOR="#770000">『UTF-16LE』</FONT>という<FONT COLOR="#770000">文字コード</FONT>では同じ <FONT COLOR="#770000">2バイト</FONT>でも『<FONT COLOR="#770000">42 30</FONT>』と表現され、<BR>
+		　　<FONT COLOR="#770000">『UTF-8』</FONT>という<FONT COLOR="#770000">文字コード</FONT>では『<FONT COLOR="#770000">E3 81 82</FONT>』と <FONT COLOR="#770000">3バイト</FONT>で表現され、数値どころか 1文字を表現する<BR>
+		　　バイト数まで異なってしまったりします。<BR><BR>
+
+		　　　ですが、何れも文字『<FONT COLOR="#770000">あ</FONT>』を表現していることには代わりはありません。<FONT COLOR="#770000">BMPファイル</FONT>でも<BR>
+		　　<FONT COLOR="#770000">PNGファイル</FONT>でも、全く同じ画像であれば、ファイルサイズと中身の数値の集合が異なっても画面に<BR>
+		　　表示される画像が同じであるのと同様です。<BR><BR>
+
+		　　　ただ、<FONT COLOR="#770000">画像のデータフォーマットが異なれば、それを扱うプログラムもデータフォーマットに適合した<BR>
+		　　ものに変更しなければならない</FONT>のと同じように、<FONT COLOR="#770000">文字列データも各文字コード( 文字データフォーマットと<BR>
+		　　考えると分かりやすいです )に適合したプログラムを組む必要</FONT>があります。<BR><BR><BR><BR>
+
+		<A NAME="R2">
+		<FONT COLOR="#008800">
+		2.日本の Windowsアプリは特に気にしないと文字コード『シフトJIS』を使用するアプリになります<BR><BR>
+		</FONT>
+		</A>
+
+		　　　では普段 <FONT COLOR="#770000">Windowsアプリ</FONT>を製作されている方は<FONT COLOR="#770000">何の文字コードを使用しているか</FONT>と言いますと、<BR>
+		　　特に文字コードを気にせず開発されている方は高確率で<FONT COLOR="#770000">『シフトJIS』</FONT>という昔から日本で使用されている<BR>
+		　　文字コードを使用してプログラムのソースコードやゲーム画面に表示する文章を扱っていると思います。<BR>
+		　　( 何故かというと <FONT COLOR="#770000">VisualStudio</FONT> で新規作成する cppファイルや、<FONT COLOR="#770000">メモ帳</FONT>などのテキストエディタで<BR>
+		　　新規作成した txtファイルは、<FONT COLOR="#770000">特に指定がない限り文字コード『シフトJIS』形式のファイルとなる</FONT>為です<BR>
+		　　( ただ、<FONT COLOR="#770000">『シフトJIS』</FONT>は主に<FONT COLOR="#770000">日本でのみ使用されている文字コード</FONT>なので、英語版 Windows のメモ帳や、<BR>
+		　　海外製のテキストエディタでは違います ) )<BR><BR>
+
+		　　　<FONT COLOR="#770000">『シフトJIS』</FONT>は<FONT COLOR="#770000">『半角文字は1バイト、全角文字は2バイト』</FONT>で、<FONT COLOR="#770000">1バイト目の数値</FONT>から<BR>
+		　　<FONT COLOR="#770000">全角文字( 2バイト文字 )</FONT>なのか<FONT COLOR="#770000">半角文字( 1バイト文字 )</FONT>なのかを判断できるなどの特徴があるので、<BR>
+		　　ゲームで文章を 1文字単位で扱ったことがある方には馴染みのある文字コードではないかと思います。<BR><BR>
+
+		　　　因みに <FONT COLOR="#770000">VisualStudioシリーズ</FONT>も、<FONT COLOR="#770000">日本語版</FONT>では古くからプログラム中に『<FONT COLOR="#770000">"あいうえお"</FONT>』というように<BR>
+		　　『<FONT COLOR="#770000">""</FONT>』で括られた文字列は<FONT COLOR="#770000">『シフトJIS』形式の文字列</FONT>として扱われ、なんとご丁寧にプログラムが<BR>
+		　　書かれた cppファイルが<FONT COLOR="#770000">『UTF-8』</FONT>などの<FONT COLOR="#770000">『シフトJIS』以外の形式</FONT>で保存されていても『<FONT COLOR="#770000">""</FONT>』で括られた<BR>
+		　　文字列データは<FONT COLOR="#770000">コンパイルの際に『シフトJIS』形式の文字列に変換</FONT>してくれます。<BR><BR>
+
+		　　　ＤＸライブラリも特に指定が無ければ <FONT COLOR="#770000">LoadGraph</FONT> や <FONT COLOR="#770000">DrawString</FONT> などに渡される<FONT COLOR="#770000">文字列データ</FONT>は<BR>
+		　　<FONT COLOR="#770000">『シフトJIS』形式</FONT>として扱うので、<FONT COLOR="#770000">VisualStudio、テキストエディタ、ＤＸライブラリ全てが<BR>
+		　　『文字列データは「シフトJIS」』として扱う</FONT>ことになり、開発者は<FONT COLOR="#770000">『文字データは半角文字は 1バイト、<BR>
+		　　全角文字は 2バイト』</FONT>とだけ理解しておけば、<FONT COLOR="#770000">扱っている文字列データが何の文字コードなのか特に<BR>
+		　　気にすることなく作業をすることができる</FONT>、というわけです。<BR><BR><BR><BR>
+
+		<A NAME="R3">
+		<FONT COLOR="#008800">
+		3.Androidアプリでは文字コード『シフトJIS』の代わりに、文字コード『UTF-8』になります<BR><BR>
+		</FONT>
+		</A>
+
+		　　　ただ、それは <FONT COLOR="#770000">Windowsアプリ</FONT>でのことで、<FONT COLOR="#770000">Androidアプリ</FONT>では<FONT COLOR="#770000">『シフトJIS』は影も形もありません</FONT>。<BR><BR>
+
+		　　　<FONT COLOR="#770000">ＤＸライブラリ Android版</FONT>を使用して <FONT COLOR="#770000">Androidアプリ</FONT>のプログラムを組む際も <FONT COLOR="#770000">Windowsアプリ</FONT>を<BR>
+		　　開発するときと同じ <FONT COLOR="#770000">VisualStudio Community 2015</FONT> を使用することができるのですが、<FONT COLOR="#770000">Windowsアプリと<BR>
+		　　異なり文字列データは『シフトJIS』形式ではなく『UTF-8』形式として扱われます</FONT>。<BR><BR>
+
+		　　　<FONT COLOR="#770000">『シフトJIS』形式で保存された cppファイルも『UTF-8』形式の cppファイルとして扱われてしまう</FONT>ので、<BR>
+		　　<FONT COLOR="#770000">『シフトJIS』形式</FONT>の cpp ファイルに『<FONT COLOR="#770000">"あいうえお"</FONT>』などの<FONT COLOR="#770000">全角文字</FONT>が含まれる文字列データが<BR>
+		　　記述されていると、コンパイルの際に『<FONT COLOR="#770000">認識できない文字です</FONT>』としてエラーが発生してコンパイルが<BR>
+		　　失敗してしまいます。( 因みに<FONT COLOR="#770000">半角文字だけだとエラーが発生しません</FONT>、何故なら<FONT COLOR="#770000">『シフトJIS』形式の<BR>
+		　　1バイト文字は『UTF-8』形式の 1バイト文字と同一の部分が多いから</FONT>です ( 例えば<FONT COLOR="#770000">『シフトJIS』</FONT>での<BR>
+		　　『<FONT COLOR="#770000">A</FONT>』は 16進数で『<FONT COLOR="#770000">41</FONT>』の <FONT COLOR="#770000">1バイト</FONT>で表現されますが、<FONT COLOR="#770000">『UTF-8』</FONT>でも『<FONT COLOR="#770000">A</FONT>』は 16進数の『<FONT COLOR="#770000">41</FONT>』の<BR>
+		　　<FONT COLOR="#770000">1バイト</FONT>で表現されます ) )<BR><BR>
+
+		　　　なので、プログラム中に<FONT COLOR="#770000">全角文字を含む文字列データ</FONT>を記述したい場合は、<FONT COLOR="#770000">VisualStudio Community 2015 で<BR>
+		　　cppファイルを開いた状態</FONT>で、メニューから<FONT COLOR="#550088">『ファイル(F)』→『保存オプションの詳細設定(V)...』</FONT>を選択して<BR>
+		　　<FONT COLOR="#550088">『保存オプションの詳細設定』ダイアログ</FONT>を表示して、<FONT COLOR="#550088">『エンコード(E):』</FONT>の項目を<BR>
+		　　<FONT COLOR="#550088">『日本語(シフトJIS) - コードページ 932』</FONT>から<FONT COLOR="#550088">『Unicode(UTF-8 シグネチャ付き) - コードページ 65001』</FONT><BR>
+		　　に変更して<FONT COLOR="#550088">『OK』</FONT>ボタンを押して、<FONT COLOR="#770000">cppファイルを『UTF-8』形式で保存する</FONT>必要があります。<BR><BR>
+
+		　　　ただ、cppファイルを<FONT COLOR="#770000">『UTF-8』形式</FONT>にした場合、プログラム中に書いた『<FONT COLOR="#770000">"あいうえお"</FONT>』は最早<BR>
+		　　<FONT COLOR="#770000">『シフトJIS』形式ではなく『UTF-8』形式になっている</FONT>ので、<FONT COLOR="#770000">『シフトJIS』形式の文字列</FONT>を処理する<BR>
+		　　<FONT COLOR="#770000">『半角文字は1バイト、全角文字は2バイト』</FONT>を前提としたプログラムを組む代わりに<FONT COLOR="#770000">『UTF-8』形式の<BR>
+		　　文字列</FONT>を処理する<FONT COLOR="#770000">『半角文字は1バイト、全角文字は3バイト』</FONT>を前提としたプログラムを組む必要があります。<BR>
+		　　( 日本で使用されている<FONT COLOR="#770000">全角文字</FONT>は<FONT COLOR="#770000">『UTF-8』</FONT>では概ね <FONT COLOR="#770000">1文字 3バイト</FONT>となっています )<BR><BR>
+
+		　　　<FONT COLOR="#770000">『シフトJIS』</FONT>の場合は <FONT COLOR="#770000">1文字が何バイトかは 1バイト目の数値を調べることで判断することが<BR>
+		　　できます</FONT>が、<FONT COLOR="#770000">『UTF-8』</FONT>では <FONT COLOR="#770000">1文字が何バイトかの判定の仕方が『シフトJIS』より若干複雑</FONT>なので、<BR>
+		　　<FONT COLOR="#770000">『UTF-8』形式</FONT>の <FONT COLOR="#770000">1文字のバイト数</FONT>を調べる際はＤＸライブラリの関数『<A HREF="../../function/dxfunc_other.html#R22N2">GetCharBytes</A>』を使用すると<BR>
+		　　便利です。( 1文字のバイト数を取得するための関数です )<BR><BR><BR><BR>
+
+		<A NAME="R4">
+		<FONT COLOR="#008800">
+		4.文字コード『シフトJIS』から文字コード『UTF-8』へ移行する際に必要な作業<BR><BR>
+		</FONT>
+		</A>
+
+		　　　これは主に<FONT COLOR="#770000">文字コード『シフトJIS』を使用している Windowsアプリを Androidアプリに移植する場合に<BR>
+		　　必要な作業</FONT>についてのお話です。<BR>
+		　　　<FONT COLOR="#770000">『シフトJIS』</FONT>を使用している <FONT COLOR="#770000">Windowsアプリ</FONT>を <FONT COLOR="#770000">Androidアプリ</FONT>に移植する場合は、以下の作業を行う<BR>
+		　　必要があります。<BR><BR>
+
+		　　<FONT COLOR="#550088">①　全ての cppファイルや hファイルを『シフトJIS』形式から『UTF-8』形式に変換する</FONT><BR><BR>
+
+		　　　　　前述の通り、<FONT COLOR="#770000">Androidアプリ用の C++ コンパイラは『シフトJIS』形式のプログラムファイルを正常に<BR>
+		　　　　コンパイルすることができない</FONT>ので、全ての cppファイルや hファイルを<FONT COLOR="#770000">『シフトJIS』形式</FONT>から<BR>
+		　　　　<FONT COLOR="#550088">『ファイル(F)』→『保存オプションの詳細設定(V)...』</FONT>を使用して全て<FONT COLOR="#770000">『UTF-8』形式</FONT>に変換する必要があります。<BR><BR>
+
+		　　<FONT COLOR="#550088">②　アプリ内で扱うテキストファイルも全て『UTF-8』形式に変換する</FONT><BR><BR>
+
+		　　　　　<FONT COLOR="#770000">txtファイル</FONT>など外部のファイルからゲーム中に表示する文章データを読み込んでいた場合は、それらの<BR>
+		　　　　<FONT COLOR="#770000">txtファイル</FONT>の文字コードも<FONT COLOR="#770000">『UTF-8』形式</FONT>に変換する必要があります。<BR>
+		　　　　　例えば、Windows標準のテキストエディタである<FONT COLOR="#770000">『メモ帳』</FONT>の場合は、メニューの<FONT COLOR="#550088">『ファイル(F)』→<BR>
+		　　　　『名前を付けて保存(A)...』</FONT>を選択すると表示される<FONT COLOR="#550088">『名前を付けて保存』ダイアログ</FONT>の下部にある<BR>
+		　　　　<FONT COLOR="#550088">『文字コード(E):』</FONT>の項目を<FONT COLOR="#550088">『ANSI』</FONT>から<FONT COLOR="#550088">『UTF-8』</FONT>に変更してから保存することで、txtファイルの<BR>
+		　　　　文字コードを<FONT COLOR="#770000">『シフトJIS』</FONT>から<FONT COLOR="#770000">『UTF-8』</FONT>に変換することができます。<BR><BR>
+
+		　　<FONT COLOR="#550088">③　文字列データを『シフトJIS』形式として扱っているプログラムを全て『UTF-8』形式として扱うプログラムに書き換える</FONT><BR><BR>
+
+		　　　　　上記二つの作業をすることでプログラム中に『<FONT COLOR="#770000">""</FONT>』で括って記述された文字列データもファイルから<BR>
+		　　　　読み込む文字列データも<FONT COLOR="#770000">『UTF-8』形式</FONT>となりますので、その<FONT COLOR="#770000">文字列データを扱うプログラムも<BR>
+		　　　　『UTF-8』形式を扱うものに変更する必要</FONT>があります。<BR>
+		　　　　　主に変更することになるのは文字列中の文字を 1文字単位で扱う処理を行っているプログラムだと思います。<BR>
+		　　　　<FONT COLOR="#770000">『シフトJIS』形式では 1文字が半角文字の場合は 1バイト、全角文字の場合は 2バイト</FONT>ですが、<BR>
+		　　　　<FONT COLOR="#770000">『UTF-8』形式では( 主に日本語で使用される文字では )半角文字の場合は 1バイト、全角文字の<BR>
+		　　　　場合は 3バイト</FONT>となります。<BR>
+		　　　　　ただ、<FONT COLOR="#770000">『UTF-8』の仕様上は 1文字のバイト数は 1～6バイト</FONT>なので、『シフトJIS』よりも<BR>
+		　　　　1文字のバイト数を判定する処理も複雑になります。なので、<FONT COLOR="#770000">『1文字が何バイトなのか』を調べる際は<BR>
+		　　　　ＤＸライブラリの関数『<A HREF="../../function/dxfunc_other.html#R22N2">GetCharBytes</A>』を使用する</FONT>ようにしてください。<BR>
+		　　　　( 引数で渡した文字列の最初の文字のバイト数を返す関数です )<BR><BR><BR><BR>
+
+		<A NAME="R5">
+		<FONT COLOR="#008800">
+		5.Windowsアプリで使用する文字コードを『UTF-8』にする方法<BR><BR>
+		</FONT>
+		</A>
+
+		　　　前述の通り<FONT COLOR="#770000">文字コード『シフトJIS』を使用する Windowsアプリ</FONT>を<FONT COLOR="#770000">文字コード『UTF-8』を使用する<BR>
+		　　Androidアプリ</FONT>に移植する際は<FONT COLOR="#770000">『シフトJIS』</FONT>を使用している<FONT COLOR="#770000">文字列データやプログラム</FONT>をすべて<BR>
+		　　<FONT COLOR="#770000">『UTF-8』</FONT>を使用するように変更する作業が発生するので大変です。( Androidアプリで無理矢理<BR>
+		　　<FONT COLOR="#770000">『シフトJIS』</FONT>を使用する方法もありますが、それはもっと大変です )<BR><BR>
+
+		　　　それならば、<FONT COLOR="#770000">Androidアプリとしてもリリースする予定の Windowsアプリ</FONT>では、<FONT COLOR="#770000">Windowsアプリでも<BR>
+		　　『UTF-8』を使用する</FONT>ようにして、<FONT COLOR="#770000">Androidアプリへの移植の際に『シフトJIS』のデータやプログラムを<BR>
+		　　『UTF-8』用に変更する作業を無くした方が得策</FONT>です。<BR><BR>
+
+		　　　ただ、<FONT COLOR="#770000">VisualStudio Community 2015</FONT> で Windowsアプリを作成する場合、<FONT COLOR="#770000">『シフトJIS』</FONT>の代わりに<BR>
+		　　<FONT COLOR="#770000">『UTF-8』</FONT>を使用するには少しだけ手順が必要なので、その方法を以下に記載します。<BR><BR>
+
+		　　<FONT COLOR="#550088">①　DxLib_Init を呼ぶ前に <A HREF="../../function/dxfunc_other.html#R22N1">SetUseCharCodeFormat</A>( DX_CHARCODEFORMAT_UTF8 ); を呼ぶ</FONT><BR><BR>
+
+		　　　　　ＤＸライブラリは <FONT COLOR="#770000">Windowsアプリではデフォルトで『シフトJIS』を使用する</FONT>ようになって<BR>
+		　　　　いますので、<FONT COLOR="#770000">DxLib_Init を呼ぶ前の個所に <A HREF="../../function/dxfunc_other.html#R22N1">SetUseCharCodeFormat</A>( DX_CHARCODEFORMAT_UTF8 ); を<BR>
+		　　　　記述</FONT>して<FONT COLOR="#770000">使用する文字コードを『UTF-8』に変更</FONT>します。<BR>
+		　　　　　この記述を増やした状態でプログラムを実行すると <FONT COLOR="#770000">DrawString に渡す文字列も、LoadGraph や<BR>
+		　　　　LoadSoundMem に渡すファイルパスの文字列も『UTF-8』形式として処理される</FONT>ようになります。<BR><BR>
+
+		　　<FONT COLOR="#550088">②　プログラム中の文字列の先頭に『u8』を記述する</FONT><BR><BR>
+
+		　　　　　例えばプログラム中に文字列を『<FONT COLOR="#770000">"あいうえお"</FONT>』と記述していた場合は、ここの先頭に『<FONT COLOR="#770000">u8</FONT>』を<BR>
+		　　　　付け足して、『<FONT COLOR="#770000">u8"あいうえお"</FONT>』とします。<BR>
+		　　　　　この『<FONT COLOR="#770000">u8</FONT>』は『<FONT COLOR="#770000">UTF-8</FONT>』を意味していて、これを文字列の先頭に付けることでその文字列を<BR>
+		　　　　『<FONT COLOR="#770000">UTF-8</FONT>』形式にすることができます。<BR>
+		　　　　<FONT COLOR="#008800">「態々『<FONT COLOR="#770000">u8</FONT>』を付けなくても<FONT COLOR="#770000">プログラムファイルを『UTF-8』形式で保存</FONT>していれば、<BR>
+		　　　　　そのプログラム中に書かれた『<FONT COLOR="#770000">""</FONT>』で括られた文字列も<FONT COLOR="#770000">『UTF-8』形式</FONT>になるのでは？」</FONT><BR>
+		　　　　という疑問が沸くかもしれませんが、Androidアプリ用のコンパイラと異なり、Windowsアプリ用の<BR>
+		　　　　コンパイラは、<FONT COLOR="#770000">プログラムファイルが何の文字コードで保存されていても、プログラム中に『""』で<BR>
+		　　　　括られて書かれた文字列データは特に指定が無ければ全て『シフトJIS』形式に変換されてしまう</FONT>ので、<BR>
+		　　　　<FONT COLOR="#770000">『u8』を記述</FONT>して、明示的に「<FONT COLOR="#770000">この文字列は『UTF-8』形式です</FONT>」とコンパイラに知らせる<BR>
+		　　　　必要があるわけです。<BR><BR>
+
+		　　<FONT COLOR="#550088">③　アプリ内で扱うテキストファイルを全て『UTF-8』形式で保存する</FONT><BR><BR>
+
+		　　　　　<FONT COLOR="#770000">txtファイルなど外部のファイル</FONT>からゲーム中に表示する文章データを読み込む場合は、それらの<BR>
+		　　　　txtファイルを作成した際に文字コードを<FONT COLOR="#770000">『UTF-8』</FONT>に変更する必要があります。<BR>
+		　　　　　例えば、Windows標準のテキストエディタである<FONT COLOR="#770000">『メモ帳』</FONT>の場合は、メニューの<FONT COLOR="#550088">『ファイル(F)』→<BR>
+		　　　　『名前を付けて保存(A)...』</FONT>を選択すると表示される<FONT COLOR="#550088">『名前を付けて保存』ダイアログ</FONT>の下部にある<BR>
+		　　　　<FONT COLOR="#550088">『文字コード(E):』</FONT>の項目を<FONT COLOR="#550088">『ANSI』</FONT>から<FONT COLOR="#550088">『UTF-8』</FONT>に変更してから保存することで、txtファイルを<BR>
+		　　　　<FONT COLOR="#770000">文字コード『UTF-8』形式</FONT>で保存することができます。<BR><BR>
+
+		　　上記の３つを行えば、Windowsアプリでも<FONT COLOR="#770000">文字コード『UTF-8』</FONT>の使用で統一することができます。<BR><BR><BR><BR>
+
+
+
+		<HR>
+		<A HREF="../../dxtec.html">戻る</A>
+
+		</B></FONT>
+		</TD></TR>
+	</TABLE>
+	</div>
+	</BODY>
+</HTML>
