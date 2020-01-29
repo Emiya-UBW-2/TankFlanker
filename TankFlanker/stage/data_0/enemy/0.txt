@@ -1,12 +1,12 @@
-vehicleID=4
+vehicleID=0
 yrad=0
 position.x=50
 position.y=406
-way1.x=40
-way1.y=272
+way1.x=38
+way1.y=298
 speed.1=1
-way2.x=14
-way2.y=64
+way2.x=30
+way2.y=154
 speed.2=1
 way3.x=8
 way3.y=-14
