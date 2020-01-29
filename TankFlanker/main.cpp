@@ -1358,6 +1358,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					for (auto& tt : pssort) {
 						if (tt.second > (10.0f * float(parts->get_shadex()) * parts->get_view_r().z() + 20.0f))
 							continue;
+						MV1ResetFrameTextureAddressTransform(player[tt.first].obj.get(), 0);
 						MV1DrawMesh(player[tt.first].obj.get(), 0);
 						for (int i = 1; i < player[tt.first].obj.mesh_num(); ++i) {
 							if (i < 3)

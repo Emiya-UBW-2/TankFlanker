@@ -1112,14 +1112,14 @@ void MAPS::exit_shadow(void) {
 void MAPS::set_normal(VECTOR_ref& nor, MATRIX& ps_n, VECTOR_ref position, const float frate, const float fps) {
 	float x_nor = atan2f(nor.z(), nor.y());
 	float z_nor = atan2f(-nor.x(), nor.y());
-	//*
+	/*
 	const auto hitp = get_gnd_hit(position + VGet(0.0f, 2.0f, 0.0f), position + VGet(0.0f, -2.0f, 0.0f));
 	fpsdiff(x_nor, atan2f(hitp.Normal.z, hitp.Normal.y), 0.05f);
 	fpsdiff(z_nor, atan2f(-hitp.Normal.x, hitp.Normal.y), 0.05f);
 	//0.20ms
 	//*/
 
-	/*
+	//*
 	//X
 	const auto r0_0 = get_gnd_hit(position + VGet(0.0f, 2.0f, -0.5f), position + VGet(0.0f, -2.0f, -0.5f));
 	if (r0_0.HitFlag) {
