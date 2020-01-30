@@ -10,7 +10,7 @@ Myclass::Myclass() {
 	char mstr[64]; /*tank*/
 	int mdata;     /*tank*/
 
-	//SetOutApplicationLogValidFlag(FALSE); /*log*/
+	SetOutApplicationLogValidFlag(FALSE); /*log*/
 
 	mdata = FileRead_open("data/setting.txt", FALSE);
 	FileRead_gets(mstr, 64, mdata);
