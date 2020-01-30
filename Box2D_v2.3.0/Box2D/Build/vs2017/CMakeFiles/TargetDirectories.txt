@@ -1,7 +1,0 @@
-C:/Box2D_v2.3.0/Box2D/Build/vs2017/CMakeFiles/ALL_BUILD.dir
-C:/Box2D_v2.3.0/Box2D/Build/vs2017/CMakeFiles/ZERO_CHECK.dir
-C:/Box2D_v2.3.0/Box2D/Build/vs2017/Box2D/CMakeFiles/Box2D.dir
-C:/Box2D_v2.3.0/Box2D/Build/vs2017/HelloWorld/CMakeFiles/HelloWorld.dir
-C:/Box2D_v2.3.0/Box2D/Build/vs2017/freeglut/CMakeFiles/freeglut_static.dir
-C:/Box2D_v2.3.0/Box2D/Build/vs2017/glui/CMakeFiles/glui.dir
-C:/Box2D_v2.3.0/Box2D/Build/vs2017/Testbed/CMakeFiles/Testbed.dir

@@ -10,7 +10,7 @@ Myclass::Myclass() {
 	char mstr[64]; /*tank*/
 	int mdata;     /*tank*/
 
-	SetOutApplicationLogValidFlag(FALSE); /*log*/
+	//SetOutApplicationLogValidFlag(FALSE); /*log*/
 
 	mdata = FileRead_open("data/setting.txt", FALSE);
 	FileRead_gets(mstr, 64, mdata);
@@ -47,6 +47,7 @@ Myclass::Myclass() {
 	SetWaitVSyncFlag(YSync);			    /*垂直同期*/
 	ChangeWindowMode(windowmode);			    /*窓表示*/
 	SetUseDirect3DVersion(DX_DIRECT3D_11);		    /*directX ver*/
+	//SetEnableXAudioFlag(TRUE);			    /**/
 	Set3DSoundOneMetre(1.0f);			    /*3Dsound*/
 	SetGraphMode(dispx, dispy, 32);			    /*解像度*/
 	DxLib_Init();					    /*init*/
@@ -1223,6 +1224,28 @@ void UIS::draw_load(void) {
 	ClearDrawScreen();
 	ScreenFlip();
 }
+bool UIS::draw_title(void) {
+	const int pp = GetASyncLoadNum();
+	const auto c_ffffff = GetColor(255, 255, 255);
+
+	const auto font18 = FontHandle::Create(x_r(18), y_r(18 / 3), DX_FONTTYPE_ANTIALIASING);
+	while (ProcessMessage() == 0) {
+		const auto waits = GetNowHiPerformanceCount();
+		SetDrawScreen(DX_SCREEN_BACK);
+		ClearDrawScreen();
+			font18.DrawString(x_r(1367), y_r(401), "press space key", c_ffffff);
+		ScreenFlip();
+		while (GetNowHiPerformanceCount() - waits < 1000000.0f / 60.f) {}
+		if (CheckHitKey(KEY_INPUT_ESCAPE))
+			return false;
+		if (CheckHitKey(KEY_INPUT_SPACE))
+			break;
+	}
+	SetDrawScreen(DX_SCREEN_BACK);
+	ClearDrawScreen();
+	ScreenFlip();
+	return true;
+}
 void UIS::set_state(players* play) {
 	pplayer = play;
 }
@@ -1460,7 +1483,7 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 					//空間装甲、モジュール
 					if (t.hitres[k].HitFlag) {
 						set_effect(&play.effcs[ef_reco], t.hitres[k].HitPosition, t.hitres[k].Normal);
-						t.HP[k] = std::max<short>(t.HP[k] - 30, 0); //
+						t.HP[k] = std::max<int16_t>(t.HP[k] - 30, 0); //
 						c.pene /= 2.0f;
 						c.speed /= 2.f;
 					}
@@ -1486,7 +1509,7 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 						}
 					}
 					c.flug = false;
-					t.HP[0] = std::max<short>(t.HP[0] - 1, 0); //
+					t.HP[0] = std::max<int16_t>(t.HP[0] - 1, 0); //
 					t.hit[t.hitbuf].use = 0;
 				}
 				else {
@@ -1523,7 +1546,7 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 				c.pos = c.vec.Scale(0.1f) + t.hitres[hitnear.value()].HitPosition;
 
 				if (hitnear.value() >= 5 && hitnear.value() < t.HP.size()) {
-					t.HP[hitnear.value()] = std::max<short>(t.HP[hitnear.value()] - 13, 0); //
+					t.HP[hitnear.value()] = std::max<int16_t>(t.HP[hitnear.value()] - 13, 0); //
 				}
 			}
 		}
