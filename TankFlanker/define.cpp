@@ -1235,6 +1235,10 @@ bool UIS::draw_title(void) {
 
 	const auto font18 = FontHandle::Create("x14y24pxHeadUpDaisy", x_r(18), y_r(18 / 3), DX_FONTTYPE_ANTIALIASING);
 	const auto font72 = FontHandle::Create("x14y24pxHeadUpDaisy",x_r(72), y_r(72 / 3), DX_FONTTYPE_ANTIALIASING);
+
+	SetMousePoint(x_r(960), y_r(768+9));
+	SetMouseDispFlag(TRUE);
+
 	while (ProcessMessage() == 0) {
 		const auto waits = GetNowHiPerformanceCount();
 		GetMousePoint(&mousex, &mousey);
