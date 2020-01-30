@@ -580,18 +580,15 @@ bool HUMANS::set_humans(const MV1ModelHandle& inmod) {
 			SetDrawScreen(DX_SCREEN_BACK);
 			ClearDrawScreen();
 			setcv(1.0f, 100.0f, VGet(0, 2.f, -2.f), VGet(0, 1.0f, 0), VGet(0, 1.0f, 0), 45.0f);
-			SetLightDirection(VSub(VGet(0, 2.f, -2.f), VGet(0, 1.0f, 0)));
+			SetLightDirection(VSub(VGet(0, 1.0f, 0), VGet(0, 2.f, -2.f)));
 
 			MV1SetPosition(mod[sel].model.get(), VGet(0, 0, 0));
 			MV1SetRotationXYZ(mod[sel].model.get(), VGet(0, 0, 0));
 			MV1DrawModel(mod[sel].model.get());
 
-			for (size_t k = 0; k < ANIME_title; k++) {
-				if (k != j)
-					MV1SetAttachAnimBlendRate(mod[sel].model.get(), mod[sel].amine_title[k].id, 0.0f);
-				else
-					MV1SetAttachAnimBlendRate(mod[sel].model.get(), mod[sel].amine_title[k].id, 1.0f);
-			}
+			for (size_t k = 0; k < ANIME_title; k++)
+				MV1SetAttachAnimBlendRate(mod[sel].model.get(), mod[sel].amine_title[k].id, float(k == j));
+
 			MV1SetAttachAnimTime(mod[sel].model.get(), mod[sel].amine_title[j].id, time);
 
 			time += 30.f / f_rate;
@@ -1226,24 +1223,55 @@ void UIS::draw_load(void) {
 }
 bool UIS::draw_title(void) {
 	const int pp = GetASyncLoadNum();
+	const auto c_ff0000 = GetColor(255, 0, 0);
+	const auto c_ffff00 = GetColor(255, 255, 0);
 	const auto c_ffffff = GetColor(255, 255, 255);
+	int m;
+	int mousex, mousey; /*mouse*/
 
-	const auto font18 = FontHandle::Create(x_r(18), y_r(18 / 3), DX_FONTTYPE_ANTIALIASING);
+	LPCSTR font_path = "data/font/x14y24pxHeadUpDaisy.ttf"; // 読み込むフォントファイルのパス
+	if (AddFontResourceEx(font_path, FR_PRIVATE, NULL) < 0)
+		MessageBox(NULL, "フォント読込失敗", "", MB_OK);
+
+	const auto font18 = FontHandle::Create("x14y24pxHeadUpDaisy", x_r(18), y_r(18 / 3), DX_FONTTYPE_ANTIALIASING);
+	const auto font72 = FontHandle::Create("x14y24pxHeadUpDaisy",x_r(72), y_r(72 / 3), DX_FONTTYPE_ANTIALIASING);
 	while (ProcessMessage() == 0) {
 		const auto waits = GetNowHiPerformanceCount();
+		GetMousePoint(&mousex, &mousey);
+		if (inm(
+			x_r(960) - font18.GetDrawWidth("PRESS SPACE or CLICK") / 2,
+			y_r(768),
+			x_r(960) + font18.GetDrawWidth("PRESS SPACE or CLICK") / 2,
+			y_r(768+18)
+		))
+			m = ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0) ? c_ff0000 : c_ffff00;
+		else
+			m = c_ffffff;
 		SetDrawScreen(DX_SCREEN_BACK);
 		ClearDrawScreen();
-			font18.DrawString(x_r(1367), y_r(401), "press space key", c_ffffff);
+		font18.DrawString(x_r(960) - font18.GetDrawWidth("PRESS SPACE or CLICK")/2, y_r(768), "PRESS SPACE or CLICK", m);
 		ScreenFlip();
-		while (GetNowHiPerformanceCount() - waits < 1000000.0f / 60.f) {}
 		if (CheckHitKey(KEY_INPUT_ESCAPE))
 			return false;
 		if (CheckHitKey(KEY_INPUT_SPACE))
 			break;
+		if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0)
+			break;
+		while (GetNowHiPerformanceCount() - waits < 1000000.0f / 60.f) {}
 	}
-	SetDrawScreen(DX_SCREEN_BACK);
-	ClearDrawScreen();
-	ScreenFlip();
+	const auto c_000000 = GetColor(0, 0, 0);
+	float unt = 0;
+	while (ProcessMessage() == 0 && unt <= 0.9f) {
+		const auto waits = GetNowHiPerformanceCount();
+		SetDrawScreen(DX_SCREEN_BACK);
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(255.f * unt));
+		DrawBox(0, 0, dispx, dispy, c_000000, TRUE);
+		differential(unt, 1.f, 0.05f);
+		ScreenFlip();
+		while (GetNowHiPerformanceCount() - waits < 1000000.0f / 60.f) {}
+	}
+	if (!RemoveFontResourceEx(font_path, FR_PRIVATE, NULL))
+		MessageBox(NULL, "remove failure", "", MB_OK);
 	return true;
 }
 void UIS::set_state(players* play) {
