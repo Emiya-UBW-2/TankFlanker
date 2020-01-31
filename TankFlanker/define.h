@@ -219,7 +219,7 @@ struct players {
 	int hitid{ 0 };			     /*あてた敵*/
 	VECTOR_ref iconpos;		     /*UI用*/
 	std::vector<float> Springs;	  /*スプリング*/
-	std::vector<int16_t> HP;	    /*ライフ*/
+	std::vector<int16_t> HP;	     /*ライフ*/
 	std::array<uint16_t, 2> footfix;     /*履帯修復*/
 	std::vector<pair> hitssort;	  /*当たった順番*/
 	int hitbuf;			     /*使用弾痕*/
@@ -467,12 +467,15 @@ private:
 	};
 	std::array<GraphHandle, 4> ui_reload; /*弾UI*/
 	GraphHandle ui_compass;		      /*UI*/
+	GraphHandle ui_damagepic;	     /**/
 	std::vector<GraphHandle> UI_body;     /*UI*/
 	std::vector<GraphHandle> UI_turret;   /*UI*/
 	std::vector<country> UI_main;	 /*国別UI*/
 	size_t countries = 1;		      /*国数*/
 	float gearf = 0.f;		      /*変速*/
 	float recs = 0.f;		      /*跳弾表現用*/
+	bool dmg{ false };			      /*跳弾表現用*/
+	float hits = 0.f;		      /*跳弾表現用*/
 	players* pplayer;		      /*playerdata*/
 	std::array<float, 3> reload_mov;      /*リロード*/
 
@@ -485,10 +488,11 @@ private:
 public:
 	UIS();
 
-	void draw_load(void);	  /*ロード画面*/
+	void draw_load(void); /*ロード画面*/
 	bool draw_title(void);
 	void set_state(players* play); /*使用するポインタの指定*/
 	void set_reco(void);	   /*反射スイッチ*/
+	void set_damage(void);	    /*ダメージスイッチ*/
 	void draw_drive();
 	void draw_icon(players& p, int font, float frate);
 	void draw_sight(VECTOR_ref aimpos, float ratio, float dist, int font); /*照準UI*/

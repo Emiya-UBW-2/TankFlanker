@@ -41,13 +41,13 @@ Myclass::Myclass() {
 		SetFullSceneAntiAliasingMode(ANTI, 3); /*アンチエイリアス*/
 	//SetWindowStyleMode(4);			    /**/
 	//SetWindowUserCloseEnableFlag(FALSE);		    /*alt+F4対処*/
-	SetMainWindowText("Tank Flanker");		    /*name*/
-	SetAeroDisableFlag(TRUE);			    /**/
-	SetUsePixelLighting(USEPIXEL);			    /*ピクセルライティング*/
-	SetWaitVSyncFlag(YSync);			    /*垂直同期*/
-	ChangeWindowMode(windowmode);			    /*窓表示*/
-	SetUseDirect3DVersion(DX_DIRECT3D_11);		    /*directX ver*/
-	//SetEnableXAudioFlag(TRUE);			    /**/
+	SetMainWindowText("Tank Flanker");     /*name*/
+	SetAeroDisableFlag(TRUE);	      /**/
+	SetUsePixelLighting(USEPIXEL);	 /*ピクセルライティング*/
+	SetWaitVSyncFlag(YSync);	       /*垂直同期*/
+	ChangeWindowMode(windowmode);	  /*窓表示*/
+	SetUseDirect3DVersion(DX_DIRECT3D_11); /*directX ver*/
+	SetEnableXAudioFlag(FALSE);			    /**/
 	Set3DSoundOneMetre(1.0f);			    /*3Dsound*/
 	SetGraphMode(dispx, dispy, 32);			    /*解像度*/
 	DxLib_Init();					    /*init*/
@@ -1151,6 +1151,7 @@ UIS::UIS() {
 	for (size_t j = 0; j < ui_reload.size(); ++j)
 		ui_reload[j] = GraphHandle::Load("data/ui/ammo_" + std::to_string(j) + ".bmp"); /*弾0,弾1,弾2,空弾*/
 	//
+	ui_damagepic = GraphHandle::Load("data/ui/damage.png");
 	ui_compass = GraphHandle::Load("data/ui/compass.png");
 	const auto hFind = FindFirstFile("data/ui/body/*.png", &win32fdt);
 	if (hFind != INVALID_HANDLE_VALUE) {
@@ -1226,7 +1227,7 @@ bool UIS::draw_title(void) {
 	const auto c_ff0000 = GetColor(255, 0, 0);
 	const auto c_ffff00 = GetColor(255, 255, 0);
 	const auto c_ffffff = GetColor(255, 255, 255);
-	int m;
+	auto m = c_ffffff;
 	int mousex, mousey; /*mouse*/
 
 	LPCSTR font_path = "data/font/x14y24pxHeadUpDaisy.ttf"; // 読み込むフォントファイルのパス
@@ -1234,32 +1235,178 @@ bool UIS::draw_title(void) {
 		MessageBox(NULL, "フォント読込失敗", "", MB_OK);
 
 	const auto font18 = FontHandle::Create("x14y24pxHeadUpDaisy", x_r(18), y_r(18 / 3), DX_FONTTYPE_ANTIALIASING);
-	const auto font72 = FontHandle::Create("x14y24pxHeadUpDaisy",x_r(72), y_r(72 / 3), DX_FONTTYPE_ANTIALIASING);
+	const auto font72 = FontHandle::Create("x14y24pxHeadUpDaisy", x_r(72), y_r(72 / 3), DX_FONTTYPE_ANTIALIASING);
+	std::vector<VECTOR_ref> loc;  /*フレームの元座標*/
+	std::vector<int> youdoframe;  /*誘導輪*/
+	std::vector<int> wheelframe;  /*転輪*/
+	std::array<int, 2> kidoframe; /*起動輪*/
+	std::vector<int> upsizeframe; /*履帯上*/
+	std::vector<float> Springs;   /*スプリング*/
+	float yrad;
+	float yace;
+	VECTOR_ref nor, pos, zvec;     /*法線ベクトル*/
+	MATRIX ps_n;		       /*車体行列,砲塔行列,法線行列*/
+	std::array<float, 3> wheelrad; /*履帯の送り、転輪旋回*/
 
-	SetMousePoint(x_r(960), y_r(768+9));
+
+
+
+	SetUseASyncLoadFlag(FALSE);
+	const auto mmodel = MV1ModelHandle::Load("data/title/map.mv1");
+	const auto obj = MV1ModelHandle::Load("data/tanks/Pz_ausfIV_F2/model.mv1");
+	MV1SetMaterialDrawAlphaTestAll(obj.get(), TRUE, DX_CMP_GREATER, 128);
+	MV1SetupCollInfo(mmodel.get(), -1, 10, 10, 10);
+
+	//ypos反映
+	pos = VGet(0, 0.f, 0);
+ 	{
+		const auto HitPoly = MV1CollCheck_Line(mmodel.get(), -1, VGet(0.0f, 200.0f, 0.0f), VGet(0.0f, -200.0f, 0.0f));
+		if (HitPoly.HitFlag)
+			pos = HitPoly.HitPosition;
+	}
+	Springs.resize(obj.frame_num());
+
+	int k = 0;
+	for (int i = 0; i < obj.frame_num(); ++i) {
+		loc.emplace_back(obj.frame(i));
+		std::string tempname = MV1GetFrameName(obj.get(), i);
+		//ホイール
+		if (k < kidoframe.size()) {
+			if (tempname[0] == 'K') //起動輪
+				kidoframe[k++] = i;
+		}
+		if (tempname[0] == 'Y') //誘導輪
+			youdoframe.emplace_back(i);
+		if (tempname[0] == 'F') { //ホイール
+			wheelframe.emplace_back(i);
+		}
+		if (tempname[0] == 'U') //ホイール
+			upsizeframe.emplace_back(i);
+	}
+
+	yrad = 0.f;
+	yace = 0.f;
+	nor = VGet(0, 1.f, 0);
+	const auto mat = MMult(
+	    MGetRotY(-yrad),
+	    MGetRotVec2(VGet(0, 1.f, 0), nor.get()));
+	zvec = VTransform(VGet(0, 0, -1.f), mat);
+	ps_n = MMult(MGetRotX(0), MGetRotZ(0));
+	wheelrad[0] = 0.f;
+	wheelrad[1] = 0.f;
+	wheelrad[2] = 0.f;
+
+	float frate = 60.f;
+	float fps = frate;
+	for (size_t i = 0; i < frate; i++) {
+		ProcessMessage();
+		ScreenFlip();
+	}
+	SetMousePoint(x_r(960), y_r(768 + 9));
 	SetMouseDispFlag(TRUE);
-
 	while (ProcessMessage() == 0) {
 		const auto waits = GetNowHiPerformanceCount();
+		fps = GetFPS();
 		GetMousePoint(&mousex, &mousey);
 		if (inm(
 			x_r(960) - font18.GetDrawWidth("PRESS SPACE or CLICK") / 2,
 			y_r(768),
 			x_r(960) + font18.GetDrawWidth("PRESS SPACE or CLICK") / 2,
-			y_r(768+18)
-		))
+			y_r(768 + 18)))
 			m = ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0) ? c_ff0000 : c_ffff00;
 		else
 			m = c_ffffff;
+		yrad += deg2rad(60 / fps);
+		wheelrad[1] = yrad;
+		wheelrad[2] = -yrad;
+		//地形判定
+		{
+			const auto HitPoly = MV1CollCheck_Line(mmodel.get(), -1, (pos + VGet(0.0f, 2.0f, 0.0f)).get(), (pos + VGet(0.0f, -0.05f, 0.0f)).get());
+			if (HitPoly.HitFlag) {
+				yace = 0.0f;
+				pos = VGet(0, HitPoly.HitPosition.y, 0);
+				float x_nor = atan2f(nor.z(), nor.y());
+				float z_nor = atan2f(-nor.x(), nor.y());
+				//X
+				const auto r0_0 = MV1CollCheck_Line(mmodel.get(), -1, (pos + VGet(0.0f, 2.0f, -0.5f)).get(), (pos + VGet(0.0f, -2.0f, -0.5f)).get());
+				if (r0_0.HitFlag) {
+					const auto r0_1 = MV1CollCheck_Line(mmodel.get(), -1, (pos + VGet(0.0f, 2.0f, 0.5f)).get(), (pos + VGet(0.0f, -2.0f, 0.5f)).get());
+					if (r0_1.HitFlag)
+						fpsdiff(x_nor, atan2(r0_0.HitPosition.y - r0_1.HitPosition.y, 1.0f), 0.05f);
+				}
+				//Z
+				const auto r1_0 = MV1CollCheck_Line(mmodel.get(), -1, (pos + VGet(0.5f, 2.0f, 0.f)).get(), (pos + VGet(0.5f, -2.0f, 0.f)).get());
+				if (r1_0.HitFlag) {
+					const auto r1_1 = MV1CollCheck_Line(mmodel.get(), -1, (pos + VGet(-0.5f, 2.0f, 0.f)).get(), (pos + VGet(-0.5f, -2.0f, 0.f)).get());
+					if (r1_1.HitFlag)
+						fpsdiff(z_nor, atan2(r1_0.HitPosition.y - r1_1.HitPosition.y, 1.0f), 0.05f);
+				}
+				ps_n = MMult(MGetRotX(x_nor), MGetRotZ(z_nor));
+				nor = VTransform(VGet(0, 1.f, 0), ps_n);
+			}
+			else {
+				//yadd *= pow(0.95f, frate / fps);
+				pos = VGet(0, pos.y() + yace, 0);
+				yace += m_ac(fps);
+			}
+		}
+		zvec = VTransform(VGet(0, 0, -1.f), MMult(MGetRotY(-yrad), ps_n)); //車体前方
+ 		//all
+
+		MV1SetMatrix(obj.get(), MMult(MMult(MGetRotY(-yrad), ps_n), pos.Mtrans()));
+		for (auto& w : wheelframe) {
+			MV1ResetFrameUserLocalMatrix(obj.get(), w);
+			const auto HitPoly2 = MV1CollCheck_Line(mmodel.get(), -1, (obj.frame(w) + nor.Scale(1.0f)).get(), (obj.frame(w) + nor.Scale(-0.2f)).get());
+			if (HitPoly2.HitFlag) {
+				Springs[w] = std::min<float>(Springs[w] + 1.0f / fps, 1.0f - (VECTOR_ref(HitPoly2.HitPosition) - obj.frame(w) - nor.Scale(1.0f)).size());
+			}
+			else {
+				Springs[w] = std::max<float>(Springs[w] - 0.2f / fps, -0.2f);
+			}
+			MV1SetFrameUserLocalMatrix(obj.get(), w, (loc[w] + nor.Scale(Springs[w])).Mtrans());
+			MV1SetFrameUserLocalMatrix(obj.get(), w + 1, MMult(MGetRotX(wheelrad[signbit(loc[w + 1].x()) + 1]), (loc[w + 1] - loc[w]).Mtrans()));
+		}
+		for (auto& w : youdoframe)
+			MV1SetFrameUserLocalMatrix(obj.get(), w, MMult(MGetRotX(wheelrad[signbit(loc[w].x()) + 1]), loc[w].Mtrans()));
+		for (auto& w : kidoframe)
+			MV1SetFrameUserLocalMatrix(obj.get(), w, MMult(MGetRotX(wheelrad[signbit(loc[w].x()) + 1]), loc[w].Mtrans()));
+		/*
+		for (auto& f : p.foot) {
+			size_t i = 0;
+			for (auto& w : upsizeframe) {
+				float xw = VTransform(VGet(0, 0, 0), MV1GetFrameLocalMatrix(obj.get(), w)).x;
+				if (xw * f.LR > 0) {
+					f.Foot[i].pos = VGet(xw, f.Foot[i].pos.y(), f.Foot[i].pos.z());
+					MV1SetFrameUserLocalMatrix(obj.get(), w, f.Foot[i].pos.Mtrans());
+					++i;
+				}
+			}
+		}
+		*/
 		SetDrawScreen(DX_SCREEN_BACK);
 		ClearDrawScreen();
-		font18.DrawString(x_r(960) - font18.GetDrawWidth("PRESS SPACE or CLICK")/2, y_r(768), "PRESS SPACE or CLICK", m);
+		VECTOR_ref cam = obj.frame(kidoframe[1]) + nor.Scale(0.1f) + (nor * zvec).Norm().Scale(0.5f);
+		VECTOR_ref view = obj.frame(youdoframe[1]) + nor.Scale(0.1f) + (nor * zvec).Norm().Scale(0.5f);
+
+		setcv(0.1f, 20.f, cam,view, nor, 45.f);
+			MV1DrawModel(mmodel.get());
+			MV1DrawMesh(obj.get(), 0);
+			for (int i = 1; i < obj.mesh_num(); ++i) {
+				if (i < 3)
+					MV1SetFrameTextureAddressTransform(obj.get(), 0, 0.0, wheelrad[i], 1.0, 1.0, 0.5, 0.5, 0.0);
+				if (i == 3)
+					MV1ResetFrameTextureAddressTransform(obj.get(), 0);
+				MV1DrawMesh(obj.get(), i);
+			}
+			font18.DrawString(x_r(960) - font18.GetDrawWidth("PRESS SPACE or CLICK") / 2, y_r(768), "PRESS SPACE or CLICK", m);
 		ScreenFlip();
-		if (CheckHitKey(KEY_INPUT_ESCAPE))
-			return false;
-		if (CheckHitKey(KEY_INPUT_SPACE))
+		if (CheckHitKey(KEY_INPUT_ESCAPE) != 0) {
+			m = c_ffffff;
 			break;
-		if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0)
+		}
+		if (CheckHitKey(KEY_INPUT_SPACE) != 0)
+			break;
+		if ( m == c_ff0000)
 			break;
 		while (GetNowHiPerformanceCount() - waits < 1000000.0f / 60.f) {}
 	}
@@ -1276,13 +1423,16 @@ bool UIS::draw_title(void) {
 	}
 	if (!RemoveFontResourceEx(font_path, FR_PRIVATE, NULL))
 		MessageBox(NULL, "remove failure", "", MB_OK);
-	return true;
+	return (m==c_ff0000);
 }
 void UIS::set_state(players* play) {
 	pplayer = play;
 }
 void UIS::set_reco(void) {
 	recs = 1.f;
+}
+void UIS::set_damage(void) {
+	dmg = true;
 }
 void UIS::draw_drive() {
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
@@ -1317,12 +1467,10 @@ void UIS::draw_sight(VECTOR_ref aimpos, float ratio, float dist, int font) {
 }
 void UIS::draw_ui(uint8_t selfammo[], float y_v, int font) {
 	/*跳弾*/
-	if (recs >= 0.01f) {
-		SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(recs * 128.0f));
-		DrawBox(0, 0, dispx, dispy, GetColor(255, 255, 255), TRUE);
-		recs *= 0.9f;
-		//recs *= pow(0.9f, frate / fps);
-	}
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::min<int>(int(recs * 256.0f), 255));
+	DrawBox(0, 0, dispx, dispy, GetColor(255, 255, 255), TRUE);
+		recs *= 0.925f;
+		//recs *= pow(0.925f, frate / fps);
 	/*弾*/
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
 	if (pplayer->Gun[0].loadcnt > 0) {
@@ -1397,6 +1545,19 @@ void UIS::draw_ui(uint8_t selfammo[], float y_v, int font) {
 		DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, double(-y_v - pplayer->yrad + pplayer->gunrad.x()), UI_turret[i].get(), TRUE);
 	}
 	DrawFormatStringToHandle(x_r(0), y_r(1080 - 200), GetColor(255, 255, 255), font, "[LIFE : %d]", pplayer->HP[0]);
+
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::min<int>(int(hits * 256.0f),255));
+	DrawExtendGraph(0, 0, dispx, dispy, ui_damagepic.get(),TRUE);
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+	if (dmg) {
+		differential(hits, 2.f, 0.1f);
+		if (hits >= 0.09999f)
+			dmg = false;
+	}
+	else if (hits >= 0.00001f) {
+		hits *= 0.99f;
+		//hits *= pow(0.9f, frate / fps);
+	}
 }
 /*debug*/
 void UIS::put_way(void) {
@@ -1530,14 +1691,14 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 				//
 				set_effect(&play.effcs[ef_reco], t.hitres[k].HitPosition, t.hitres[k].Normal);
 				if (c.pene > t.ptr->armer[k] * (1.0f / abs(c.vec.Norm() % t.hitres[k].Normal))) {
+					if (t.HP[0] == 1) {
+						PlaySoundMem(t.se[29 + GetRand(1)].get(), DX_PLAYTYPE_BACK, TRUE);
+						set_effect(&t.effcs[ef_bomb], t.obj.frame(t.ptr->engineframe), VGet(0, 0, 0));
+					}
 					if (t.HP[0] != 0) {
-						if (t.HP[0] == 1) {
-							PlaySoundMem(t.se[29 + GetRand(1)].get(), DX_PLAYTYPE_BACK, TRUE);
-							set_effect(&t.effcs[ef_bomb], t.obj.frame(t.ptr->engineframe), VGet(0, 0, 0));
-							if (play.hitadd == false) {
-								play.hitadd = true;
-								play.hitid = int(t.id);
-							}
+						if (play.hitadd == false) {
+							play.hitadd = true;
+							play.hitid = int(t.id);
 						}
 					}
 					c.flug = false;
@@ -1578,7 +1739,7 @@ bool get_reco(players& play, std::vector<players>& tgts, ammos& c, size_t gun_s)
 				c.pos = c.vec.Scale(0.1f) + t.hitres[hitnear.value()].HitPosition;
 
 				if (hitnear.value() >= 5 && hitnear.value() < t.HP.size()) {
-					t.HP[hitnear.value()] = std::max<int16_t>(t.HP[hitnear.value()] - 13, 0); //
+					t.HP[hitnear.value()] = std::max<int16_t>(t.HP[hitnear.value()] - 1, 0); //
 				}
 			}
 		}
@@ -1865,7 +2026,7 @@ void SOLDIERS::set_hit(VECTOR_ref pos, VECTOR_ref repos) {
 }
 void SOLDIERS::draw_soldiersammo() {
 	for (auto& s : sol)
-		for (size_t i = 0; i < ammoc; i+=2)
+		for (size_t i = 0; i < ammoc; i += 2)
 			if (s.ammo[i].flug) {
 				SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(255.f * std::min<float>(1.f, 4.f * s.ammo[i].speed / (600 / f_rate))));
 				DrawCapsule3D(s.ammo[i].pos.get(), s.ammo[i].repos.get(), 0.0075f * ((s.ammo[i].pos - camera).size() / 60.f), 4, s.ammo[i].color, GetColor(255, 255, 255), TRUE);
