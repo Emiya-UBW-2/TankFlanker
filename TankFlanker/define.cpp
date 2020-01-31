@@ -41,12 +41,12 @@ Myclass::Myclass() {
 		SetFullSceneAntiAliasingMode(ANTI, 3); /*アンチエイリアス*/
 	//SetWindowStyleMode(4);			    /**/
 	//SetWindowUserCloseEnableFlag(FALSE);		    /*alt+F4対処*/
-	SetMainWindowText("Tank Flanker");     /*name*/
-	SetAeroDisableFlag(TRUE);	      /**/
-	SetUsePixelLighting(USEPIXEL);	 /*ピクセルライティング*/
-	SetWaitVSyncFlag(YSync);	       /*垂直同期*/
-	ChangeWindowMode(windowmode);	  /*窓表示*/
-	SetUseDirect3DVersion(DX_DIRECT3D_11); /*directX ver*/
+	SetMainWindowText("Tank Flanker");		    /*name*/
+	SetAeroDisableFlag(TRUE);			    /**/
+	SetUsePixelLighting(USEPIXEL);			    /*ピクセルライティング*/
+	SetWaitVSyncFlag(YSync);			    /*垂直同期*/
+	ChangeWindowMode(windowmode);			    /*窓表示*/
+	SetUseDirect3DVersion(DX_DIRECT3D_11);		    /*directX ver*/
 	SetEnableXAudioFlag(FALSE);			    /**/
 	Set3DSoundOneMetre(1.0f);			    /*3Dsound*/
 	SetGraphMode(dispx, dispy, 32);			    /*解像度*/
@@ -321,7 +321,7 @@ int Myclass::window_choosev(void) {
 	unsigned int m;
 	float pert;
 	int mousex, mousey; /*mouse*/
-	float real = 0.f, r = 5.f;
+	float real = 0.f, r = 10 / (2 * cos(deg2rad((180 - 360 / (int)vecs.size()) / 2)));
 	LONGLONG waits;
 	const auto c_00ff00 = GetColor(0, 255, 0);
 	const auto c_ffff00 = GetColor(255, 255, 0);
@@ -1144,7 +1144,7 @@ UIS::UIS() {
 	WIN32_FIND_DATA win32fdt;
 
 	countries = 1;					//国の数
-	std::array<const char*, 1> country{ "German" }; // TODO: 書き換える		// TODO: Germanの部分は可変になる
+	std::array<const char*, 1> country{ "German" }; // TODO: Germanの部分は可変になる
 
 	UI_main.resize(countries); /*改善*/
 	SetUseASyncLoadFlag(TRUE);
@@ -1172,9 +1172,8 @@ UIS::UIS() {
 }
 void UIS::draw_load(void) {
 	const auto font18 = FontHandle::Create(x_r(18), y_r(18 / 3), DX_FONTTYPE_ANTIALIASING);
-	SetUseASyncLoadFlag(TRUE);
-	auto pad = GraphHandle::Load("data/key.png");
 	SetUseASyncLoadFlag(FALSE);
+	auto pad = GraphHandle::Load("data/key.png");
 	const int pp = GetASyncLoadNum();
 	const auto c_00ff00 = GetColor(0, 255, 0);
 	const auto c_ff0000 = GetColor(255, 0, 0);
@@ -1254,12 +1253,19 @@ bool UIS::draw_title(void) {
 	SetUseASyncLoadFlag(FALSE);
 	const auto mmodel = MV1ModelHandle::Load("data/title/map.mv1");
 	const auto obj = MV1ModelHandle::Load("data/tanks/Pz_ausfIV_F2/model.mv1");
+	const auto shadow = MakeShadowMap(2048, 2048);
+	const auto eff = EffekseerEffectHandle::load("data/title/eff.efk");
+
+	std::vector<Effekseer3DPlayingHandle> playeff;
+
+
 	MV1SetMaterialDrawAlphaTestAll(obj.get(), TRUE, DX_CMP_GREATER, 128);
 	MV1SetupCollInfo(mmodel.get(), -1, 10, 10, 10);
 
+
 	//ypos反映
 	pos = VGet(0, 0.f, 0);
- 	{
+	{
 		const auto HitPoly = MV1CollCheck_Line(mmodel.get(), -1, VGet(0.0f, 200.0f, 0.0f), VGet(0.0f, -200.0f, 0.0f));
 		if (HitPoly.HitFlag)
 			pos = HitPoly.HitPosition;
@@ -1279,6 +1285,7 @@ bool UIS::draw_title(void) {
 			youdoframe.emplace_back(i);
 		if (tempname[0] == 'F') { //ホイール
 			wheelframe.emplace_back(i);
+			playeff.emplace_back(eff.Play3D());
 		}
 		if (tempname[0] == 'U') //ホイール
 			upsizeframe.emplace_back(i);
@@ -1304,6 +1311,10 @@ bool UIS::draw_title(void) {
 	}
 	SetMousePoint(x_r(960), y_r(768 + 9));
 	SetMouseDispFlag(TRUE);
+
+	SetFogEnable(TRUE);
+	SetFogStartEnd(4.f, 5.f);
+	SetFogColor(0, 0, 0);
 	while (ProcessMessage() == 0) {
 		const auto waits = GetNowHiPerformanceCount();
 		fps = GetFPS();
@@ -1316,9 +1327,8 @@ bool UIS::draw_title(void) {
 			m = ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0) ? c_ff0000 : c_ffff00;
 		else
 			m = c_ffffff;
-		yrad += deg2rad(60 / fps);
-		wheelrad[1] = yrad;
-		wheelrad[2] = -yrad;
+		wheelrad[1] -= deg2rad(5 / fps) * 30;
+		wheelrad[2] -= deg2rad(5 / fps) * 30;
 		//地形判定
 		{
 			const auto HitPoly = MV1CollCheck_Line(mmodel.get(), -1, (pos + VGet(0.0f, 2.0f, 0.0f)).get(), (pos + VGet(0.0f, -0.05f, 0.0f)).get());
@@ -1351,9 +1361,10 @@ bool UIS::draw_title(void) {
 			}
 		}
 		zvec = VTransform(VGet(0, 0, -1.f), MMult(MGetRotY(-yrad), ps_n)); //車体前方
- 		//all
-
+										   //all
 		MV1SetMatrix(obj.get(), MMult(MMult(MGetRotY(-yrad), ps_n), pos.Mtrans()));
+		{
+		size_t p = 0;
 		for (auto& w : wheelframe) {
 			MV1ResetFrameUserLocalMatrix(obj.get(), w);
 			const auto HitPoly2 = MV1CollCheck_Line(mmodel.get(), -1, (obj.frame(w) + nor.Scale(1.0f)).get(), (obj.frame(w) + nor.Scale(-0.2f)).get());
@@ -1365,7 +1376,13 @@ bool UIS::draw_title(void) {
 			}
 			MV1SetFrameUserLocalMatrix(obj.get(), w, (loc[w] + nor.Scale(Springs[w])).Mtrans());
 			MV1SetFrameUserLocalMatrix(obj.get(), w + 1, MMult(MGetRotX(wheelrad[signbit(loc[w + 1].x()) + 1]), (loc[w + 1] - loc[w]).Mtrans()));
+			playeff[p].SetRotation(0,-yrad,0);
+			playeff[p++].SetPos(obj.frame(w));
+
 		}
+		}
+		UpdateEffekseer3D(); //2.0ms
+
 		for (auto& w : youdoframe)
 			MV1SetFrameUserLocalMatrix(obj.get(), w, MMult(MGetRotX(wheelrad[signbit(loc[w].x()) + 1]), loc[w].Mtrans()));
 		for (auto& w : kidoframe)
@@ -1383,22 +1400,47 @@ bool UIS::draw_title(void) {
 			}
 		}
 		*/
+		Effekseer_Sync3DSetting();
 		SetDrawScreen(DX_SCREEN_BACK);
 		ClearDrawScreen();
+
+
 		VECTOR_ref cam = obj.frame(kidoframe[1]) + nor.Scale(0.1f) + (nor * zvec).Norm().Scale(0.5f);
 		VECTOR_ref view = obj.frame(youdoframe[1]) + nor.Scale(0.1f) + (nor * zvec).Norm().Scale(0.5f);
 
-		setcv(0.1f, 20.f, cam,view, nor, 45.f);
-			MV1DrawModel(mmodel.get());
-			MV1DrawMesh(obj.get(), 0);
-			for (int i = 1; i < obj.mesh_num(); ++i) {
-				if (i < 3)
-					MV1SetFrameTextureAddressTransform(obj.get(), 0, 0.0, wheelrad[i], 1.0, 1.0, 0.5, 0.5, 0.0);
-				if (i == 3)
-					MV1ResetFrameTextureAddressTransform(obj.get(), 0);
-				MV1DrawMesh(obj.get(), i);
-			}
-			font18.DrawString(x_r(960) - font18.GetDrawWidth("PRESS SPACE or CLICK") / 2, y_r(768), "PRESS SPACE or CLICK", m);
+		//setcv(0.1f, 5.f, cam, view, nor, 45.f);
+		//setcv(0.1f, 6.f, VGet(1, 3, 6), VGet(1, 1, 0), VGet(0, 1, 0), 45.f);
+
+
+		setcv(0.1f, 6.f,
+		    obj.frame(3 + 1) + (nor * (obj.frame(3 + 1) - obj.frame(3))).Norm().Scale(-0.5f),
+		    obj.frame(3) + (nor * (obj.frame(3 + 1) - obj.frame(3))).Norm().Scale(-0.5f),
+		    nor, 45.f * 2);
+
+
+		SetShadowMapLightDirection(shadow, VGet(0.4f * cos(yrad + deg2rad(35)), -0.8f, 0.4f * sin(yrad + deg2rad(35))));
+		SetShadowMapDrawArea(shadow, VGet(-5.f, -5.f, -5.f), VGet(5.f, 5.f, 5.f));
+		ShadowMap_DrawSetup(shadow);
+		MV1DrawModel(mmodel.get());
+		MV1DrawModel(obj.get());
+		ShadowMap_DrawEnd();
+
+		SetUseShadowMap(0, shadow);
+		MV1DrawModel(mmodel.get());
+		MV1DrawMesh(obj.get(), 0);
+		for (int i = 1; i < obj.mesh_num(); ++i) {
+			if (i < 3)
+				MV1SetFrameTextureAddressTransform(obj.get(), 0, 0.0, wheelrad[i], 1.0, 1.0, 0.5, 0.5, 0.0);
+			if (i == 3)
+				MV1ResetFrameTextureAddressTransform(obj.get(), 0);
+			MV1DrawMesh(obj.get(), i);
+		}
+		DrawEffekseer3D();
+
+		SetUseShadowMap(0, -1);
+
+		font72.DrawString(x_r(36), y_r(36), "Tank Flanker", c_ffffff);
+		font18.DrawString(x_r(960) - font18.GetDrawWidth("PRESS SPACE or CLICK") / 2, y_r(768), "PRESS SPACE or CLICK", m);
 		ScreenFlip();
 		if (CheckHitKey(KEY_INPUT_ESCAPE) != 0) {
 			m = c_ffffff;
@@ -1406,10 +1448,11 @@ bool UIS::draw_title(void) {
 		}
 		if (CheckHitKey(KEY_INPUT_SPACE) != 0)
 			break;
-		if ( m == c_ff0000)
+		if (m == c_ff0000)
 			break;
 		while (GetNowHiPerformanceCount() - waits < 1000000.0f / 60.f) {}
 	}
+	SetFogEnable(FALSE);
 	const auto c_000000 = GetColor(0, 0, 0);
 	float unt = 0;
 	while (ProcessMessage() == 0 && unt <= 0.9f) {
@@ -1423,7 +1466,7 @@ bool UIS::draw_title(void) {
 	}
 	if (!RemoveFontResourceEx(font_path, FR_PRIVATE, NULL))
 		MessageBox(NULL, "remove failure", "", MB_OK);
-	return (m==c_ff0000);
+	return (m == c_ff0000);
 }
 void UIS::set_state(players* play) {
 	pplayer = play;
@@ -1469,8 +1512,8 @@ void UIS::draw_ui(uint8_t selfammo[], float y_v, int font) {
 	/*跳弾*/
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::min<int>(int(recs * 256.0f), 255));
 	DrawBox(0, 0, dispx, dispy, GetColor(255, 255, 255), TRUE);
-		recs *= 0.925f;
-		//recs *= pow(0.925f, frate / fps);
+	recs *= 0.925f;
+	//recs *= pow(0.925f, frate / fps);
 	/*弾*/
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
 	if (pplayer->Gun[0].loadcnt > 0) {
@@ -1546,8 +1589,8 @@ void UIS::draw_ui(uint8_t selfammo[], float y_v, int font) {
 	}
 	DrawFormatStringToHandle(x_r(0), y_r(1080 - 200), GetColor(255, 255, 255), font, "[LIFE : %d]", pplayer->HP[0]);
 
-	SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::min<int>(int(hits * 256.0f),255));
-	DrawExtendGraph(0, 0, dispx, dispy, ui_damagepic.get(),TRUE);
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::min<int>(int(hits * 256.0f), 255));
+	DrawExtendGraph(0, 0, dispx, dispy, ui_damagepic.get(), TRUE);
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 	if (dmg) {
 		differential(hits, 2.f, 0.1f);
