@@ -261,11 +261,13 @@ private:
 	bool USEHOST;       /**/
 	bool USEPIXEL;      /*ピクセルライティングの利用*/
 	float se_vol;       /**/
+	float bgm_vol;       /**/
 	/*common*/
 	std::vector<vehicle> vecs;			     /*車輛情報*/
 	VECTOR_ref view, view_r;			     /*通常視点の角度、距離*/
 	std::vector<int> fonts;				     /*フォント*/
 	std::array<SoundHandle, 13> se_;		     /*効果音*/
+	std::array<SoundHandle, 6> bgm_;		     /*効果音*/
 	std::array<EffekseerEffectHandle, effects> effHndle; /*エフェクトリソース*/
 	EffekseerEffectHandle gndsmkHndle;		     /*エフェクトリソース*/
 public:
@@ -295,6 +297,7 @@ public:
 	void set_view_r(int wheel, bool life);
 	void Screen_Flip(LONGLONG waits);
 	~Myclass();
+	void set_bgm_vol(unsigned char size);
 	void set_se_vol(unsigned char size);
 	void play_sound(int p1);
 	const auto get_font(int p1) { return fonts[p1]; } //フォントハンドル取り出し
@@ -505,7 +508,8 @@ public:
 /**/
 void setcv(float neard, float fard, VECTOR_ref cam, VECTOR_ref view, VECTOR_ref up, float fov);		  //カメラ情報指定
 void getdist(VECTOR_ref& startpos, VECTOR_ref vec, float& dist, float& getdists, float speed, float fps); //startposに測距情報を出力
-//effect
+void gethitdist(std::vector<players>& tgts, VECTOR_ref startpos, VECTOR_ref vec, float& dist, float speed, float fps, int mapobj);
+    //effect
 void set_effect(EffectS* efh, VECTOR_ref pos, VECTOR_ref nor);
 void set_pos_effect(EffectS* efh, const EffekseerEffectHandle& handle);
 //play_class予定
