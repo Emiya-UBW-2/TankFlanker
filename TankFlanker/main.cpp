@@ -8,6 +8,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	/*変数*/
 	bool camflug;
 	size_t camcnt[2];
+	size_t output = 0;
 
 	uint8_t way[2];	     /*マウストリガー*/
 	uint8_t selfammo[2]; /*弾種変更キー*/
@@ -49,10 +50,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	int HighBrightScreen = MakeScreen(dispx, dispy, FALSE);		     /*エフェクト*/
 	int GaussScreen = MakeScreen(dispx / EXTEND, dispy / EXTEND, FALSE); /*エフェクト*/
 	SetUseASyncLoadFlag(FALSE);
-
+	uiparts->draw_load(); //
 	if (!uiparts->draw_title())
 		return 0;
-	uiparts->draw_load(); //
 	if (!parts->set_veh())
 		return -1;
 	/*物理開始*/
@@ -60,6 +60,55 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//これ以降繰り返しロード
 	do {
 		std::string stage = "data_0";
+		{
+			auto font18 = FontHandle::Create(x_r(18), y_r(18 / 3), DX_FONTTYPE_ANTIALIASING_EDGE);
+			const auto mdata = FileRead_open(("stage/" + stage + "/story.txt").c_str(), FALSE); /*ステージ情報*/
+			char mstr[256];									    /*tank*/
+			char ostr[256];									    /*tank*/
+			int i = 0,j=0,k,length=0;
+			auto se_type = SoundHandle::Load("data/audio/se/type.wav");
+			auto se_next = SoundHandle::Load("data/audio/se/next.wav");
+			SetDrawScreen(DX_SCREEN_BACK);
+			ClearDrawScreen();
+			parts->Screen_Flip(GetNowHiPerformanceCount());
+			while (ProcessMessage() == 0) {
+				if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0 || FileRead_gets(mstr, 256, mdata) == -1)
+					break;
+				for (length = 0; mstr[length] != '\0'; length++) {}
+				j = 0;
+				while (ProcessMessage() == 0 && j<=length) {
+					if ((GetMouseInput() & MOUSE_INPUT_LEFT) != 0)
+						break;
+
+					waits = GetNowHiPerformanceCount();
+					for (k = 0; k<length; k++) {
+						ostr[k] = mstr[k];
+					}
+					ostr[j] = '\0';
+					SetDrawScreen(DX_SCREEN_BACK);
+					font18.DrawString(x_r(960-(18/3)*(80)), y_r(540-400+18 * i), ostr, GetColor(255, 255, 255));
+					if (j%2==0)
+						PlaySoundMem(se_type.get(), DX_PLAYTYPE_BACK, TRUE);
+					WaitTimer(75);
+
+					font18.DrawString(x_r(960) - font18.GetDrawWidth("クリックしてスキップ") / 2, y_r(969), "クリックしてスキップ", GetColor(255, 255, 255));
+
+					parts->Screen_Flip(waits);
+					j++;
+				}
+				if (j != length)
+					break;
+				PlaySoundMem(se_next.get(), DX_PLAYTYPE_NORMAL, TRUE);
+				i++;
+			}
+
+			FileRead_close(mdata);
+			font18.Dispose();
+			se_type.Dispose();
+			se_next.Dispose();
+		}
+		draw_black();
+
 		{
 			const auto mdata = FileRead_open(("stage/" + stage + "/main.txt").c_str(), FALSE); /*ステージ情報*/
 			char mstr[64];									   /*tank*/
@@ -73,104 +122,106 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		pssort.resize(teamc + enemyc);
 		for (size_t p_cnt = 0; p_cnt < teamc + enemyc; ++p_cnt)
 			player[p_cnt].id = p_cnt;
-		{
-			const int m = parts->window_choosev(); /*player指定*/
-			if (m == -1)
-				return 0;
-			//設定
-			for (auto&& p : player) {
-				if (p.id < teamc) {
-					p.type = TEAM;
-					{
-						const auto mdata = FileRead_open(("stage/" + stage + "/team/" + std::to_string(p.id) + ".txt").c_str(), FALSE);
-						char mstr[64]; /*tank*/
-						FileRead_gets(mstr, 64, mdata);
-						p.ptr = parts->get_vehicle((p.id == 0) ? m : size_t(std::stoi(getright(mstr))));
-						FileRead_gets(mstr, 64, mdata);
-						p.yrad = deg2rad(std::stoi(getright(mstr)));
-						FileRead_gets(mstr, 64, mdata);
-						float xpp = float(std::stoi(getright(mstr)));
-						FileRead_gets(mstr, 64, mdata);
-						float zpp = float(std::stoi(getright(mstr)));
-						p.mine.pos = VGet(xpp, 0.0f, zpp);
-						for (size_t i = 0; i < waypc; i++) {
-							FileRead_gets(mstr, 64, mdata);
-							xpp = float(std::stoi(getright(mstr)));
-							FileRead_gets(mstr, 64, mdata);
-							zpp = float(std::stoi(getright(mstr)));
-							p.waypos[i] = VGet(xpp, 0.0f, zpp);
-							FileRead_gets(mstr, 64, mdata);
-							p.wayspd[i] = int8_t(std::stoi(getright(mstr)));
-						}
-						FileRead_close(mdata);
-					}
-				}
-				else {
-					p.type = ENEMY;
-					{
-						const auto mdata = FileRead_open(("stage/" + stage + "/enemy/" + std::to_string(p.id - teamc) + ".txt").c_str(), FALSE);
-						char mstr[64]; /*tank*/
-						FileRead_gets(mstr, 64, mdata);
-						p.ptr = parts->get_vehicle(size_t(std::stoi(getright(mstr))));
-						FileRead_gets(mstr, 64, mdata);
-						p.yrad = deg2rad(std::stoi(getright(mstr)));
-						FileRead_gets(mstr, 64, mdata);
-						float xpp = float(std::stoi(getright(mstr)));
-						FileRead_gets(mstr, 64, mdata);
-						float zpp = float(std::stoi(getright(mstr)));
-						p.mine.pos = VGet(xpp, 0.0f, zpp);
-						for (size_t i = 0; i < waypc; i++) {
-							FileRead_gets(mstr, 64, mdata);
-							xpp = float(std::stoi(getright(mstr)));
-							FileRead_gets(mstr, 64, mdata);
-							zpp = float(std::stoi(getright(mstr)));
-							p.waypos[i] = VGet(xpp, 0.0f, zpp);
-							FileRead_gets(mstr, 64, mdata);
-							p.wayspd[i] = int8_t(std::stoi(getright(mstr)));
-						}
-						FileRead_close(mdata);
-					}
-				}
-				p.setammo[0] = 40;
-				p.setammo[1] = 5;
-				p.setammo[2] = 20;
-			}
-		}
-		/*UI*/
-		uiparts->set_state(&player[0]);
-		/*load*/
-		SetUseASyncLoadFlag(TRUE);
-		SetCreate3DSoundFlag(TRUE);
+		//設定
+		size_t mt = 0;
 		for (auto&& p : player) {
-			p.obj = p.ptr->model.Duplicate();
-			p.colobj = p.ptr->colmodel.Duplicate();
-			for (auto&& h : p.hit)
-				h.pic = hit_mod.Duplicate();
-			size_t i = 0;
-			p.se.emplace_back(SoundHandle::Load("data/audio/se/engine/0.wav"));
-			i++;
-			p.se.emplace_back(SoundHandle::Load("data/audio/se/fire/gun.wav"));
-			i++;
-			for (; i < 10; ++i)
-				p.se.emplace_back(SoundHandle::Load("data/audio/se/fire/" + std::to_string(i - 2) + ".wav"));
-			for (; i < 27; ++i)
-				p.se.emplace_back(SoundHandle::Load("data/audio/se/ricochet/" + std::to_string(i - 10) + ".wav"));
-			for (; i < 29; ++i)
-				p.se.emplace_back(SoundHandle::Load("data/audio/se/engine/o" + std::to_string(i - 27) + ".wav"));
-			for (; i < 31; ++i)
-				p.se.emplace_back(SoundHandle::Load("data/audio/se/hit_enemy/" + std::to_string(i - 29) + ".wav"));
+			int mdata = -1;
+			if (p.id < teamc) {
+				p.type = TEAM;
+				mdata = FileRead_open(("stage/" + stage + "/team/" + std::to_string(p.id) + ".txt").c_str(), FALSE);
+			}
+			else {
+				p.type = ENEMY;
+				mdata = FileRead_open(("stage/" + stage + "/enemy/" + std::to_string(p.id - teamc) + ".txt").c_str(), FALSE);
+			}
+			{
+				char mstr[64]; /*tank*/
+				FileRead_gets(mstr, 64, mdata);
+				p.ptr = parts->get_vehicle(size_t(std::stoi(getright(mstr))));
+				if(p.id==0)
+					mt = size_t(std::stoi(getright(mstr)));
+				FileRead_gets(mstr, 64, mdata);
+				p.yrad = deg2rad(std::stoi(getright(mstr)));
+				FileRead_gets(mstr, 64, mdata);
+				float xpp = float(std::stoi(getright(mstr)));
+				FileRead_gets(mstr, 64, mdata);
+				float zpp = float(std::stoi(getright(mstr)));
+				p.mine.pos = VGet(xpp, 0.0f, zpp);
+				for (size_t i = 0; i < waypc; i++) {
+					FileRead_gets(mstr, 64, mdata);
+					xpp = float(std::stoi(getright(mstr)));
+					FileRead_gets(mstr, 64, mdata);
+					zpp = float(std::stoi(getright(mstr)));
+					p.waypos[i] = VGet(xpp, 0.0f, zpp);
+					FileRead_gets(mstr, 64, mdata);
+					p.wayspd[i] = int8_t(std::stoi(getright(mstr)));
+				}
+				FileRead_close(mdata);
+			}
 
-			p.se.emplace_back(SoundHandle::Load("data/audio/se/turret/" + std::to_string(0) + ".wav"));
-			i++;
+			p.setammo[0] = 40;
+			p.setammo[1] = 5;
+			p.setammo[2] = 20;
 		}
-		SetCreate3DSoundFlag(FALSE);
-		SetUseASyncLoadFlag(FALSE);
-		mapparts->set_map_readyb(mapc);
-		/*human*/
-		if (!humanparts->set_humans(player[0].ptr->inmodel))
-			return 0;
-		uiparts->draw_load(); //
+		do {
+			out = false;
+			{
+				const int m = parts->window_choosev(mt); /*player指定*/
+				if (m == -1)
+					return 0;
+				player[0].ptr = parts->get_vehicle(size_t(m));
+				player[0].setammo[0] = 40;
+				player[0].setammo[1] = 5;
+				player[0].setammo[2] = 20;
+			}
+			/*UI*/
+			uiparts->set_state(&player[0]);
+			/*load*/
+			SetUseASyncLoadFlag(TRUE);
+			SetCreate3DSoundFlag(TRUE);
+			for (auto&& p : player) {
+				p.obj = p.ptr->model.Duplicate();
+				p.colobj = p.ptr->colmodel.Duplicate();
+				for (auto&& h : p.hit)
+					h.pic = hit_mod.Duplicate();
+				size_t i = 0;
+				p.se.emplace_back(SoundHandle::Load("data/audio/se/engine/0.wav"));
+				i++;
+				p.se.emplace_back(SoundHandle::Load("data/audio/se/fire/gun.wav"));
+				i++;
+				for (; i < 10; ++i)
+					p.se.emplace_back(SoundHandle::Load("data/audio/se/fire/" + std::to_string(i - 2) + ".wav"));
+				for (; i < 27; ++i)
+					p.se.emplace_back(SoundHandle::Load("data/audio/se/ricochet/" + std::to_string(i - 10) + ".wav"));
+				for (; i < 29; ++i)
+					p.se.emplace_back(SoundHandle::Load("data/audio/se/engine/o" + std::to_string(i - 27) + ".wav"));
+				for (; i < 31; ++i)
+					p.se.emplace_back(SoundHandle::Load("data/audio/se/hit_enemy/" + std::to_string(i - 29) + ".wav"));
 
+				p.se.emplace_back(SoundHandle::Load("data/audio/se/turret/" + std::to_string(0) + ".wav"));
+				i++;
+			}
+			SetCreate3DSoundFlag(FALSE);
+			SetUseASyncLoadFlag(FALSE);
+			mapparts->set_map_readyb(mapc);
+			/*human*/
+			if (!humanparts->set_humans(player[0].ptr->inmodel)) { //
+				for (auto&& p : player) {
+					SetASyncLoadFinishDeleteFlag(p.obj.get());
+					SetASyncLoadFinishDeleteFlag(p.colobj.get());
+					for (auto&& h : p.hit)
+						SetASyncLoadFinishDeleteFlag(h.pic.get());
+					for (size_t i = 0; i < p.se.size(); ++i)
+						SetASyncLoadFinishDeleteFlag(p.se[i].get());
+				}
+				mapparts->set_map_cancelb();
+				//SetASyncLoadFinishDeleteFlag(0);
+				out = true;
+			}
+
+			uiparts->draw_load(); //
+		} while (out);
+		out = false;
 		/*map*/
 		if (!mapparts->set_map_ready())
 			break;
@@ -385,6 +436,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		for (size_t i = 0; i < frate; i++)
 			ScreenFlip();
 		//sound
+		parts->stop_sound();
 		PlaySoundMem(player[0].se[31].get(), DX_PLAYTYPE_LOOP, TRUE);
 		for (auto& p : player) {
 			p.checkhit = true;
@@ -517,7 +569,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				if (player[0].HP[0] == 0) {
 					aim.flug = false;
 					map.flug = false;
-					ratio = 1.0f;
 				}
 				/*弾種交換*/
 				if (keyget[7]) {
@@ -592,13 +643,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 							ratio = std::min<float>(ratio + 2.0f / fps, 10.f);
 						if (keyget[4])
 							ratio = std::max<float>(ratio - 2.0f / fps, 2.f);
+
 						gethitdist(
 						    player,
 						    player[0].obj.frame(player[0].ptr->gun_[0].gunframe),
 						    (player[0].obj.frame(player[0].ptr->gun_[0].gunframe + 1) - player[0].obj.frame(player[0].ptr->gun_[0].gunframe)).Norm(),
 						    aim_r,
 						    player[0].ptr->gun_speed[player[0].ammotype],
-						    fps,
+						    frate,
 						    mapparts->get_mapobj().get());
 					}
 					else
@@ -840,7 +892,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 							if ((p.move & KEY_GORIGHT) != 0)
 								turn_bias = -turn_bias;
 						}
-						if (p.yace == 0.0f) {
+						if (p.gnd) {
 							fpsdiff(p.yadd, p.ptr->vehicle_RD * turn_bias, 0.1f);
 						}
 					}
@@ -865,12 +917,22 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				for (auto& p : player) {
 					p.mine.body->SetLinearVelocity(b2Vec2(p.vec.x(), p.vec.z()));
 					p.mine.body->SetAngularVelocity(p.yadd);
+					//
+					if (p.mine.body->GetPosition().x < mapparts->get_minsize().x() + 50.f)
+						p.mine.body->SetTransform(b2Vec2(mapparts->get_minsize().x() + 50.f, p.mine.body->GetPosition().y), p.mine.body->GetAngle());
+					if (p.mine.body->GetPosition().x > mapparts->get_maxsize().x() - 50.f)
+						p.mine.body->SetTransform(b2Vec2(mapparts->get_maxsize().x() - 50.f, p.mine.body->GetPosition().y), p.mine.body->GetAngle());
+					if (p.mine.body->GetPosition().y < mapparts->get_minsize().z() + 50.f)
+						p.mine.body->SetTransform(b2Vec2(p.mine.body->GetPosition().x, mapparts->get_minsize().z() + 50.f), p.mine.body->GetAngle());
+					if (p.mine.body->GetPosition().y > mapparts->get_maxsize().z() - 50.f)
+						p.mine.body->SetTransform(b2Vec2(p.mine.body->GetPosition().x, mapparts->get_maxsize().z() - 50.f), p.mine.body->GetAngle());
+					//
 				} //1.22ms
 				world->Step(1.0f / fps, 1, 1);
 				for (auto& p : player) {
 					p.yrad = p.mine.body->GetAngle();
 					float spdrec = p.spd;
-					fpsdiff(p.spd, sqrt(pow(p.mine.body->GetLinearVelocity().x, 2) + pow(p.mine.body->GetLinearVelocity().y, 2)) * ((p.spd > 0) ? 1.f : -1.f), 0.01f);
+					fpsdiff(p.spd, std::hypot(p.mine.body->GetLinearVelocity().x, p.mine.body->GetLinearVelocity().y) * ((p.spd > 0) ? 1.f : -1.f), 0.01f);
 					p.accel = p.spd - spdrec;
 					b2Vec2 tmpb2 = b2Vec2((M_GR / fps) * ((p.obj.frame(7 + 1) - p.obj.frame(7)).Norm() % VGet(0, -1.f, 0)), (M_GR / fps) * (p.nor % VGet(0, 1.f, 0)));
 					for (auto& f : p.foot) {
@@ -902,9 +964,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					//地形判定
 					{
 						const auto HitPoly = mapparts->get_gnd_hit(p.mine.pos + VGet(0.0f, 2.0f, 0.0f), p.mine.pos + VGet(0.0f, -0.05f, 0.0f));
+						p.gnd = HitPoly.HitFlag;
 						if (HitPoly.HitFlag) {
-							p.yace = 0.0f;
-							p.mine.pos = VGet(p.mine.body->GetPosition().x, HitPoly.HitPosition.y, p.mine.body->GetPosition().y);
+							auto rep = p.mine.pos;
+							p.mine.pos = VGet(
+							    p.mine.body->GetPosition().x,
+							    HitPoly.HitPosition.y,
+							    p.mine.body->GetPosition().y);
+
+							p.yace = (p.mine.pos - rep).y();
+
 							mapparts->set_normal(p.nor, p.ps_n, p.mine.pos, frate, fps);
 							/*0.1km/h以内の時かキーを押していないときに減速*/
 							if (((0.1f / 3.6f) / fps) < -p.spd && (p.move & KEY_GOBACK_) == 0 ||					//バック
@@ -1045,14 +1114,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 								const auto v = p.obj.frame(g.gunframe + 1) - a.pos;
 								const auto y = atan2(v.x(), v.z()) + deg2rad((float)(GetRand(g.accuracy * 2) - g.accuracy) / 10000.f);
-								const auto x = atan2(-v.y(), std::hypot(v.x(), v.z())) - deg2rad((float)(GetRand(g.accuracy * 2) - g.accuracy) / 10000.f);
+								const auto x = atan2(-v.y(), std::hypot(v.x(), v.z())) - deg2rad((float)(GetRand(g.accuracy * 2) - g.accuracy) / 10000.f); //
 								a.vec = VGet(cos(x) * sin(y), -sin(x), cos(x) * cos(y));
 								//
 								++p.Gun[guns].useammo;
 								p.Gun[guns].useammo %= ammoc;
 								++p.Gun[guns].loadcnt;
 								if (guns == 0) {
-									set_effect(&p.effcs[ef_fire], p.obj.frame(g.gunframe + 1).get(), (p.obj.frame(g.gunframe + 1) - p.obj.frame(g.gunframe)).get());
+									do {
+										if (p.id == 0 && aim.flug)
+											continue;
+										set_effect(&p.effcs[ef_fire], p.obj.frame(g.gunframe + 1).get(), (p.obj.frame(g.gunframe + 1) - p.obj.frame(g.gunframe)).get());
+									} while (false);
+
 									p.Gun[guns].fired = 0.5f;
 									p.firerad = 0;
 									if (p.id == 0) {
@@ -1174,7 +1248,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						    aim_r,
 						    getdists,
 						    player[0].ptr->gun_speed[player[0].ammotype],
-						    fps);
+						    frate);
 					}
 					else {
 						view = player[0].obj.frame(player[0].ptr->gun_[0].gunframe + 1);
@@ -1225,6 +1299,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					}
 				}
 			}
+			/*
 			{
 				auto& p = player[0];
 				int i = int(p.Gun[0].useammo) - 1;
@@ -1239,7 +1314,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 					aim.flug = false;
 					if (p.hitid == -1) {
 						ratio = 1.0f;
-						rat_r = ratio; /*カメラ　　実倍率*/
+						rat_r = ratio; //*カメラ　　実倍率
 
 						cam = VGet(
 						    std::clamp<float>(p.Gun[0].Ammo[i].repos.x(), mapparts->get_minsize().x(), mapparts->get_maxsize().x()),
@@ -1266,13 +1341,41 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 						upvec = VGet(0, 1, 0);
 						if (camcnt[1] >= 3.f * fps) {
 							ratio = 1.0f;
-							rat_r = ratio; /*カメラ　　実倍率*/
+							rat_r = ratio; //*カメラ　　実倍率
 							camflug = false;
 							camcnt[0] = 0;
 							camcnt[1] = 0;
 							p.hitid = -1;
 						}
 					}
+				}
+			}
+			*/
+			if (player[0].HP[0] == 0) {
+				camflug = true;
+			}
+			if (camflug) {
+				if (camcnt[1] == 0) {
+					for (auto& p : player) {
+						if (p.hitid == 0) {
+							output = p.id;
+							break;
+						}
+					}
+				}
+				auto& p = player[output];
+				int i;
+				i = int(p.Gun[0].useammo) - 1;
+				if (i == -1)
+					i = ammoc - 1;
+				camcnt[1]++;
+				if (camcnt[1] >= 2.f * fps)
+					ratio = 5.0f;
+				cam += ((player[p.hitid].obj.frame(player[p.hitid].ptr->gun_[0].gunframe) + p.Gun[0].Ammo[i].vec.Scale(15.f) + VGet(1.f, 3.f, 1.f)) - cam).Scale(0.1f);
+				view += (p.obj.frame(p.ptr->gun_[0].gunframe) - view).Scale(0.1f);
+				upvec = VGet(0, 1, 0);
+				if (camcnt[1] >= 5.f * fps) {
+					break;
 				}
 			}
 			soldierparts->set_camerapos(cam, view, upvec, rat_r);
@@ -1500,8 +1603,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				if (aim.flug)
 					uiparts->draw_sight(aimpos, rat_r, aimdist, parts->get_font(0)); /*照準器*/
 				if (keyget[19] && !aim.flug)
-					uiparts->draw_drive(); /*ドライバー視点*/
-
+					uiparts->draw_drive();						 /*ドライバー視点*/
 				uiparts->draw_ui(selfammo, parts->get_view_r().y(), parts->get_font(0)); /*main*/
 			}
 			/*debug*/

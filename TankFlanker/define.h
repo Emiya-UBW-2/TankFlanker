@@ -171,6 +171,7 @@ namespace std {
 struct players {
 	int camf{ false }; /*撃破カメラ*/
 
+	bool gnd;			      /*地面に当たっているか*/
 	size_t id;			      /*ID*/
 	vehicle* ptr;			      /*vehicle*/
 	MV1ModelHandle obj;		      /*モデル*/
@@ -261,7 +262,7 @@ private:
 	bool USEHOST;       /**/
 	bool USEPIXEL;      /*ピクセルライティングの利用*/
 	float se_vol;       /**/
-	float bgm_vol;       /**/
+	float bgm_vol;      /**/
 	/*common*/
 	std::vector<vehicle> vecs;			     /*車輛情報*/
 	VECTOR_ref view, view_r;			     /*通常視点の角度、距離*/
@@ -292,7 +293,7 @@ public:
 	} //(必要なフォント数,サイズ1,サイズ2, ...)
 
 	bool set_veh(void);
-	int window_choosev(void); //車両選択
+	int window_choosev(size_t p1); //車両選択
 	void set_viewrad(VECTOR_ref vv);
 	void set_view_r(int wheel, bool life);
 	void Screen_Flip(LONGLONG waits);
@@ -300,6 +301,7 @@ public:
 	void set_bgm_vol(unsigned char size);
 	void set_se_vol(unsigned char size);
 	void play_sound(int p1);
+	void stop_sound();
 	const auto get_font(int p1) { return fonts[p1]; } //フォントハンドル取り出し
 	const auto get_view_r(void) { return view_r; }
 	const auto get_in(void) { return view_r.z() == 0.1f; }
@@ -436,6 +438,7 @@ private:
 public:
 	MAPS(int map_size, float draw_dist, int shadow_size);
 	void set_map_readyb(size_t set);
+	void set_map_cancelb(void);
 	bool set_map_ready(void);
 	void set_camerapos(VECTOR_ref pos, VECTOR_ref vec, VECTOR_ref up, float ratio);
 	void set_map_shadow_near(float vier_r);
@@ -477,7 +480,7 @@ private:
 	size_t countries = 1;		      /*国数*/
 	float gearf = 0.f;		      /*変速*/
 	float recs = 0.f;		      /*跳弾表現用*/
-	bool dmg{ false };			      /*跳弾表現用*/
+	bool dmg{ false };		      /*跳弾表現用*/
 	float hits = 0.f;		      /*跳弾表現用*/
 	players* pplayer;		      /*playerdata*/
 	std::array<float, 3> reload_mov;      /*リロード*/
@@ -490,12 +493,11 @@ private:
 
 public:
 	UIS();
-
 	void draw_load(void); /*ロード画面*/
 	bool draw_title(void);
 	void set_state(players* play); /*使用するポインタの指定*/
 	void set_reco(void);	   /*反射スイッチ*/
-	void set_damage(void);	    /*ダメージスイッチ*/
+	void set_damage(void);	 /*ダメージスイッチ*/
 	void draw_drive();
 	void draw_icon(players& p, int font, float frate);
 	void draw_sight(VECTOR_ref aimpos, float ratio, float dist, int font); /*照準UI*/
@@ -509,7 +511,8 @@ public:
 void setcv(float neard, float fard, VECTOR_ref cam, VECTOR_ref view, VECTOR_ref up, float fov);		  //カメラ情報指定
 void getdist(VECTOR_ref& startpos, VECTOR_ref vec, float& dist, float& getdists, float speed, float fps); //startposに測距情報を出力
 void gethitdist(std::vector<players>& tgts, VECTOR_ref startpos, VECTOR_ref vec, float& dist, float speed, float fps, int mapobj);
-    //effect
+void draw_black(void); /*暗転*/
+		       //effect
 void set_effect(EffectS* efh, VECTOR_ref pos, VECTOR_ref nor);
 void set_pos_effect(EffectS* efh, const EffekseerEffectHandle& handle);
 //play_class予定

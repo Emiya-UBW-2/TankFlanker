@@ -58,7 +58,7 @@ Myclass::Myclass() {
 	SetUseZBuffer3D(TRUE);				    /*zbufuse*/
 	SetWriteZBuffer3D(TRUE);			    /*zbufwrite*/
 	MV1SetLoadModelReMakeNormal(TRUE);		    /*法線*/
-	MV1SetLoadModelPhysicsWorldGravity(M_GR);	    /*重力*/
+	MV1SetLoadModelPhysicsWorldGravity(M_GR);	   /*重力*/
 	//SetSysCommandOffFlag(TRUE)//強制ポーズ対策()
 	//車両数取得
 	hFind = FindFirstFile("data/tanks/*", &win32fdt);
@@ -317,7 +317,7 @@ bool Myclass::set_veh(void) {
 	}
 	return true;
 }
-int Myclass::window_choosev(void) {
+int Myclass::window_choosev(size_t p1) {
 	SetMousePoint(x_r(960), y_r(969));
 	SetMouseDispFlag(TRUE);
 	const auto font18 = FontHandle::Create(x_r(18), y_r(18 / 3), DX_FONTTYPE_ANTIALIASING);
@@ -336,6 +336,8 @@ int Myclass::window_choosev(void) {
 	const auto c_808080 = GetColor(128, 128, 128);
 	const auto c_ffc800 = GetColor(255, 200, 0);
 	const auto c_ff6400 = GetColor(255, 100, 0);
+	i = p1;
+	l = p1;
 	PlaySoundMem(bgm_[vecs[i].countryc].get(), DX_PLAYTYPE_LOOP, TRUE);
 	set_bgm_vol(255);
 	while (ProcessMessage() == 0) {
@@ -358,7 +360,7 @@ int Myclass::window_choosev(void) {
 		pert = abs(1.0f - abs(float(real - deg2rad(360 * l / (int)vecs.size())) / deg2rad(360 / (int)vecs.size())));
 
 		font72.DrawString(x_r(960) - font72.GetDrawWidth(vecs[i].name) / 2, y_r(154), vecs[i].name, c_00ff00);
-		font72.DrawStringFormat(x_r(960), y_r(250), c_00ff00, "%d", vecs[i].countryc);
+		//font72.DrawStringFormat(x_r(960), y_r(250), c_00ff00, "%d", vecs[i].countryc);
 
 		xp = 850;
 		yp = 850;
@@ -475,21 +477,7 @@ int Myclass::window_choosev(void) {
 		font18.DrawString(x_r(960) - font18.GetDrawWidth("次へ") / 2, y_r(969), "次へ", c_ffffff);
 		Screen_Flip(waits);
 	}
-	if (i != -1) {
-		const auto c_000000 = GetColor(0, 0, 0);
-		float unt = 0;
-		while (ProcessMessage() == 0 && unt <= 0.95f) {
-			waits = GetNowHiPerformanceCount();
-			set_bgm_vol(unsigned char(255.f * (1.f - unt)));
-			SetDrawScreen(DX_SCREEN_BACK);
-			SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(255.f * unt));
-			DrawBox(0, 0, dispx, dispy, c_000000, TRUE);
-			differential(unt, 1.f, 0.05f);
-			Screen_Flip(waits);
-		}
-	}
-	StopSoundMem(bgm_[vecs[i].countryc].get());
-
+	draw_black();
 	return i;
 }
 void Myclass::set_viewrad(VECTOR_ref vv) {
@@ -527,6 +515,10 @@ void Myclass::set_se_vol(unsigned char size) {
 }
 void Myclass::play_sound(int p1) {
 	PlaySoundMem(se_[p1].get(), DX_PLAYTYPE_BACK, TRUE);
+}
+void Myclass::stop_sound() {
+	for (const auto& b : bgm_)
+		StopSoundMem(b.get());
 }
 //
 HUMANS::HUMANS(bool useg, float frates) {
@@ -673,25 +665,10 @@ bool HUMANS::set_humans(const MV1ModelHandle& inmod) {
 			DrawBox(x_r(760), y_r(960), x_r(1160), y_r(996), m, FALSE);
 			font18.DrawString(x_r(960) - font18.GetDrawWidth("戦闘開始") / 2, y_r(969), "戦闘開始", c_ffffff);
 			ScreenFlip();
-			do {
-			} while (GetNowHiPerformanceCount() - waits < 1000000.0f / f_rate);
+			while (GetNowHiPerformanceCount() - waits < 1000000.0f / f_rate) {}
 			//Myclass::Screen_Flip(waits);
 		}
-		if (sel != -1) {
-			const auto c_000000 = GetColor(0, 0, 0);
-			float unt = 0;
-			while (ProcessMessage() == 0 && unt <= 0.9f) {
-				waits = GetNowHiPerformanceCount();
-				SetDrawScreen(DX_SCREEN_BACK);
-				SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(255.f * unt));
-				DrawBox(0, 0, dispx, dispy, c_000000, TRUE);
-				differential(unt, 1.f, 0.05f);
-				ScreenFlip();
-				do {
-				} while (GetNowHiPerformanceCount() - waits < 1000000.0f / f_rate);
-				//Myclass::Screen_Flip(waits);
-			}
-		}
+		draw_black();
 
 		if (sel == -1)
 			return false;
@@ -878,17 +855,17 @@ void HUMANS::start_humananime(int p1) {
 //
 MAPS::MAPS(int map_size, float draw_dist, int shadow_size) {
 	groundx = map_size * 1024; /*ノーマルマップのサイズ*/
-	drawdist = draw_dist;	   /*木の遠近*/
+	drawdist = draw_dist;      /*木の遠近*/
 	shadowx = shadow_size;
 	int shadowsize = (1 << (10 + shadowx));
 	//shadow
 	for (auto& s : shadowmap)
 		s = MakeShadowMap(shadowsize, shadowsize); /*近影*/
-	SetShadowMapAdjustDepth(shadowmap[0], 0.0005f);	   /*ずれを小さくするため*/
+	SetShadowMapAdjustDepth(shadowmap[0], 0.0005f);    /*ずれを小さくするため*/
 	//map
 	SetUseASyncLoadFlag(TRUE);
-	sky_sun = GraphHandle::Load("data/sun.png");	      /*太陽*/
-	nor_trk = GraphHandle::Load("data/nm.png");	      /*轍*/
+	sky_sun = GraphHandle::Load("data/sun.png");	  /*太陽*/
+	nor_trk = GraphHandle::Load("data/nm.png");	   /*轍*/
 	dif_tex = GraphHandle::Make(groundx, groundx, FALSE); /*ノーマルマップ*/
 	nor_tex = GraphHandle::Make(groundx, groundx, FALSE); /*実マップ*/
 	SetUseASyncLoadFlag(FALSE);
@@ -898,17 +875,28 @@ void MAPS::set_map_readyb(size_t set) {
 	lightvec = VGet(0.5f, -0.2f, -0.5f);
 	std::array<const char*, 2> mapper{ "map", "map" }; // TODO: 書き換える
 	SetUseASyncLoadFlag(TRUE);
-	tree.mnear = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/tree/model.mv1");	 /*近木*/
-	tree.mfar = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/tree/model2.mv1");	 /*遠木*/
+	tree.mnear = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/tree/model.mv1");	/*近木*/
+	tree.mfar = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/tree/model2.mv1");	/*遠木*/
 	dif_gra = GraphHandle::Load("data/"s + mapper.at(set) + "/SandDesert_04_00344_FWD.png"); /*nor*/
-	nor_gra = GraphHandle::Load("data/"s + mapper.at(set) + "/SandDesert_04_00344_NM.png");	 /*nor*/
+	nor_gra = GraphHandle::Load("data/"s + mapper.at(set) + "/SandDesert_04_00344_NM.png");  /*nor*/
 	m_model = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/map.mv1");			 /*map*/
-	sky_model = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/sky/model_sky.mv1");	 /*sky*/
+	sky_model = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/sky/model_sky.mv1");      /*sky*/
 	graph = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/grass.png");		 /*grass*/
 	grass = MV1ModelHandle::Load("data/"s + mapper.at(set) + "/grass/grass.mv1");		 /*grass*/
 	GgHandle = GraphHandle::Load("data/"s + mapper.at(set) + "/grass/gg.png");		 /*地面草*/
 	SetUseASyncLoadFlag(FALSE);
 	return;
+}
+void MAPS::set_map_cancelb(void) {
+	SetASyncLoadFinishDeleteFlag(tree.mnear.get());									 /*近木*/
+	SetASyncLoadFinishDeleteFlag(tree.mfar.get());	/*遠木*/
+	SetASyncLoadFinishDeleteFlag(dif_gra.get());										 /*nor*/
+	SetASyncLoadFinishDeleteFlag(nor_gra.get());		/*nor*/
+	SetASyncLoadFinishDeleteFlag(m_model.get());										 /*map*/
+	SetASyncLoadFinishDeleteFlag(sky_model.get());	/*sky*/
+	SetASyncLoadFinishDeleteFlag(graph.get());										 /*grass*/
+	SetASyncLoadFinishDeleteFlag(grass.get());		/*grass*/
+	SetASyncLoadFinishDeleteFlag(GgHandle.get());										 /*地面草*/
 }
 bool MAPS::set_map_ready() {
 	tree.tree_.resize(treec);
@@ -932,7 +920,7 @@ bool MAPS::set_map_ready() {
 
 	MV1SetupCollInfo(m_model.get(), 0, int((map_max - map_min).x()) / 5, int((map_max - map_min).y()) / 5, int((map_max - map_min).z()) / 5);
 	SetFogStartEnd(10.0f, 1400.0f); /*fog*/
-	SetFogColor(150, 150, 175);	/*fog*/
+	SetFogColor(150, 150, 175);     /*fog*/
 	SetLightDirection(lightvec.get());
 	for (auto& s : shadowmap)
 		SetShadowMapLightDirection(s, lightvec.get());
@@ -961,7 +949,7 @@ bool MAPS::set_map_ready() {
 	RefMesh = MV1GetReferenceMesh(grass.get(), -1, TRUE); /*参照用メッシュの取得*/
 
 	IndexNum = RefMesh.PolygonNum * 3 * grasss; /*インデックスの数を取得*/
-	VerNum = RefMesh.VertexNum * grasss;	    /*頂点の数を取得*/
+	VerNum = RefMesh.VertexNum * grasss;	/*頂点の数を取得*/
 
 	grassver.resize(VerNum);   /*頂点データとインデックスデータを格納するメモリ領域の確保*/
 	grassind.resize(IndexNum); /*頂点データとインデックスデータを格納するメモリ領域の確保*/
@@ -976,7 +964,7 @@ bool MAPS::set_map_ready() {
 		if (HitPoly.HitFlag)
 			MV1SetMatrix(grass.get(), MMult(MGetScale(VGet((float)(200 + GetRand(400)) / 100.0f, (float)(25 + GetRand(100)) / 100.0f, (float)(200 + GetRand(400)) / 100.0f)), MMult(MMult(MGetRotY(deg2rad(GetRand(360))), MGetRotVec2(VGet(0, 1.f, 0), HitPoly.Normal)), MGetTranslate(HitPoly.HitPosition))));
 		//上省
-		MV1RefreshReferenceMesh(grass.get(), -1, TRUE);	      /*参照用メッシュの更新*/
+		MV1RefreshReferenceMesh(grass.get(), -1, TRUE);       /*参照用メッシュの更新*/
 		RefMesh = MV1GetReferenceMesh(grass.get(), -1, TRUE); /*参照用メッシュの取得*/
 		for (int j = 0; j < RefMesh.VertexNum; ++j) {
 			auto& g = grassver[j + vnum];
@@ -1196,6 +1184,19 @@ UIS::UIS() {
 	}
 	SetUseASyncLoadFlag(FALSE);
 }
+void draw_black(void) {
+	const auto c_000000 = GetColor(0, 0, 0);
+	float unt = 0;
+	while (ProcessMessage() == 0 && unt <= 0.9f) {
+		const auto waits = GetNowHiPerformanceCount();
+		SetDrawScreen(DX_SCREEN_BACK);
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(255.f * unt));
+		DrawBox(0, 0, dispx, dispy, c_000000, TRUE);
+		differential(unt, 1.f, 0.05f);
+		ScreenFlip();
+		while (GetNowHiPerformanceCount() - waits < 1000000.0f / 60.f) {}
+	}
+}
 void UIS::draw_load(void) {
 	const auto font18 = FontHandle::Create(x_r(18), y_r(18 / 3), DX_FONTTYPE_ANTIALIASING);
 	SetUseASyncLoadFlag(FALSE);
@@ -1230,8 +1231,8 @@ void UIS::draw_load(void) {
 		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "左CTRL : 大きく砲操作", c_ff6400);
 		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "左shift : 照準", c_ff6400);
 		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "右CTRL : ドライバー視点", c_ff6400);
-		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "Z : レティクル上昇", c_ff6400);
-		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "X : レティクル下降", c_ff6400);
+		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "Z : レティクル位置変更スイッチ", c_ff6400);
+		//font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "X : レティクル下降", c_ff6400);
 		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "C : ズームアウト", c_ff6400);
 		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "V : ズームイン", c_ff6400);
 		font18.DrawString(x_r(1367), y_r(401 + 18 * i++), "Q : 再装填1", c_00c800);
@@ -1433,15 +1434,15 @@ bool UIS::draw_title(void) {
 		VECTOR_ref cam = obj.frame(kidoframe[1]) + nor.Scale(0.1f) + (nor * zvec).Norm().Scale(0.5f);
 		VECTOR_ref view = obj.frame(youdoframe[1]) + nor.Scale(0.1f) + (nor * zvec).Norm().Scale(0.5f);
 
-		//setcv(0.1f, 5.f, cam, view, nor, 45.f);
 		//setcv(0.1f, 6.f, VGet(1, 3, 6), VGet(1, 1, 0), VGet(0, 1, 0), 45.f);
 
-
+		setcv(0.1f, 5.f, cam, view, nor, 45.f);
+		/*
 		setcv(0.1f, 6.f,
 		    obj.frame(3 + 1) + (nor * (obj.frame(3 + 1) - obj.frame(3))).Norm().Scale(-0.5f),
 		    obj.frame(3) + (nor * (obj.frame(3 + 1) - obj.frame(3))).Norm().Scale(-0.5f),
 		    nor, 45.f * 2);
-
+		//*/
 
 		SetShadowMapLightDirection(shadow, VGet(0.4f * cos(yrad + deg2rad(35)), -0.8f, 0.4f * sin(yrad + deg2rad(35))));
 		SetShadowMapDrawArea(shadow, VGet(-5.f, -5.f, -5.f), VGet(5.f, 5.f, 5.f));
@@ -1465,30 +1466,18 @@ bool UIS::draw_title(void) {
 		SetUseShadowMap(0, -1);
 
 		font72.DrawString(x_r(36), y_r(36), "Tank Flanker", c_ffffff);
-		font18.DrawString(x_r(960) - font18.GetDrawWidth("PRESS SPACE or CLICK") / 2, y_r(768), "PRESS SPACE or CLICK", m);
+		font18.DrawString(x_r(960) - font18.GetDrawWidth("CLICK") / 2, y_r(768), "CLICK", m);
 		ScreenFlip();
 		if (CheckHitKey(KEY_INPUT_ESCAPE) != 0) {
 			m = c_ffffff;
 			break;
 		}
-		if (CheckHitKey(KEY_INPUT_SPACE) != 0)
-			break;
 		if (m == c_ff0000)
 			break;
 		while (GetNowHiPerformanceCount() - waits < 1000000.0f / 60.f) {}
 	}
 	SetFogEnable(FALSE);
-	const auto c_000000 = GetColor(0, 0, 0);
-	float unt = 0;
-	while (ProcessMessage() == 0 && unt <= 0.9f) {
-		const auto waits = GetNowHiPerformanceCount();
-		SetDrawScreen(DX_SCREEN_BACK);
-		SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(255.f * unt));
-		DrawBox(0, 0, dispx, dispy, c_000000, TRUE);
-		differential(unt, 1.f, 0.05f);
-		ScreenFlip();
-		while (GetNowHiPerformanceCount() - waits < 1000000.0f / 60.f) {}
-	}
+	draw_black();
 	if (!RemoveFontResourceEx(font_path, FR_PRIVATE, NULL))
 		MessageBox(NULL, "remove failure", "", MB_OK);
 	return (m == c_ff0000);
@@ -1551,81 +1540,82 @@ void UIS::draw_ui(uint8_t selfammo[], float y_v, int font) {
 	DrawBox(0, 0, dispx, dispy, GetColor(255, 255, 255), TRUE);
 	recs *= 0.925f;
 	//recs *= pow(0.925f, frate / fps);
-	/*弾*/
-	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
-	if (pplayer->Gun[0].loadcnt > 0) {
-		DrawRotaGraph(x_r(2112 - (int)(384 * pplayer->Gun[0].loadcnt / pplayer->ptr->gun_[0].reloadtime)), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[pplayer->ammotype].get(), TRUE);
-		SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(128.0f * pow(1.0f - (float)pplayer->Gun[0].loadcnt / (float)pplayer->ptr->gun_[0].reloadtime, 10)));
-		if (selfammo[0] == 0 && selfammo[1] == 0) {
-			DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[3].get(), TRUE);
+	if (pplayer->HP[0] > 0) {
+		/*弾*/
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
+		if (pplayer->Gun[0].loadcnt > 0) {
+			DrawRotaGraph(x_r(2112 - (int)(384 * pplayer->Gun[0].loadcnt / pplayer->ptr->gun_[0].reloadtime)), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[pplayer->ammotype].get(), TRUE);
+			SetDrawBlendMode(DX_BLENDMODE_ALPHA, (int)(128.0f * pow(1.0f - (float)pplayer->Gun[0].loadcnt / (float)pplayer->ptr->gun_[0].reloadtime, 10)));
+			if (selfammo[0] == 0 && selfammo[1] == 0) {
+				DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[3].get(), TRUE);
+			}
+			else {
+				if (selfammo[0] > 0)
+					DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[(pplayer->ammotype - 1 == -1) ? 2 : pplayer->ammotype - 1].get(), TRUE);
+				else if (selfammo[1] > 0)
+					DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[(pplayer->ammotype + 1 == 3) ? 0 : pplayer->ammotype + 1].get(), TRUE);
+			}
 		}
-		else {
-			if (selfammo[0] > 0)
-				DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[(pplayer->ammotype - 1 == -1) ? 2 : pplayer->ammotype - 1].get(), TRUE);
-			else if (selfammo[1] > 0)
-				DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[(pplayer->ammotype + 1 == 3) ? 0 : pplayer->ammotype + 1].get(), TRUE);
-		}
-	}
 
-	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
-	if (pplayer->Gun[0].loadcnt == 0)
-		DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[pplayer->ammotype].get(), TRUE);
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 128);
+		if (pplayer->Gun[0].loadcnt == 0)
+			DrawRotaGraph(x_r(1536), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[pplayer->ammotype].get(), TRUE);
 
-	for (int i = 0; i < 3; i++) {
-		float tp = float((i - pplayer->ammotype >= 0) ? (i - pplayer->ammotype) : (i - pplayer->ammotype + 3));
-		differential(reload_mov[i], 32.f * tp, 0.1f);
-		if (i - pplayer->ammotype == 0)
-			DrawRotaGraph(x_r(1728 - (int)(192 * pplayer->Gun[0].loadcnt / pplayer->ptr->gun_[0].reloadtime)), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[i].get(), TRUE);
-		else
-			DrawRotaGraph(x_r(1728 + reload_mov[i]), y_r(64 + 2 * reload_mov[i]), (double)x_r(40) / 40.0, 0.0, ui_reload[i].get(), TRUE);
-		DrawFormatStringToHandle(x_r(1728 + reload_mov[i]), y_r(64 + 2 * reload_mov[i]), GetColor(255, 255, 255), font, "[x%d]", pplayer->setammo[i]);
-	}
-
-	//DrawFormatStringToHandle(x_r(960), y_r(540), GetColor(255, 255, 255), font, "[x%d]", pplayer->ammotype);
-
-
-	/*速度計*/
-	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-	DrawExtendGraph(x_r(0), y_r(888), x_r(192), y_r(1080), UI_main[pplayer->ptr->countryc].ui_sight[3].get(), TRUE);
-	DrawRotaGraph(x_r(96), y_r(984), x_r(192) / 152, deg2rad(120.0f * pplayer->spd / pplayer->ptr->speed_flont[3] - 60.f), UI_main[pplayer->ptr->countryc].ui_sight[4].get(), TRUE);
-
-	SetDrawArea(x_r(192), y_r(892), x_r(192 + 40), y_r(892 + 54));
-	DrawRotaGraph(x_r(192 + 40 / 2), y_r(892 + 54 / 2 + (int)(54.0f * gearf)), (double)x_r(40) / 40.0, 0.f, UI_main[pplayer->ptr->countryc].ui_sight[5].get(), TRUE);
-	SetDrawArea(x_r(0), y_r(0), x_r(1920), y_r(1080));
-
-	DrawExtendGraph(x_r(192), y_r(892 - 4), x_r(232), y_r(950), UI_main[pplayer->ptr->countryc].ui_sight[6].get(), TRUE);
-	differential(gearf, (float)pplayer->gear, 0.1f);
-
-
-
-	DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, double(-y_v), ui_compass.get(), TRUE);
-
-	for (size_t i = 0; i < UI_body.size(); ++i) {
-		if (i >= 1 && i <= 2) {
-			const auto pers = 1.f - (float)pplayer->HP[4 + i] / 100.f;
-			if (pers <= 0.2f)
-				SetDrawBright(50, 50, 255);
+		for (int i = 0; i < 3; i++) {
+			float tp = float((i - pplayer->ammotype >= 0) ? (i - pplayer->ammotype) : (i - pplayer->ammotype + 3));
+			differential(reload_mov[i], 32.f * tp, 0.1f);
+			if (i - pplayer->ammotype == 0)
+				DrawRotaGraph(x_r(1728 - (int)(192 * pplayer->Gun[0].loadcnt / pplayer->ptr->gun_[0].reloadtime)), y_r(64), (double)x_r(40) / 40.0, 0.0, ui_reload[i].get(), TRUE);
 			else
-				SetDrawBright((int)(255.f * sin(pers * DX_PI_F / 2)), (int)(255.f * cos(pers * DX_PI_F / 2)), 0);
+				DrawRotaGraph(x_r(1728 + reload_mov[i]), y_r(64 + 2 * reload_mov[i]), (double)x_r(40) / 40.0, 0.0, ui_reload[i].get(), TRUE);
+			DrawFormatStringToHandle(x_r(1728 + reload_mov[i]), y_r(64 + 2 * reload_mov[i]), GetColor(255, 255, 255), font, "[x%d]", pplayer->setammo[i]);
 		}
-		else
-			SetDrawBright(255, 255, 255);
-		DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, double(-y_v - pplayer->yrad), UI_body[i].get(), TRUE);
-	}
-	for (int i = 0; i < UI_turret.size(); ++i) {
-		if (i == 0) {
-			const auto pers = 1.f - (float)pplayer->HP[4 + i] / 100.f;
-			if (pers <= 0.2f)
-				SetDrawBright(50, 50, 255);
-			else
-				SetDrawBright((int)(255.f * sin(pers * DX_PI_F / 2)), (int)(255.f * cos(pers * DX_PI_F / 2)), 0);
-		}
-		else
-			SetDrawBright(255, 255, 255);
-		DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, double(-y_v - pplayer->yrad + pplayer->gunrad.x()), UI_turret[i].get(), TRUE);
-	}
-	DrawFormatStringToHandle(x_r(0), y_r(1080 - 200), GetColor(255, 255, 255), font, "[LIFE : %d]", pplayer->HP[0]);
 
+		//DrawFormatStringToHandle(x_r(960), y_r(540), GetColor(255, 255, 255), font, "[x%d]", pplayer->ammotype);
+
+
+		/*速度計*/
+		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+		DrawExtendGraph(x_r(0), y_r(888), x_r(192), y_r(1080), UI_main[pplayer->ptr->countryc].ui_sight[3].get(), TRUE);
+		DrawRotaGraph(x_r(96), y_r(984), x_r(192) / 152, deg2rad(120.0f * pplayer->spd / pplayer->ptr->speed_flont[3] - 60.f), UI_main[pplayer->ptr->countryc].ui_sight[4].get(), TRUE);
+
+		SetDrawArea(x_r(192), y_r(892), x_r(192 + 40), y_r(892 + 54));
+		DrawRotaGraph(x_r(192 + 40 / 2), y_r(892 + 54 / 2 + (int)(54.0f * gearf)), (double)x_r(40) / 40.0, 0.f, UI_main[pplayer->ptr->countryc].ui_sight[5].get(), TRUE);
+		SetDrawArea(x_r(0), y_r(0), x_r(1920), y_r(1080));
+
+		DrawExtendGraph(x_r(192), y_r(892 - 4), x_r(232), y_r(950), UI_main[pplayer->ptr->countryc].ui_sight[6].get(), TRUE);
+		differential(gearf, (float)pplayer->gear, 0.1f);
+
+
+
+		DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, double(-y_v), ui_compass.get(), TRUE);
+
+		for (size_t i = 0; i < UI_body.size(); ++i) {
+			if (i >= 1 && i <= 2) {
+				const auto pers = 1.f - (float)pplayer->HP[4 + i] / 100.f;
+				if (pers <= 0.2f)
+					SetDrawBright(50, 50, 255);
+				else
+					SetDrawBright((int)(255.f * sin(pers * DX_PI_F / 2)), (int)(255.f * cos(pers * DX_PI_F / 2)), 0);
+			}
+			else
+				SetDrawBright(255, 255, 255);
+			DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, double(-y_v - pplayer->yrad), UI_body[i].get(), TRUE);
+		}
+		for (int i = 0; i < UI_turret.size(); ++i) {
+			if (i == 0) {
+				const auto pers = 1.f - (float)pplayer->HP[4 + i] / 100.f;
+				if (pers <= 0.2f)
+					SetDrawBright(50, 50, 255);
+				else
+					SetDrawBright((int)(255.f * sin(pers * DX_PI_F / 2)), (int)(255.f * cos(pers * DX_PI_F / 2)), 0);
+			}
+			else
+				SetDrawBright(255, 255, 255);
+			DrawRotaGraph(x_r(392), y_r(980), (double)x_r(40) / 40.0, double(-y_v - pplayer->yrad + pplayer->gunrad.x()), UI_turret[i].get(), TRUE);
+		}
+		DrawFormatStringToHandle(x_r(0), y_r(1080 - 200), GetColor(255, 255, 255), font, "[LIFE : %d]", pplayer->HP[0]);
+	}
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, std::min<int>(int(hits * 256.0f), 255));
 	DrawExtendGraph(0, 0, dispx, dispy, ui_damagepic.get(), TRUE);
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
@@ -1700,8 +1690,9 @@ void getdist(VECTOR_ref& startpos, VECTOR_ref vec, float& dist, float& getdists,
 void gethitdist(std::vector<players>& tgts, VECTOR_ref startpos, VECTOR_ref vec, float& dist, float speed, float fps, int mapobj) {
 	speed /= fps;
 	bool is_hit = false;
-	float distance = 0.f;
-	while (distance < 2000.f && speed > 0.f) {
+	int cnts = 0;
+	auto endpos = startpos;
+	while (speed > 0.f) {
 		const auto repos = startpos;
 		startpos += vec.Scale(speed);
 		const auto hit = MV1CollCheck_Line(mapobj, 0, repos.get(), startpos.get());
@@ -1719,7 +1710,7 @@ void gethitdist(std::vector<players>& tgts, VECTOR_ref startpos, VECTOR_ref vec,
 				continue;
 			for (int colmesh = 0; colmesh < t.ptr->colmodel.mesh_num(); ++colmesh) {
 				const auto hit2 = MV1CollCheck_Line(t.colobj.get(), -1, repos.get(), startpos.get(), colmesh);
-				if (hit2.HitFlag == 2) {
+				if (hit2.HitFlag) {
 					startpos = hit2.HitPosition;
 					is_hit = true;
 					break;
@@ -1729,7 +1720,7 @@ void gethitdist(std::vector<players>& tgts, VECTOR_ref startpos, VECTOR_ref vec,
 				break;
 		}
 		//
-		distance += (startpos - repos).size();
+		cnts++;
 		if (hit.HitFlag || is_hit) {
 			break;
 		}
@@ -1737,7 +1728,9 @@ void gethitdist(std::vector<players>& tgts, VECTOR_ref startpos, VECTOR_ref vec,
 		speed -= 5.f / fps;
 		vec = VGet(vec.x(), vec.y() + m_ac(fps), vec.z());
 	}
-	differential(dist, distance, 0.5f);
+
+	//distance = (startpos - endpos).size();
+	differential(dist, cnts / (fps / 1000.f), 0.1f);
 }
 //
 void set_effect(EffectS* efh, VECTOR_ref pos, VECTOR_ref nor) {
@@ -1977,6 +1970,8 @@ void SOLDIERS::set_soldier(const uint8_t type, const VECTOR_ref position, const 
 	}
 }
 void SOLDIERS::set_soldier_vol(unsigned char size) {
+	size = 0;
+	//ChangeVolumeSoundMem(size, -1);
 }
 void SOLDIERS::set_soldiermove(int map, std::vector<players>& play) {
 	//CPU
