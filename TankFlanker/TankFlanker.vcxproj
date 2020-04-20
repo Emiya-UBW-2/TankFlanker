@@ -166,6 +166,7 @@
   <ItemGroup>
     <ClCompile Include="define.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="make_thread.cpp" />
     <ClCompile Include="useful.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -174,6 +175,7 @@
     <ClInclude Include="EffekseerEffectHandle.hpp" />
     <ClInclude Include="FontHandle.hpp" />
     <ClInclude Include="GraphHandle.hpp" />
+    <ClInclude Include="make_thread.hpp" />
     <ClInclude Include="MV1ModelHandle.hpp" />
     <ClInclude Include="SoundHandle.hpp" />
     <ClInclude Include="useful.h" />

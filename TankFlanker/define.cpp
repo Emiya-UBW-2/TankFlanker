@@ -499,7 +499,8 @@ void Myclass::set_view_r(int wheel, bool life) {
 void Myclass::Screen_Flip(LONGLONG waits) {
 	ScreenFlip();
 	if (!YSync) {
-		do { } while (GetNowHiPerformanceCount() - waits < 1000000.0f / f_rate); }
+		while (GetNowHiPerformanceCount() - waits < 1000000.0f / f_rate){}
+	}
 }
 Myclass::~Myclass() {
 	Effkseer_End();

@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<BoneTemplate2>
+    <Bone id="1" name="bone1" pos="0,0,0" color="25a85e"/>
+    <Bone id="2" name="turret" parent="1" pos="1.90734863e-06,1.73708165,0.00793740153" hide="1" color="822c2f"/>
+    <Bone id="3" name="gun1" pos="-0.0409652591,2.11719847,0.860065103" color="62bcf6"/>
+    <Bone id="4" name="gun2" parent="3" pos="-0.0409652591,2.11719847,2.92012787" hide="1" color="8b3c2e"/>
+    <Bone id="5" name="hutch" pos="0.450070381,1.78294849,1.51930904" dummy="1" hide="1" movable="1" color="6372e6"/>
+    <Bone id="6" name="turrets" pos="-0.521251261,1.63999999,-0.360906243" dummy="1" hide="1" movable="1" color="6426b0"/>
+    <Bone id="7" name="flug" pos="0.306804895,2.46482658,-1.14378977" dummy="1" hide="1" movable="1" color="04a4a7"/>
+    <Bone id="8" name="engine" pos="-0.032772243,1.53594589,-2.00379181" dummy="1" hide="1" movable="1" color="319e90"/>
+    <Bone id="9" name="bone10" pos="1.29356182,0,2.02923703" color="579705"/>
+    <Bone id="10" name="bone12" pos="1.28700745,0,1.17558825" color="55ba7a"/>
+    <Bone id="11" name="bone14" pos="1.28689945,0,0.473030865" color="982c9a"/>
+    <Bone id="12" name="bone16" pos="1.29732215,0,-0.355936408" color="036f86"/>
+    <Bone id="13" name="bone18" pos="1.26844382,0,-1.02791929" color="825506"/>
+    <Bone id="14" name="bone20" pos="1.28667676,0,-1.89526558" color="3b6d88"/>
+    <Bone id="15" name="bone10_Mirror" pos="-1.29356182,0,2.02923703" color="5ca2c5"/>
+    <Bone id="16" name="bone12_Mirror" pos="-1.28700745,0,1.17558825" color="20ad87"/>
+    <Bone id="17" name="bone14_Mirror" pos="-1.28689945,0,0.473030865" color="c8773d"/>
+    <Bone id="18" name="bone16_Mirror" pos="-1.29732215,0,-0.355936408" color="26fb13"/>
+    <Bone id="19" name="bone18_Mirror" pos="-1.26844382,0,-1.02791929" color="fc0aba"/>
+    <Bone id="20" name="bone20_Mirror" pos="-1.28667676,0,-1.89526558" color="2c8aa0"/>
+    <Bone id="21" name="bone40" pos="1.29217911,0.725435615,2.45076323" hide="1" color="bc5e35"/>
+    <Bone id="22" name="bone41" pos="1.29277062,0.705575049,-2.45306253" hide="1" color="5c951b"/>
+    <Bone id="23" name="bone40_Mirror" pos="-1.29217911,0.725435615,2.45076323" hide="1" color="4fb1c9"/>
+    <Bone id="24" name="bone41_Mirror" pos="-1.29277062,0.705575049,-2.45306253" hide="1" color="541abb"/>
+    <Bone id="25" name="bone9" parent="9" pos="1.2913599,0.308369994,2.02988005" hide="1" color="66f593"/>
+    <Bone id="26" name="bone11" parent="10" pos="1.29591846,0.306173205,1.17342734" hide="1" color="820317"/>
+    <Bone id="27" name="bone13" parent="11" pos="1.30093479,0.305869669,0.472745001" hide="1" color="2e8467"/>
+    <Bone id="28" name="bone15" parent="12" pos="1.30540371,0.306494713,-0.357490212" hide="1" color="670c85"/>
+    <Bone id="29" name="bone17" parent="13" pos="1.3092308,0.303690732,-1.03009772" hide="1" color="d81622"/>
+    <Bone id="30" name="bone19" parent="14" pos="1.31315994,0.304601699,-1.89905179" hide="1" color="e52f82"/>
+    <Bone id="31" name="bone9_Mirror" parent="15" pos="-1.2913599,0.308369994,2.02988005" hide="1" color="270981"/>
+    <Bone id="32" name="bone11_Mirror" parent="16" pos="-1.29591846,0.306173205,1.17342734" hide="1" color="0133e0"/>
+    <Bone id="33" name="bone13_Mirror" parent="17" pos="-1.30093479,0.305869669,0.472745001" hide="1" color="7cf66c"/>
+    <Bone id="34" name="bone15_Mirror" parent="18" pos="-1.30540371,0.306494713,-0.357490212" hide="1" color="90186c"/>
+    <Bone id="35" name="bone17_Mirror" parent="19" pos="-1.3092308,0.303690732,-1.03009772" hide="1" color="e76ad7"/>
+    <Bone id="36" name="bone19_Mirror" parent="20" pos="-1.31315994,0.304601699,-1.89905179" hide="1" color="7c48c1"/>
+</BoneTemplate2>
