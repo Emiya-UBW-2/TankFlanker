@@ -62,9 +62,6 @@ public:
 
 	virtual bool OnDistorting() { return false; }
 };
-//-----------------------------------------------------------------------------------
-//
-//-----------------------------------------------------------------------------------
 
 /**
 	@brief	
@@ -77,8 +74,52 @@ enum class UVStyle
 	VerticalFlipped,
 };
 
+/**
+	@brief
+	\~english A type of texture which is rendered when textures are not assigned.
+	\~japanese テクスチャが設定されていないときに描画されるテクスチャの種類
+*/
+enum class ProxyTextureType
+{
+	White,
+	Normal,
+};
+
+/**
+	@brief
+	\~english A class which contains a graphics device
+	\~japanese グラフィックデバイスを格納しているクラス
+*/
+class GraphicsDevice : public ::Effekseer::IReference
+{
+public:
+	GraphicsDevice() = default;
+	virtual ~GraphicsDevice() = default;
+};	
+	
+class CommandList : public ::Effekseer::IReference
+{
+public:
+	CommandList() = default;
+	virtual ~CommandList() = default;
+};
+
+class SingleFrameMemoryPool : public ::Effekseer::IReference
+{
+public:
+	SingleFrameMemoryPool() = default;
+	virtual ~SingleFrameMemoryPool() = default;
+
+	/**
+		@brief
+		\~English	notify that new frame is started.
+		\~Japanese	新規フレームが始ったことを通知する。
+	*/
+	virtual void NewFrame() {}
+};
+
 class Renderer
-	: ::Effekseer::IReference
+	: public ::Effekseer::IReference
 {
 protected:
 	Renderer();
@@ -88,6 +129,12 @@ protected:
 	Impl* impl = nullptr;
 
 public:
+
+	/**
+		@brief	only for Effekseer backend developer. Effekseer User doesn't need it.
+	*/
+	Impl* GetImpl();
+
 	/**
 		@brief	デバイスロストが発生した時に実行する。
 	*/
@@ -119,82 +166,87 @@ public:
 	virtual bool EndRendering() = 0;
 
 	/**
-		@brief	ライトの方向を取得する。
+		@brief	Get the direction of light
 	*/
-	virtual const ::Effekseer::Vector3D& GetLightDirection() const = 0;
+	virtual ::Effekseer::Vector3D GetLightDirection() const;
 
 	/**
-		@brief	ライトの方向を設定する。
+		@brief	Specifiy the direction of light
 	*/
-	virtual void SetLightDirection( const ::Effekseer::Vector3D& direction ) = 0;
+	virtual void SetLightDirection(const ::Effekseer::Vector3D& direction);
 
 	/**
-		@brief	ライトの色を取得する。
+		@brief	Get the color of light
 	*/
-	virtual const ::Effekseer::Color& GetLightColor() const = 0;
+	virtual const ::Effekseer::Color& GetLightColor() const;
 
 	/**
-		@brief	ライトの色を設定する。
+		@brief	Specify the color of light
 	*/
-	virtual void SetLightColor( const ::Effekseer::Color& color ) = 0;
+	virtual void SetLightColor(const ::Effekseer::Color& color);
 
 	/**
-		@brief	ライトの環境光の色を取得する。
+		@brief	Get the color of ambient
 	*/
-	virtual const ::Effekseer::Color& GetLightAmbientColor() const = 0;
+	virtual const ::Effekseer::Color& GetLightAmbientColor() const;
 
 	/**
-		@brief	ライトの環境光の色を設定する。
+		@brief	Specify the color of ambient
 	*/
-	virtual void SetLightAmbientColor( const ::Effekseer::Color& color ) = 0;
+	virtual void SetLightAmbientColor(const ::Effekseer::Color& color);
 
-		/**
+	/**
 		@brief	最大描画スプライト数を取得する。
 	*/
 	virtual int32_t GetSquareMaxCount() const = 0;
 
 	/**
-		@brief	投影行列を取得する。
+		@brief	Get a projection matrix
 	*/
-	virtual const ::Effekseer::Matrix44& GetProjectionMatrix() const = 0;
+	virtual ::Effekseer::Matrix44 GetProjectionMatrix() const;
 
 	/**
-		@brief	投影行列を設定する。
+		@brief	Set a projection matrix
 	*/
-	virtual void SetProjectionMatrix( const ::Effekseer::Matrix44& mat ) = 0;
+	virtual void SetProjectionMatrix( const ::Effekseer::Matrix44& mat );
 
 	/**
-		@brief	カメラ行列を取得する。
+		@brief	Get a camera matrix
 	*/
-	virtual const ::Effekseer::Matrix44& GetCameraMatrix() const = 0;
+	virtual ::Effekseer::Matrix44 GetCameraMatrix() const;
 
 	/**
-		@brief	カメラ行列を設定する。
+		@brief	Set a camera matrix
 	*/
-	virtual void SetCameraMatrix( const ::Effekseer::Matrix44& mat ) = 0;
+	virtual void SetCameraMatrix( const ::Effekseer::Matrix44& mat );
 
 	/**
-		@brief	カメラプロジェクション行列を取得する。
+		@brief	Get a camera projection matrix
 	*/
-	virtual ::Effekseer::Matrix44& GetCameraProjectionMatrix() = 0;
+	virtual ::Effekseer::Matrix44 GetCameraProjectionMatrix() const;
 
 	/**
 		@brief	Get a front direction of camera
+		@note
+		We don't recommend to use it without understanding of internal code.
 	*/
-	virtual ::Effekseer::Vector3D GetCameraFrontDirection() const = 0;
+	virtual ::Effekseer::Vector3D GetCameraFrontDirection() const;
 
 	/**
 		@brief	Get a position of camera
+		@note
+		We don't recommend to use it without understanding of internal code.
 	*/
-	virtual ::Effekseer::Vector3D GetCameraPosition() const = 0;
+	virtual ::Effekseer::Vector3D GetCameraPosition() const;
 
 	/**
 		@brief	Set a front direction and position of camera manually
+		@param front (Right Hand) a direction from focus to eye, (Left Hand) a direction from eye to focus, 
 		@note
 		These are set based on camera matrix automatically.
 		It is failed on some platform.
 	*/
-	virtual void SetCameraParameter(const ::Effekseer::Vector3D& front, const ::Effekseer::Vector3D& position) = 0;
+	virtual void SetCameraParameter(const ::Effekseer::Vector3D& front, const ::Effekseer::Vector3D& position);
 
 	/**
 		@brief	スプライトレンダラーを生成する。
@@ -232,6 +284,14 @@ public:
 	virtual ::Effekseer::ModelLoader* CreateModelLoader( ::Effekseer::FileInterface* fileInterface = NULL ) = 0;
 
 	/**
+	@brief	
+	\~english Create default material loader
+	\~japanese 標準のマテリアル読込クラスを生成する。
+
+	*/
+	virtual ::Effekseer::MaterialLoader* CreateMaterialLoader(::Effekseer::FileInterface* fileInterface = nullptr) = 0;
+
+	/**
 		@brief	レンダーステートを強制的にリセットする。
 	*/
 	virtual void ResetRenderState() = 0;
@@ -251,66 +311,115 @@ public:
 	\~english Get draw call count
 	\~japanese ドローコールの回数を取得する
 	*/
-	virtual int32_t GetDrawCallCount() const = 0;
+	virtual int32_t GetDrawCallCount() const;
 
 	/**
 	@brief
 	\~english Get the number of vertex drawn
 	\~japanese 描画された頂点数をリセットする
 	*/
-	virtual int32_t GetDrawVertexCount() const = 0;
+	virtual int32_t GetDrawVertexCount() const;
 
 	/**
 	@brief
 	\~english Reset draw call count
 	\~japanese ドローコールの回数をリセットする
 	*/
-	virtual void ResetDrawCallCount() = 0;
+	virtual void ResetDrawCallCount();
 
 	/**
 	@brief
 	\~english Reset the number of vertex drawn
 	\~japanese 描画された頂点数をリセットする
 	*/
-	virtual void ResetDrawVertexCount() = 0;
+	virtual void ResetDrawVertexCount();
 
 	/**
-	@brief	描画モードを設定する。
+	@brief
+	\~english Get a render mode.
+	\~japanese 描画モードを取得する。
 	*/
-	virtual void SetRenderMode( Effekseer::RenderMode renderMode ) = 0;
+	virtual Effekseer::RenderMode GetRenderMode() const;
 
 	/**
-	@brief	描画モードを取得する。
+	@brief	
+	\~english Specify a render mode.
+	\~japanese 描画モードを設定する。
 	*/
-	virtual Effekseer::RenderMode GetRenderMode() = 0;
+	virtual void SetRenderMode(Effekseer::RenderMode renderMode);
 
 	/**
 	@brief
 	\~english Get an UV Style of texture when particles are rendered.
 	\~japanese パーティクルを描画するときのUVの状態を取得する。
 	*/
-	UVStyle GetTextureUVStyle() const;
+	virtual UVStyle GetTextureUVStyle() const;
 
 	/**
 	@brief
 	\~english Set an UV Style of texture when particles are rendered.
 	\~japanese パーティクルを描画するときのUVの状態を設定する。
 	*/
-	void SetTextureUVStyle(UVStyle style);
+	virtual void SetTextureUVStyle(UVStyle style);
 
 	/**
 	@brief
 	\~english Get an UV Style of background when particles are rendered.
 	\~japanese パーティクルを描画するときの背景のUVの状態を取得する。
 	*/
-	UVStyle GetBackgroundTextureUVStyle() const;
+	virtual UVStyle GetBackgroundTextureUVStyle() const;
 
 	/**
 	@brief
 	\~english Set an UV Style of background when particles are rendered.
 	\~japanese パーティクルを描画するときの背景のUVの状態を設定する。
 	*/
-	void SetBackgroundTextureUVStyle(UVStyle style);
+	virtual void SetBackgroundTextureUVStyle(UVStyle style);
+
+	/**
+	@brief
+	\~english Get a current time (s)
+	\~japanese 現在の時間を取得する。(秒)
+	*/
+	virtual float GetTime() const;
+
+	/**
+	@brief
+	\~english Set a current time (s)
+	\~japanese 現在の時間を設定する。(秒)
+	*/
+	virtual void SetTime(float time);
+
+	/**
+	@brief
+	\~English	specify a command list to render.  This function is available except DirectX9, DirectX11 and OpenGL.
+	\~Japanese	描画に使用するコマンドリストを設定する。この関数はDirectX9、DirectX11、OpenGL以外で使用できる。
+	*/
+	virtual void SetCommandList(CommandList* commandList) {}
+
+	/**
+	@brief
+	\~English	Specify a background texture.
+	\~Japanese	背景のテクスチャを設定する。
+	@note
+	\~English	Specified texture is not deleted by the renderer. This function is available except DirectX9, DirectX11.
+	\~Japanese	設定されたテクスチャはレンダラーによって削除されない。この関数はDirectX9、DirectX11以外で使用できる。
+	*/
+	virtual void SetBackgroundTexture(::Effekseer::TextureData* textureData);
+
+	/**
+	@brief
+	\~English	Create a proxy texture
+	\~Japanese	代替のテクスチャを生成する
+	*/
+	virtual Effekseer::TextureData* CreateProxyTexture(ProxyTextureType type) { return nullptr; }
+
+	/**
+	@brief
+	\~English	Delete a proxy texture
+	\~Japanese	代替のテクスチャを削除する
+	*/
+	virtual void DeleteProxyTexture(Effekseer::TextureData* data) { }
 };
 
 //----------------------------------------------------------------------------------
@@ -341,7 +450,10 @@ namespace EffekseerRendererDX11
 /**
 @brief	テクスチャ読込クラスを生成する。
 */
-::Effekseer::TextureLoader* CreateTextureLoader(ID3D11Device* device, ID3D11DeviceContext* context, ::Effekseer::FileInterface* fileInterface = NULL);
+::Effekseer::TextureLoader* CreateTextureLoader(ID3D11Device* device,
+												ID3D11DeviceContext* context,
+												::Effekseer::FileInterface* fileInterface = nullptr,
+												::Effekseer::ColorSpaceType colorSpaceType = ::Effekseer::ColorSpaceType::Gamma);
 
 /**
 @brief	モデル読込クラスを生成する。
@@ -366,13 +478,15 @@ public:
 		@param	context		DirectXのコンテキスト
 		@param	squareMaxCount	最大描画スプライト数
 		@param	depthFunc	奥行きの計算方法
+		@param	isMSAAEnabled whether is MSAA enabled 
 		@return	インスタンス
 	*/
 	static Renderer* Create(
 		ID3D11Device* device, 
 		ID3D11DeviceContext* context, 
 		int32_t squareMaxCount, 
-		D3D11_COMPARISON_FUNC depthFunc = D3D11_COMPARISON_LESS);
+		D3D11_COMPARISON_FUNC depthFunc = D3D11_COMPARISON_LESS_EQUAL,
+		bool isMSAAEnabled = false);
 
 	virtual ID3D11Device* GetDevice() = 0;
 
